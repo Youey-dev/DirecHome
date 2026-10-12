@@ -1,0 +1,483 @@
+import React, { useState } from 'react';
+import { 
+  Building2, 
+  Heart, 
+  UserCheck, 
+  ShieldCheck, 
+  Menu, 
+  X, 
+  PlusCircle, 
+  Compass, 
+  Calculator,
+  LayoutDashboard,
+  LogOut,
+  ChevronDown,
+  User,
+  MessageSquare
+} from 'lucide-react';
+import { UserProfile } from '../types/listing';
+import { PRESET_USERS, GUEST_USER } from '../lib/storage';
+
+interface HeaderProps {
+  currentTab: string;
+  onNavigate: (tab: string, listingId?: string) => void;
+  activeUser: UserProfile;
+  onSwitchUser: (user: UserProfile) => void;
+  savedCount: number;
+  hasDraft: boolean;
+  onOpenAuth: (mode?: 'signin' | 'signup', role?: 'buyer' | 'seller') => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({
+  currentTab,
+  onNavigate,
+  activeUser,
+  onSwitchUser,
+  savedCount,
+  hasDraft,
+  onOpenAuth
+}) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+
+  const isGuest = activeUser.isGuest || activeUser.role === 'guest' || !activeUser.email;
+
+  const handleNav = (tab: string) => {
+    onNavigate(tab);
+    setMobileMenuOpen(false);
+  };
+
+  const handleSignOut = () => {
+    setUserDropdownOpen(false);
+    onSwitchUser(GUEST_USER);
+    handleNav('browse');
+  };
+
+  return (
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-6">
+        
+        {/* Zone 1: Brand Wordmark */}
+        <button
+          onClick={() => handleNav('landing')}
+          className="flex items-center gap-2 cursor-pointer shrink-0 text-left"
+          aria-label="DirectHome BC Home"
+        >
+          <div className="w-8 h-8 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            <Building2 className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="font-extrabold text-slate-900 text-lg tracking-tight">
+              DirectHome<span className="text-emerald-700">BC</span>
+            </span>
+            <span className="text-[10px] text-slate-400 block -mt-1 font-medium hidden sm:block">
+              Zero Seller Commission
+            </span>
+          </div>
+        </button>
+
+        {/* Zone 2: Navigation Links */}
+        <nav className="hidden lg:flex items-center gap-5 text-sm font-medium text-slate-600">
+          <button
+            onClick={() => handleNav('browse')}
+            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
+              currentTab === 'browse' ? 'text-emerald-700 font-semibold' : ''
+            }`}
+          >
+            Browse Homes
+          </button>
+          
+          <button
+            onClick={() => handleNav('calculator')}
+            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
+              currentTab === 'calculator' ? 'text-emerald-700 font-semibold' : ''
+            }`}
+          >
+            Savings Calculator
+          </button>
+
+          <button
+            onClick={() => handleNav('how-it-works')}
+            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
+              currentTab === 'how-it-works' ? 'text-emerald-700 font-semibold' : ''
+            }`}
+          >
+            How It Works
+          </button>
+
+          <button
+            onClick={() => handleNav('dashboard')}
+            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
+              currentTab === 'dashboard' ? 'text-emerald-700 font-semibold' : ''
+            }`}
+          >
+            {activeUser.role === 'seller' ? 'Seller Portal' : 'My Portal'}
+          </button>
+
+          <button
+            onClick={() => handleNav('saved')}
+            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 relative flex items-center gap-1.5 ${
+              currentTab === 'saved' ? 'text-emerald-700 font-semibold' : ''
+            }`}
+            aria-label="Saved homes"
+          >
+            <span>Saved</span>
+            {savedCount > 0 && (
+              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-center">
+                {savedCount}
+              </span>
+            )}
+          </button>
+        </nav>
+
+        {/* Zone 3: Auth Controls & Primary Actions */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          
+          {/* Guest State: Explicit Sign In / Create Account buttons */}
+          {isGuest ? (
+            <div className="hidden sm:flex items-center gap-2">
+              <button
+                onClick={() => onOpenAuth('signin')}
+                className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer min-h-[38px]"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => onOpenAuth('signup', 'buyer')}
+                className="px-3.5 py-1.5 text-xs font-bold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer min-h-[38px]"
+              >
+                Create Account
+              </button>
+            </div>
+          ) : (
+            /* Logged-In User Profile Menu */
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-800 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-all border border-slate-200/80 cursor-pointer min-h-[38px]"
+                title="Account Menu & Persona Switcher"
+              >
+                <div className="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  {activeUser.name ? activeUser.name.substring(0, 1).toUpperCase() : 'U'}
+                </div>
+                <div className="text-left hidden sm:block">
+                  <div className="font-bold text-slate-900 max-w-[120px] truncate leading-tight">
+                    {activeUser.name}
+                  </div>
+                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                    {activeUser.role}
+                  </div>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {userDropdownOpen && (
+                <div 
+                  className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2.5 z-50 text-xs"
+                  onMouseLeave={() => setUserDropdownOpen(false)}
+                >
+                  {/* Account Summary Header */}
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <div className="font-bold text-slate-900 text-sm">{activeUser.name}</div>
+                    <div className="text-slate-500 text-[11px] truncate">{activeUser.email}</div>
+                    <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>Verified {activeUser.role === 'seller' ? 'Homeowner' : activeUser.role === 'admin' ? 'Admin' : 'Buyer'}</span>
+                    </div>
+                  </div>
+
+                  {/* Navigation Links inside Dropdown */}
+                  <div className="py-1.5 border-b border-slate-100">
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        handleNav('dashboard');
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-slate-400" />
+                      <span>{activeUser.role === 'seller' ? 'Seller Portal & My Listings' : 'My Inquiries & Appointments'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        handleNav('saved');
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center justify-between cursor-pointer font-medium"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Heart className="w-4 h-4 text-slate-400" />
+                        <span>Saved Homes</span>
+                      </div>
+                      {savedCount > 0 && (
+                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold">
+                          {savedCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Quick Demo Role Switcher (For testing/reviewing) */}
+                  <div className="px-4 pt-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Quick Testing Switcher
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      onSwitchUser(PRESET_USERS.buyer);
+                      setUserDropdownOpen(false);
+                    }}
+                    className={`w-full px-4 py-1.5 text-left flex items-center justify-between hover:bg-slate-50 ${
+                      activeUser.id === PRESET_USERS.buyer.id ? 'bg-emerald-50 text-emerald-900 font-bold' : 'text-slate-600'
+                    }`}
+                  >
+                    <span>Alex Rivera (Buyer)</span>
+                    {activeUser.id === PRESET_USERS.buyer.id && <span className="text-emerald-700">✓</span>}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSwitchUser(PRESET_USERS.seller);
+                      setUserDropdownOpen(false);
+                      handleNav('dashboard');
+                    }}
+                    className={`w-full px-4 py-1.5 text-left flex items-center justify-between hover:bg-slate-50 ${
+                      activeUser.id === PRESET_USERS.seller.id ? 'bg-emerald-50 text-emerald-900 font-bold' : 'text-slate-600'
+                    }`}
+                  >
+                    <span>Sarah Miller (Seller)</span>
+                    {activeUser.id === PRESET_USERS.seller.id && <span className="text-emerald-700">✓</span>}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSwitchUser(PRESET_USERS.admin);
+                      setUserDropdownOpen(false);
+                      handleNav('admin');
+                    }}
+                    className={`w-full px-4 py-1.5 text-left flex items-center justify-between hover:bg-slate-50 ${
+                      activeUser.id === PRESET_USERS.admin.id ? 'bg-emerald-50 text-emerald-900 font-bold' : 'text-slate-600'
+                    }`}
+                  >
+                    <span>BC Verification Officer</span>
+                    {activeUser.id === PRESET_USERS.admin.id && <span className="text-emerald-700">✓</span>}
+                  </button>
+
+                  {/* Sign Out CTA */}
+                  <div className="pt-2 border-t border-slate-100 mt-1 px-2">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full py-1.5 px-3 text-left rounded-lg text-rose-700 hover:bg-rose-50 font-semibold flex items-center gap-2 cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Demo Switcher for Guest */}
+          {isGuest && (
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-colors border border-slate-200 cursor-pointer min-h-[38px]"
+                title="Switch test persona"
+              >
+                <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span className="hidden sm:inline">Demo Personas</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {userDropdownOpen && (
+                <div 
+                  className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 text-xs"
+                  onMouseLeave={() => setUserDropdownOpen(false)}
+                >
+                  <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
+                    Select Test Persona
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      onSwitchUser(PRESET_USERS.buyer);
+                      setUserDropdownOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <div className="font-semibold">Alex Rivera (Buyer)</div>
+                      <div className="text-[10px] text-slate-400">Browsing & requesting viewings</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSwitchUser(PRESET_USERS.seller);
+                      setUserDropdownOpen(false);
+                      handleNav('dashboard');
+                    }}
+                    className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <div className="font-semibold">Sarah Miller (Seller)</div>
+                      <div className="text-[10px] text-slate-400">Willoughby home listing owner</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSwitchUser(PRESET_USERS.admin);
+                      setUserDropdownOpen(false);
+                      handleNav('admin');
+                    }}
+                    className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <div className="font-semibold">BC Verification Officer</div>
+                      <div className="text-[10px] text-slate-400">Title & tax notices queue</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Primary CTA Button: List Your Home */}
+          <button
+            onClick={() => {
+              if (activeUser.role === 'seller' || activeUser.role === 'admin') {
+                handleNav('wizard');
+              } else {
+                onOpenAuth('signup', 'seller');
+              }
+            }}
+            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] rounded-xl transition-all shadow-sm whitespace-nowrap shrink-0 min-h-[40px] cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>{hasDraft ? 'Resume Listing' : 'List Your Home'}</span>
+          </button>
+
+          {/* Mobile Menu Hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-3 shadow-xl animate-fade-in">
+          
+          {/* User Info Bar if logged in */}
+          {!isGuest && (
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-bold text-slate-900">{activeUser.name}</div>
+                <div className="text-xs text-slate-500">{activeUser.email}</div>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+
+          {/* Guest Sign In / Create Account in Mobile Menu */}
+          {isGuest && (
+            <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100">
+              <button
+                onClick={() => { setMobileMenuOpen(false); onOpenAuth('signin'); }}
+                className="py-2.5 px-3 text-center border border-slate-300 text-slate-800 rounded-xl text-xs font-semibold hover:bg-slate-50 min-h-[44px]"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => { setMobileMenuOpen(false); onOpenAuth('signup', 'buyer'); }}
+                className="py-2.5 px-3 text-center bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 min-h-[44px]"
+              >
+                Create Account
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() => handleNav('browse')}
+            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
+          >
+            <Compass className="w-5 h-5 text-slate-400" />
+            <span>Browse Homes (Fraser Valley & Lower Mainland)</span>
+          </button>
+
+          <button
+            onClick={() => handleNav('calculator')}
+            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
+          >
+            <Calculator className="w-5 h-5 text-slate-400" />
+            <span>Commission & Cash-Back Calculator</span>
+          </button>
+
+          <button
+            onClick={() => handleNav('how-it-works')}
+            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
+          >
+            <Building2 className="w-5 h-5 text-slate-400" />
+            <span>How DirectHome Works</span>
+          </button>
+
+          <button
+            onClick={() => handleNav('dashboard')}
+            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
+          >
+            <LayoutDashboard className="w-5 h-5 text-slate-400" />
+            <span>{activeUser.role === 'seller' ? 'Seller Portal' : 'My Inquiries & Messages'}</span>
+          </button>
+
+          <button
+            onClick={() => handleNav('saved')}
+            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center justify-between font-medium min-h-[44px]"
+          >
+            <div className="flex items-center gap-3">
+              <Heart className="w-5 h-5 text-slate-400" />
+              <span>Saved Homes</span>
+            </div>
+            {savedCount > 0 && (
+              <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs font-bold">
+                {savedCount}
+              </span>
+            )}
+          </button>
+
+          <div className="pt-2 border-t border-slate-100">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (activeUser.role === 'seller' || activeUser.role === 'admin') {
+                  handleNav('wizard');
+                } else {
+                  onOpenAuth('signup', 'seller');
+                }
+              }}
+              className="w-full py-3 bg-emerald-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 min-h-[48px]"
+            >
+              <PlusCircle className="w-5 h-5" />
+              <span>{hasDraft ? 'Resume Your Listing' : 'List Your Home for Free'}</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};

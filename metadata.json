@@ -1,0 +1,6 @@
+{
+  "name": "DirectHome BC",
+  "description": "Canada's peer-to-peer home marketplace for the Fraser Valley and Lower Mainland, BC. List your home yourself, save listing commissions, and offer cash-back directly to buyers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
