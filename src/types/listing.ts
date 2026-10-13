@@ -36,7 +36,8 @@ export interface VerificationDocument {
   documentType: 'property_tax_notice' | 'land_title_search' | 'bc_assessment' | 'other';
   status: 'pending' | 'verified' | 'rejected';
   rejectionReason?: string;
-  fileDataUrl?: string;
+  /** Path inside the private storage bucket (never a public URL). */
+  filePath?: string;
 }
 
 export interface ViewingRequest {
@@ -64,6 +65,7 @@ export interface Message {
 
 export interface ConversationThread {
   id: string;
+  buyerId: string;
   listingId: string;
   listingTitle: string;
   listingCoverUrl: string;
@@ -97,12 +99,17 @@ export interface Listing {
   updatedAt: string;
 
   // Address
-  streetAddress: string;
+  // Exact address fields are ONLY present for the owner, admins, and buyers whose
+  // viewing request was confirmed (enforced by database security rules).
+  streetAddress?: string;
   unitNumber?: string;
+  postalCode?: string;
   city: string;
   province: 'BC';
-  postalCode: string;
+  /** First three characters of the postal code (e.g. "V2Y") — safe to show publicly. */
+  postalFsa?: string;
   neighborhood: string;
+  /** Approximate map position (rounded to ~1 km) for public viewers. */
   lat: number;
   lng: number;
 
@@ -146,6 +153,7 @@ export interface Listing {
 
   // Billing & Subscription Architecture (Future-Ready: Free for MVP Launch)
   subscriptionTier?: 'free_launch' | 'standard_monthly' | 'featured_monthly';
+  billingCycle?: 'free_launch' | 'monthly' | 'annual';
   monthlyFeeCAD?: number; // Always $0 during MVP
   paymentStatus?: 'complimentary_launch' | 'active' | 'past_due' | 'canceled';
   // Terms & Privacy Acceptance (Audit Log)

@@ -17,7 +17,8 @@ import {
   Mail
 } from 'lucide-react';
 import { UserProfile } from '../types/listing';
-import { storage } from '../lib/storage';
+import { db, isGuestUser } from '../lib/db';
+import { useAuth } from '../context/AuthContext';
 
 export type LegalDocTab = 'terms' | 'privacy' | 'rules' | 'cashback' | 'notifications';
 
@@ -32,7 +33,9 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   activeUser,
   onNavigate
 }) => {
+  const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<LegalDocTab>(initialTab);
+  const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletionSuccess, setDeletionSuccess] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -55,41 +58,54 @@ export const LegalPage: React.FC<LegalPageProps> = ({
     setTimeout(() => setPrefSavedMessage(false), 3000);
   };
 
-  const handleExportData = () => {
-    const data = storage.exportUserData(activeUser);
-    const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `DirectHome_Data_Export_${activeUser.id}_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    setExportSuccess(true);
-    setTimeout(() => setExportSuccess(false), 3000);
+  const handleExportData = async () => {
+    if (isGuestUser(activeUser)) {
+      alert('Please sign in to download your data.');
+      return;
+    }
+    try {
+      const data = await db.exportUserData();
+      const jsonStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `DirectHome_Data_Export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 3000);
+    } catch (err: any) {
+      alert(err.message || 'Your data could not be exported. Please try again.');
+    }
   };
 
-  const handleDeleteAccountData = () => {
-    // PIPEDA self-serve data erasure
-    storage.clearDraft();
-    localStorage.removeItem('directhome_saved_ids_v1');
-    localStorage.removeItem('directhome_msg_rate_limits_v1');
-    
-    // Anonymize active user
-    storage.setActiveUser({
-      id: 'deleted-user-' + Date.now(),
-      email: 'deleted@anonymized.ca',
-      name: 'Deleted Account (PIPEDA)',
-      role: 'buyer'
-    });
-
-    setShowDeleteModal(false);
-    setDeletionSuccess(true);
-    setTimeout(() => {
-      onNavigate('landing');
-    }, 2500);
+  const handleDeleteAccountData = async () => {
+    // PIPEDA / BC PIPA self-serve erasure: removes the account, listings, photos, documents, messages and favourites
+    if (isGuestUser(activeUser)) {
+      setShowDeleteModal(false);
+      alert('Please sign in to delete your account.');
+      return;
+    }
+    setDeleting(true);
+    try {
+      await db.deleteAccount();
+      setShowDeleteModal(false);
+      setDeletionSuccess(true);
+      try {
+        await signOut();
+      } catch {
+        /* the account no longer exists; local sign-out is enough */
+      }
+      setTimeout(() => onNavigate('landing'), 2500);
+    } catch (err: any) {
+      setShowDeleteModal(false);
+      alert(err.message || 'Your account could not be deleted. Please contact support.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -597,9 +613,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <button
                 type="button"
                 onClick={handleDeleteAccountData}
-                className="flex-1 py-2.5 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-xs font-semibold min-h-[44px]"
+                disabled={deleting}
+                className="flex-1 py-2.5 bg-rose-700 hover:bg-rose-800 disabled:opacity-60 text-white rounded-xl text-xs font-semibold min-h-[44px]"
               >
-                Confirm PIPEDA Deletion
+                {deleting ? 'Deleting…' : 'Confirm PIPEDA Deletion'}
               </button>
             </div>
           </div>

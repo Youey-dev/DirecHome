@@ -9,18 +9,18 @@
 
 1. **Photo-First Canadian Real Estate Marketplace:**
    - 4:3 cover photo cards with price, beds/baths/sqft, and green cash-back indicator.
-   - Interactive split-screen MapLibre GL map powered by free OpenStreetMap tiles (no paid map keys).
+   - Interactive split-screen MapLibre GL map (OpenStreetMap tiles by default; configure a hosted tile provider for launch).
    - Filter by Lower Mainland & Fraser Valley cities (Langley, Surrey, Abbotsford, Burnaby, Vancouver, etc.), price, beds, property types, and cash-back offers.
 2. **Effortless 7-Step Seller Listing Wizard:**
    - One question group per screen with thin progress bar and always-visible Back/Continue buttons.
    - In-browser photo optimizer using HTML5 Canvas (resizes photos to max 2000px and generates 400px thumbnails).
    - Friendly quality check rejecting blurry/tiny images (< 600px).
-   - Continuous autosave on every keystroke (`localStorage`), allowing sellers to resume instantly.
+   - Autosave of the text fields on the seller's device, so an unfinished listing can be resumed (new photos and documents upload on submit).
 3. **Live BC Commission & Cash-Back Calculator:**
    - Interactive simulator comparing standard BC tiered commission (7% on first $100k + 2.5% on balance + 5% GST).
    - Demonstrates net seller cash kept vs. buyer closing cash-back credit.
 4. **Trust & Private Ownership Verification:**
-   - Sellers upload Property Tax notices or Land Title searches to private encrypted storage.
+   - Sellers upload Property Tax notices or Land Title searches to a private Supabase storage bucket.
    - Admin compliance queue for reviewing title documents and approving listings.
    - Approximate neighborhood privacy radius until the homeowner approves a viewing.
 5. **Direct In-App Messaging & Viewing Scheduler:**
@@ -35,7 +35,8 @@
 
 - **Framework:** React 19 + TypeScript + Vite (SPA)
 - **Styling:** Tailwind CSS with custom design tokens (#0E7C66 brand, #F6F7F9 surface, #E7F6F1 savings tint)
-- **Maps:** MapLibre GL + OpenStreetMap (no paid API key required)
+- **Backend:** Supabase (Postgres with Row Level Security, Auth, Storage)
+- **Maps:** MapLibre GL
 - **Icons & Motion:** Lucide React & Motion
 - **Deploy Target:** Vercel (or any static host)
 - **Database / Backend Target:** Supabase (PostgreSQL, Auth, Storage, Row Level Security)
@@ -98,3 +99,13 @@ The following capabilities are deliberately excluded from this MVP:
 
 ## ⚖️ Legal Notice
 DirectHome BC is an online advertising marketplace and does not operate as a licensed real estate brokerage. DirectHome never negotiates, advises, or represents either party. All property transfers complete through independent British Columbia Notaries Public or conveyancing lawyers.
+
+
+---
+
+## Running and launching
+
+- **Database:** run the three files in `supabase/migrations/` in order (Supabase → SQL Editor).
+- **Settings:** copy `.env.example` values into Vercel (never commit real keys).
+- **Checks:** `npm install`, `npm run lint`, `npm test`, `npm run build`.
+- **Before real users:** follow `docs/TESTING.md` and `LAUNCH_CHECKLIST.md`.

@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Listing, PropertyType } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
-import { MapLibreMap } from '../components/MapLibreMap';
-import { BC_CITIES } from '../data/mockListings';
+import { MapLibreMap } from '../components/LazyMap';
+import { BC_CITIES } from '../data/cities';
 import { 
   Filter, 
   Map as MapIcon, 
@@ -54,7 +54,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const match = 
-            l.streetAddress.toLowerCase().includes(q) ||
+            (l.postalFsa ?? '').toLowerCase().includes(q) ||
             l.city.toLowerCase().includes(q) ||
             l.neighborhood.toLowerCase().includes(q) ||
             l.headline.toLowerCase().includes(q);

@@ -169,3 +169,16 @@ The system is implemented across 9 core entities matching production Supabase Po
   - Essential transactional alerts only (viewing approvals, incoming inquiries, title audit status).
   - Dedicated **Email Preferences & CASL Center** (`/notifications`) with explicit opt-in checkboxes for marketing / digest emails and instant unsubscribe controls.
 - **Privacy & Cookie Consent Banner:** Non-intrusive banner (`CookieConsentBanner`) giving users explicit choice to accept privacy-friendly analytics or keep strictly essential storage.
+
+
+---
+
+## Update 2026-10-12 — moved from demo to real backend
+
+- All data (listings, photos, documents, messages, viewings, favourites, reports) is now stored in Supabase. The old browser-only store and demo/mock content were removed.
+- Roles are read from `public.users`. Only the site owner can create an admin (Supabase SQL Editor). Sign-up can only create buyers or sellers.
+- Exact street addresses live in `listing_private_details` and are only returned to the owner, admins, and buyers with a confirmed viewing. Public map positions are rounded to about 1 km.
+- Sellers cannot approve their own listings; an admin approving the ownership document publishes the listing.
+- Rate limits for messages, viewings and reports are enforced by the database.
+- Simulated behaviour was removed: fake auto-replies, pre-attached ownership documents, fake verification details, simulated emails, and the placeholder bot check.
+- Real page addresses (`/browse`, `/listing/<id>`, …) replace in-memory navigation.

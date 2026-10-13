@@ -2,12 +2,12 @@
  * DirectHome BC — Automated Test Suite Runner
  * Runs unit and integration tests for:
  * 1. BC Real Estate Commission & Cash-Back Calculator
- * 2. Row Level Security (RLS) & Privacy Policies
+ * 2. Input-safety helpers
  * 3. Seller Listing Wizard & Image Processing
  */
 
 import { runCalculatorTests } from './calculator.test';
-import { runRlsPolicyTests } from './rls-policies.test';
+import { runSecurityTests } from './security.test';
 import { runWizardTests } from './wizard.test';
 
 async function main() {
@@ -17,7 +17,7 @@ async function main() {
 
   try {
     runCalculatorTests();
-    runRlsPolicyTests();
+    runSecurityTests();
     await runWizardTests();
 
     console.log('====================================================');

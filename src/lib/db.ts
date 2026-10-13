@@ -1,0 +1,911 @@
+/**
+ * DirectHome BC — data layer (Supabase)
+ *
+ * Replaces the old browser-only localStorage store. Everything a person is allowed
+ * to see is loaded from Supabase into a small in-memory cache that the pages read
+ * synchronously. All writes go to Supabase first and then refresh the cache.
+ *
+ * SECURITY NOTE: this file is a convenience layer, not a security boundary.
+ * The real protection is the Row Level Security + triggers in supabase/migrations
+ * (002_security_hardening.sql). Even if someone edits this code in their browser,
+ * the database still refuses anything they are not allowed to do.
+ */
+import { supabase, PHOTO_BUCKET, DOC_BUCKET } from './supabase';
+import { stripHtml } from './security';
+import type {
+  Listing,
+  ListingReport,
+  ListingStatus,
+  ConversationThread,
+  PhotoItem,
+  PropertyType,
+  UserProfile,
+  VerificationDocument,
+  ViewingRequest,
+} from '../types/listing';
+
+type Row = Record<string, any>;
+
+export const TERMS_VERSION = '2026-v1.0-draft';
+
+export const GUEST_USER: UserProfile = {
+  id: 'guest',
+  email: '',
+  name: 'Guest',
+  role: 'guest',
+  isGuest: true,
+};
+
+export const isGuestUser = (user: UserProfile | null | undefined): boolean =>
+  !user || user.isGuest === true || user.role === 'guest' || !user.email;
+
+/** Everything the wizard sends when a seller submits or edits a listing. */
+export interface ListingSubmission {
+  id?: string; // present when editing an existing listing
+  streetAddress: string;
+  unitNumber?: string;
+  postalCode: string;
+  city: string;
+  neighborhood: string;
+  lat: number;
+  lng: number;
+  propertyType: PropertyType;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  sqft: number;
+  lotSqft?: number;
+  lotAcres?: number;
+  yearBuilt: number;
+  parkingSpaces: number;
+  strataFee?: number;
+  propertyTaxesAnnual?: number;
+  offersCashback: boolean;
+  cashbackType: 'fixed' | 'percentage';
+  cashbackAmount: number;
+  estimatedCommissionSaved: number;
+  headline: string;
+  description: string;
+  neighborhoodHighlights?: string;
+  recentUpgrades: string[];
+  inclusions: string[];
+  photos: PhotoItem[]; // already-uploaded photos have http(s) URLs, new ones are data: URLs
+  verificationFile?: { file: File; docType: VerificationDocument['documentType'] } | null;
+}
+
+const num = (v: unknown): number | undefined => (v === null || v === undefined ? undefined : Number(v));
+
+const humanSize = (bytes: number): string =>
+  bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+
+const newId = (): string =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+      });
+
+const fail = (error: { message?: string } | null | undefined, fallback = 'Something went wrong. Please try again.'): never => {
+  throw new Error(error?.message || fallback);
+};
+
+/** "https://x.supabase.co/storage/v1/object/public/<bucket>/<path>" -> "<path>" */
+const pathFromPublicUrl = (url: string): string | null => {
+  const marker = `/${PHOTO_BUCKET}/`;
+  const i = url.indexOf(marker);
+  if (i < 0) return null;
+  return decodeURIComponent(url.slice(i + marker.length).split('?')[0]);
+};
+
+const chunk = <T>(items: T[], size: number): T[][] => {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+};
+
+class DataStore {
+  private user: UserProfile = GUEST_USER;
+  private userVersion = 0;
+  private listings: Listing[] = [];
+  private savedIds: string[] = [];
+  private viewings: ViewingRequest[] = [];
+  private threads: ConversationThread[] = [];
+  private reports: ListingReport[] = [];
+  private listeners = new Set<() => void>();
+  private refreshing: Promise<void> | null = null;
+  private refreshQueued = false;
+  private loaded = false;
+  private loadError: string | null = null;
+
+  constructor() {
+    if (typeof document !== 'undefined') {
+      // Keep data fresh when the person comes back to the tab
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') void this.refresh();
+      });
+      window.addEventListener('online', () => void this.refresh());
+      setInterval(() => {
+        if (document.visibilityState === 'visible' && !isGuestUser(this.user)) void this.refresh();
+      }, 60_000);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Subscription + simple getters (read from the in-memory cache)
+  // ---------------------------------------------------------------------------
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private notify() {
+    this.listeners.forEach((l) => l());
+  }
+
+  isLoaded() {
+    return this.loaded;
+  }
+  getLoadError() {
+    return this.loadError;
+  }
+  getListings(): Listing[] {
+    return this.listings;
+  }
+  getListingById(id: string): Listing | undefined {
+    return this.listings.find((l) => l.id === id);
+  }
+  getSavedIds(): string[] {
+    return this.savedIds;
+  }
+  getViewingRequests(): ViewingRequest[] {
+    return this.viewings;
+  }
+  getThreads(): ConversationThread[] {
+    return this.threads;
+  }
+  getReports(): ListingReport[] {
+    return this.reports;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Who is signed in (set by AuthContext)
+  // ---------------------------------------------------------------------------
+  setUser(user: UserProfile) {
+    const changed = user.id !== this.user.id || user.role !== this.user.role;
+    this.user = user;
+    if (!changed && this.loaded) return;
+    this.userVersion += 1;
+    this.listings = [];
+    this.savedIds = [];
+    this.viewings = [];
+    this.threads = [];
+    this.reports = [];
+    this.loaded = false;
+    this.notify();
+    void this.refresh();
+  }
+
+  private requireUser(): UserProfile {
+    if (isGuestUser(this.user)) throw new Error('Please sign in to continue.');
+    return this.user;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Loading
+  // ---------------------------------------------------------------------------
+  refresh(): Promise<void> {
+    if (this.refreshing) {
+      this.refreshQueued = true;
+      return this.refreshing;
+    }
+    this.refreshing = this.doRefresh()
+      .catch((err) => {
+        console.error('Failed to load data', err);
+        this.loadError = err?.message || 'We could not load the latest data.';
+        this.loaded = true;
+        this.notify();
+      })
+      .finally(() => {
+        this.refreshing = null;
+        if (this.refreshQueued) {
+          this.refreshQueued = false;
+          void this.refresh();
+        }
+      });
+    return this.refreshing;
+  }
+
+  private async doRefresh(): Promise<void> {
+    const version = this.userVersion;
+    const me = this.user;
+    const signedIn = !isGuestUser(me);
+
+    const listingRes = await supabase
+      .from('listings')
+      .select('*, listing_photos(*)')
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if (listingRes.error) throw listingRes.error;
+    const listingRows: Row[] = listingRes.data ?? [];
+
+    let privates: Row[] = [];
+    let verifs: Row[] = [];
+    let viewingRows: Row[] = [];
+    let convoRows: Row[] = [];
+    let favRows: Row[] = [];
+    let reportRows: Row[] = [];
+
+    if (signedIn) {
+      const [p, v, vr, c, f, r] = await Promise.all([
+        supabase.from('listing_private_details').select('*'),
+        supabase.from('verifications').select('*').order('created_at', { ascending: false }),
+        supabase.from('viewing_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('conversations').select('*, messages(*)').order('last_message_at', { ascending: false }),
+        supabase.from('favourites').select('listing_id'),
+        me.role === 'admin'
+          ? supabase.from('reports').select('*').order('created_at', { ascending: false })
+          : Promise.resolve({ data: [] as Row[], error: null }),
+      ]);
+      for (const res of [p, v, vr, c, f, r]) if (res.error) throw res.error;
+      privates = p.data ?? [];
+      verifs = v.data ?? [];
+      viewingRows = vr.data ?? [];
+      convoRows = c.data ?? [];
+      favRows = f.data ?? [];
+      reportRows = (r.data as Row[]) ?? [];
+    }
+
+    // Names of people we are allowed to see (self, chat counterparts, and for admins listing owners)
+    const userIds = new Set<string>();
+    if (signedIn) {
+      userIds.add(me.id);
+      convoRows.forEach((c) => {
+        userIds.add(c.buyer_id);
+        userIds.add(c.seller_id);
+      });
+      viewingRows.forEach((v) => userIds.add(v.buyer_id));
+      listingRows.forEach((l) => {
+        if (me.role === 'admin' || l.user_id === me.id) userIds.add(l.user_id);
+      });
+    }
+    const people = new Map<string, Row>();
+    for (const ids of chunk([...userIds], 80)) {
+      const { data, error } = await supabase.from('users').select('id, full_name, email, phone').in('id', ids);
+      if (error) throw error;
+      (data ?? []).forEach((u) => people.set(u.id, u));
+    }
+
+    if (version !== this.userVersion) return; // someone signed in/out while we were loading
+
+    const privateById = new Map<string, Row>(privates.map((p) => [p.listing_id, p]));
+    const verifById = new Map<string, Row>();
+    for (const v of verifs) if (!verifById.has(v.listing_id)) verifById.set(v.listing_id, v); // newest first
+
+    const listings = listingRows.map((row) =>
+      this.mapListing(row, privateById.get(row.id), verifById.get(row.id), people.get(row.user_id))
+    );
+    const byId = new Map(listings.map((l) => [l.id, l]));
+
+    const viewings: ViewingRequest[] = viewingRows.map((v) => {
+      const l = byId.get(v.listing_id);
+      return {
+        id: v.id,
+        listingId: v.listing_id,
+        listingAddress: l ? this.addressLine(l) : 'Home listing',
+        buyerName: v.buyer_name,
+        buyerEmail: v.buyer_email,
+        buyerPhone: v.buyer_phone,
+        preferredDate: v.preferred_date,
+        preferredTimeSlot: v.preferred_time_slot,
+        notes: v.notes ?? undefined,
+        status: v.status,
+        createdAt: v.created_at,
+      };
+    });
+
+    const threads: ConversationThread[] = convoRows.map((c) => {
+      const l = byId.get(c.listing_id);
+      const buyer = people.get(c.buyer_id);
+      const msgs: Row[] = (c.messages ?? []).slice().sort((a: Row, b: Row) => a.created_at.localeCompare(b.created_at));
+      return {
+        id: c.id,
+        buyerId: c.buyer_id,
+        listingId: c.listing_id,
+        listingTitle: l?.headline ?? 'Home listing',
+        listingCoverUrl: l?.photos[0]?.thumbnailUrl ?? l?.photos[0]?.url ?? '',
+        buyerName: buyer?.full_name ?? 'Buyer',
+        buyerEmail: buyer?.email ?? '',
+        sellerId: c.seller_id,
+        messages: msgs.map((m) => {
+          const isBuyer = m.sender_id === c.buyer_id;
+          const sender = people.get(m.sender_id);
+          return {
+            id: m.id,
+            senderId: m.sender_id,
+            senderName: sender?.full_name ?? (isBuyer ? 'Buyer' : 'Homeowner'),
+            senderRole: isBuyer ? 'buyer' : 'seller',
+            content: m.content,
+            timestamp: m.created_at,
+          };
+        }),
+        updatedAt: c.last_message_at,
+        unreadCount: msgs.filter((m) => m.sender_id !== me.id && !m.read_at).length,
+      };
+    });
+
+    const reports: ListingReport[] = reportRows.map((r) => ({
+      id: r.id,
+      listingId: r.listing_id,
+      listingTitle: byId.get(r.listing_id)?.headline ?? 'Listing',
+      reporterEmail: r.reporter_email,
+      reason: r.reason,
+      details: r.details,
+      createdAt: r.created_at,
+      status: r.status,
+    }));
+
+    this.listings = listings;
+    this.viewings = viewings;
+    this.threads = threads;
+    this.reports = reports;
+    this.savedIds = favRows.map((f) => f.listing_id);
+    this.loaded = true;
+    this.loadError = null;
+    this.notify();
+  }
+
+  private addressLine(l: Listing): string {
+    return l.streetAddress
+      ? `${l.streetAddress}${l.unitNumber ? ` #${l.unitNumber}` : ''}, ${l.city}`
+      : `${l.neighborhood}, ${l.city}`;
+  }
+
+  private mapListing(row: Row, priv?: Row, verif?: Row, seller?: Row): Listing {
+    const photos: PhotoItem[] = ((row.listing_photos ?? []) as Row[])
+      .slice()
+      .sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((p) => ({
+        id: p.id,
+        url: p.url,
+        thumbnailUrl: p.thumbnail_url,
+        caption: p.caption ?? undefined,
+        isCover: !!p.is_cover,
+        width: p.width ?? undefined,
+        height: p.height ?? undefined,
+        fileSize: p.file_size ?? undefined,
+      }));
+
+    const verificationDoc: VerificationDocument | undefined = verif
+      ? {
+          id: verif.id,
+          fileName: verif.file_name,
+          fileSize: verif.file_size,
+          uploadedAt: verif.created_at,
+          documentType: verif.document_type,
+          status: verif.status,
+          rejectionReason: verif.rejection_reason ?? undefined,
+          filePath: verif.file_path,
+        }
+      : undefined;
+
+    return {
+      id: row.id,
+      userId: row.user_id,
+      sellerName: seller?.full_name ?? 'Verified homeowner',
+      sellerEmail: seller?.email ?? '',
+      sellerPhone: seller?.phone ?? '',
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      streetAddress: priv?.street_address ?? undefined,
+      unitNumber: priv?.unit_number ?? undefined,
+      postalCode: priv?.postal_code ?? undefined,
+      postalFsa: row.postal_fsa ?? undefined,
+      city: row.city,
+      province: 'BC',
+      neighborhood: row.neighborhood,
+      lat: Number(row.lat),
+      lng: Number(row.lng),
+      propertyType: row.property_type,
+      price: Number(row.price),
+      bedrooms: Number(row.bedrooms),
+      bathrooms: Number(row.bathrooms),
+      sqft: Number(row.sqft),
+      lotSqft: num(row.lot_sqft),
+      lotAcres: num(row.lot_acres),
+      yearBuilt: Number(row.year_built),
+      parkingSpaces: Number(row.parking_spaces),
+      strataFee: num(row.strata_fee),
+      propertyTaxesAnnual: num(row.property_taxes_annual),
+      offersCashback: !!row.offers_cashback,
+      cashbackType: row.cashback_type,
+      cashbackAmount: Number(row.cashback_amount),
+      estimatedCommissionSaved: Number(row.estimated_commission_saved),
+      photos,
+      headline: row.headline,
+      description: row.description,
+      neighborhoodHighlights: row.neighborhood_highlights ?? undefined,
+      recentUpgrades: Array.isArray(row.recent_upgrades) ? row.recent_upgrades : [],
+      inclusions: Array.isArray(row.inclusions) ? row.inclusions : [],
+      verificationDoc,
+      verificationNotes: verif?.rejection_reason ?? undefined,
+      viewsCount: Number(row.views_count),
+      savesCount: Number(row.saves_count),
+      inquiriesCount: Number(row.inquiries_count),
+      subscriptionTier: row.subscription_tier,
+      billingCycle: row.billing_cycle,
+      monthlyFeeCAD: num(row.monthly_fee_cad),
+      paymentStatus: row.payment_status,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Favourites
+  // ---------------------------------------------------------------------------
+  async toggleFavorite(listingId: string): Promise<void> {
+    const me = this.requireUser();
+    const wasSaved = this.savedIds.includes(listingId);
+    // Optimistic update so the heart responds instantly
+    this.savedIds = wasSaved ? this.savedIds.filter((id) => id !== listingId) : [...this.savedIds, listingId];
+    this.notify();
+
+    const { error } = wasSaved
+      ? await supabase.from('favourites').delete().eq('user_id', me.id).eq('listing_id', listingId)
+      : await supabase.from('favourites').insert({ user_id: me.id, listing_id: listingId });
+
+    if (error && error.code !== '23505') {
+      this.savedIds = wasSaved ? [...this.savedIds, listingId] : this.savedIds.filter((id) => id !== listingId);
+      this.notify();
+      fail(error);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Listings (seller)
+  // ---------------------------------------------------------------------------
+  async saveListing(input: ListingSubmission): Promise<string> {
+    const me = this.requireUser();
+    if (me.role !== 'seller' && me.role !== 'admin') {
+      throw new Error('A homeowner (seller) account is required to publish a listing.');
+    }
+
+    const id = input.id ?? newId();
+    const existing = input.id ? this.getListingById(id) : undefined;
+    const isEdit = !!existing;
+    const ownerId = existing?.userId ?? me.id;
+
+    const fsa = input.postalCode.replace(/\s+/g, '').toUpperCase().slice(0, 3);
+    const payload = {
+      city: input.city,
+      neighborhood: input.neighborhood,
+      postal_fsa: fsa,
+      lat: input.lat,
+      lng: input.lng,
+      property_type: input.propertyType,
+      price: input.price,
+      bedrooms: input.bedrooms,
+      bathrooms: input.bathrooms,
+      sqft: input.sqft,
+      lot_sqft: input.lotSqft ?? null,
+      lot_acres: input.lotAcres ?? null,
+      year_built: input.yearBuilt,
+      parking_spaces: input.parkingSpaces,
+      strata_fee: input.strataFee ?? 0,
+      property_taxes_annual: input.propertyTaxesAnnual ?? null,
+      offers_cashback: input.offersCashback,
+      cashback_type: input.cashbackType,
+      cashback_amount: input.cashbackAmount,
+      estimated_commission_saved: input.estimatedCommissionSaved,
+      headline: input.headline,
+      description: input.description,
+      neighborhood_highlights: input.neighborhoodHighlights ?? null,
+      recent_upgrades: input.recentUpgrades,
+      inclusions: input.inclusions,
+    };
+
+    // 1. The listing itself
+    if (!isEdit) {
+      const { error } = await supabase.from('listings').insert({ id, user_id: me.id, ...payload });
+      if (error) fail(error, 'We could not save your listing.');
+    } else {
+      const { data, error } = await supabase.from('listings').update(payload).eq('id', id).select('id');
+      if (error) fail(error, 'We could not update your listing.');
+      if (!data?.length) throw new Error('You do not have permission to edit this listing.');
+    }
+
+    // 2. Exact address (private table)
+    {
+      const { error } = await supabase.from('listing_private_details').upsert(
+        {
+          listing_id: id,
+          street_address: input.streetAddress,
+          unit_number: input.unitNumber ?? null,
+          postal_code: input.postalCode,
+          exact_lat: input.lat,
+          exact_lng: input.lng,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'listing_id' }
+      );
+      if (error) fail(error, 'We could not save the address.');
+    }
+
+    // 3. Photos
+    await this.syncPhotos(id, ownerId, existing?.photos ?? [], input.photos);
+
+    // 4. Ownership document
+    if (input.verificationFile) {
+      const { file, docType } = input.verificationFile;
+      const safeName = file.name.replace(/[^A-Za-z0-9._-]/g, '_').slice(-80);
+      const path = `${ownerId}/${id}/${Date.now()}_${safeName}`;
+      const up = await supabase.storage.from(DOC_BUCKET).upload(path, file, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false,
+      });
+      if (up.error) fail(up.error, 'We could not upload your ownership document.');
+      const { error } = await supabase.from('verifications').insert({
+        listing_id: id,
+        document_type: docType,
+        file_name: stripHtml(file.name).slice(0, 150),
+        file_size: humanSize(file.size),
+        file_path: path,
+      });
+      if (error) fail(error, 'We could not record your ownership document.');
+    } else if (!existing?.verificationDoc) {
+      throw new Error('Please upload your ownership document before submitting.');
+    }
+
+    // 5. Submit for review (drafts and rejected listings go back to the review queue)
+    const status: ListingStatus = existing?.status ?? 'draft';
+    if (status === 'rejected') {
+      const { error } = await supabase.from('listings').update({ status: 'draft' }).eq('id', id);
+      if (error) fail(error);
+    }
+    if (status === 'draft' || status === 'rejected') {
+      const { error } = await supabase.from('listings').update({ status: 'in_review' }).eq('id', id);
+      if (error) fail(error);
+    }
+
+    await this.recordTerms();
+    await this.refresh();
+    return id;
+  }
+
+  private async syncPhotos(listingId: string, ownerId: string, current: PhotoItem[], wanted: PhotoItem[]) {
+    const keep = wanted.filter((p) => !p.url.startsWith('data:'));
+    const keepIds = new Set(keep.map((p) => p.id));
+    const removed = current.filter((p) => !keepIds.has(p.id));
+
+    if (removed.length) {
+      const { error } = await supabase.from('listing_photos').delete().in('id', removed.map((p) => p.id));
+      if (error) fail(error);
+      const paths = removed
+        .flatMap((p) => [pathFromPublicUrl(p.url), pathFromPublicUrl(p.thumbnailUrl)])
+        .filter((p): p is string => !!p);
+      if (paths.length) await supabase.storage.from(PHOTO_BUCKET).remove(paths);
+    }
+
+    // Make sure there is exactly one cover photo
+    const hasCover = wanted.some((p) => p.isCover);
+    const withCover = wanted.map((p, i) => ({ ...p, isCover: hasCover ? p.isCover : i === 0 }));
+
+    const newRows: Row[] = [];
+    for (let i = 0; i < withCover.length; i++) {
+      const p = withCover[i];
+      if (!p.url.startsWith('data:')) {
+        const { error } = await supabase
+          .from('listing_photos')
+          .update({ sort_order: i, is_cover: p.isCover, caption: p.caption ?? null })
+          .eq('id', p.id);
+        if (error) fail(error);
+        continue;
+      }
+      const safeId = p.id.replace(/[^A-Za-z0-9_-]/g, '') || newId();
+      const base = `${ownerId}/${listingId}/${safeId}`;
+      const [full, thumb] = await Promise.all([
+        fetch(p.url).then((r) => r.blob()),
+        fetch(p.thumbnailUrl).then((r) => r.blob()),
+      ]);
+      const [u1, u2] = await Promise.all([
+        supabase.storage.from(PHOTO_BUCKET).upload(`${base}.jpg`, full, { contentType: 'image/jpeg', upsert: true }),
+        supabase.storage.from(PHOTO_BUCKET).upload(`${base}_thumb.jpg`, thumb, { contentType: 'image/jpeg', upsert: true }),
+      ]);
+      if (u1.error) fail(u1.error, 'A photo could not be uploaded.');
+      if (u2.error) fail(u2.error, 'A photo could not be uploaded.');
+      newRows.push({
+        listing_id: listingId,
+        url: supabase.storage.from(PHOTO_BUCKET).getPublicUrl(`${base}.jpg`).data.publicUrl,
+        thumbnail_url: supabase.storage.from(PHOTO_BUCKET).getPublicUrl(`${base}_thumb.jpg`).data.publicUrl,
+        caption: p.caption ? stripHtml(p.caption).slice(0, 120) : null,
+        is_cover: p.isCover,
+        sort_order: i,
+        width: p.width ?? null,
+        height: p.height ?? null,
+        file_size: p.fileSize ?? null,
+      });
+    }
+    if (newRows.length) {
+      const { error } = await supabase.from('listing_photos').insert(newRows);
+      if (error) fail(error, 'Photos were uploaded but could not be saved.');
+    }
+  }
+
+  async updateListingStatus(id: string, status: ListingStatus): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase.from('listings').update({ status }).eq('id', id).select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('You do not have permission to change this listing.');
+    await this.refresh();
+  }
+
+  async deleteListing(id: string): Promise<void> {
+    this.requireUser();
+    const listing = this.getListingById(id);
+    const { data, error } = await supabase.from('listings').delete().eq('id', id).select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('You do not have permission to delete this listing.');
+    if (listing) {
+      await this.removeFolder(PHOTO_BUCKET, `${listing.userId}/${id}`);
+      await this.removeFolder(DOC_BUCKET, `${listing.userId}/${id}`);
+    }
+    await this.refresh();
+  }
+
+  private async removeFolder(bucket: string, prefix: string) {
+    try {
+      const { data } = await supabase.storage.from(bucket).list(prefix, { limit: 1000 });
+      const paths = (data ?? []).filter((f) => f.id).map((f) => `${prefix}/${f.name}`);
+      if (paths.length) await supabase.storage.from(bucket).remove(paths);
+    } catch (e) {
+      console.warn('Storage cleanup skipped', e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Admin: verification + reports
+  // ---------------------------------------------------------------------------
+  async approveListing(listingId: string): Promise<void> {
+    const { data, error } = await supabase
+      .from('verifications')
+      .update({ status: 'verified', rejection_reason: null })
+      .eq('listing_id', listingId)
+      .eq('status', 'pending')
+      .select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('There is no pending ownership document to approve for this listing.');
+    await this.refresh();
+  }
+
+  async rejectListing(listingId: string, reason: string): Promise<void> {
+    const { data, error } = await supabase
+      .from('verifications')
+      .update({ status: 'rejected', rejection_reason: stripHtml(reason).slice(0, 500) })
+      .eq('listing_id', listingId)
+      .eq('status', 'pending')
+      .select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('There is no pending ownership document to reject for this listing.');
+    await this.refresh();
+  }
+
+  async resolveReport(reportId: string, action: 'dismissed' | 'resolved'): Promise<void> {
+    const { data, error } = await supabase.from('reports').update({ status: action }).eq('id', reportId).select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('Only administrators can resolve reports.');
+    await this.refresh();
+  }
+
+  /** Short-lived link to view a private ownership document (owner or admin only). */
+  async getDocumentUrl(filePath: string): Promise<string> {
+    const { data, error } = await supabase.storage.from(DOC_BUCKET).createSignedUrl(filePath, 120);
+    if (error || !data) fail(error, 'Could not open the document.');
+    return data!.signedUrl;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Viewings, messages, reports (buyers)
+  // ---------------------------------------------------------------------------
+  async addViewingRequest(input: {
+    listingId: string;
+    buyerName: string;
+    buyerEmail: string;
+    buyerPhone: string;
+    preferredDate: string;
+    preferredTimeSlot: 'morning' | 'afternoon' | 'evening';
+    notes?: string;
+  }): Promise<void> {
+    const me = this.requireUser();
+    const { error } = await supabase.from('viewing_requests').insert({
+      listing_id: input.listingId,
+      buyer_id: me.id,
+      buyer_name: input.buyerName,
+      buyer_email: input.buyerEmail,
+      buyer_phone: input.buyerPhone,
+      preferred_date: input.preferredDate,
+      preferred_time_slot: input.preferredTimeSlot,
+      notes: input.notes || null,
+    });
+    if (error) fail(error);
+    await this.refresh();
+  }
+
+  async updateViewingStatus(id: string, status: ViewingRequest['status']): Promise<void> {
+    const { data, error } = await supabase.from('viewing_requests').update({ status }).eq('id', id).select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('You do not have permission to change this request.');
+    await this.refresh();
+  }
+
+  /** A buyer writes to the owner of a listing (starts the conversation if needed). */
+  async sendMessageToSeller(listing: Listing, content: string): Promise<void> {
+    const me = this.requireUser();
+    let conversationId = this.threads.find((t) => t.listingId === listing.id && t.buyerId === me.id)?.id;
+
+    if (!conversationId) {
+      const created = await supabase
+        .from('conversations')
+        .insert({ listing_id: listing.id, buyer_id: me.id, seller_id: listing.userId })
+        .select('id')
+        .single();
+      if (created.error) {
+        if (created.error.code === '23505') {
+          const found = await supabase
+            .from('conversations')
+            .select('id')
+            .eq('listing_id', listing.id)
+            .eq('buyer_id', me.id)
+            .single();
+          if (found.error) fail(found.error);
+          conversationId = found.data!.id;
+        } else {
+          fail(created.error);
+        }
+      } else {
+        conversationId = created.data.id;
+      }
+    }
+
+    await this.replyToThread(conversationId!, content);
+  }
+
+  async replyToThread(conversationId: string, content: string): Promise<void> {
+    const me = this.requireUser();
+    const { error } = await supabase
+      .from('messages')
+      .insert({ conversation_id: conversationId, sender_id: me.id, content: stripHtml(content).slice(0, 5000) });
+    if (error) fail(error);
+    await this.refresh();
+  }
+
+  async markThreadRead(conversationId: string): Promise<void> {
+    const thread = this.threads.find((t) => t.id === conversationId);
+    if (!thread || thread.unreadCount === 0) return;
+    await supabase.rpc('mark_conversation_read', { _conversation_id: conversationId });
+    thread.unreadCount = 0;
+    this.notify();
+  }
+
+  async submitReport(input: {
+    listingId: string;
+    reason: ListingReport['reason'];
+    details: string;
+  }): Promise<void> {
+    const me = this.requireUser();
+    const { error } = await supabase.from('reports').insert({
+      listing_id: input.listingId,
+      reporter_id: me.id,
+      reporter_email: me.email,
+      reason: input.reason,
+      details: input.details,
+    });
+    if (error) fail(error);
+  }
+
+  incrementViews(listingId: string) {
+    try {
+      const key = `dh_viewed_${listingId}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch {
+      /* storage unavailable: count anyway */
+    }
+    void supabase.rpc('increment_listing_views', { _listing_id: listingId });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Terms, privacy tools
+  // ---------------------------------------------------------------------------
+  async recordTerms(): Promise<void> {
+    const me = this.requireUser();
+    await supabase
+      .from('users')
+      .update({ terms_accepted_at: new Date().toISOString(), terms_version: TERMS_VERSION })
+      .eq('id', me.id);
+  }
+
+  /** Everything we hold about the signed-in person, for a PIPEDA data-access request. */
+  async exportUserData(): Promise<Record<string, unknown>> {
+    const me = this.requireUser();
+    await this.refresh();
+    const profile = await supabase.from('users').select('*').eq('id', me.id).single();
+    return {
+      exportedAt: new Date().toISOString(),
+      profile: profile.data ?? null,
+      listings: this.listings.filter((l) => l.userId === me.id),
+      viewingRequests: this.viewings,
+      conversations: this.threads,
+      savedListingIds: this.savedIds,
+    };
+  }
+
+  /** Permanently deletes the account, its listings, files, messages and favourites. */
+  async deleteAccount(): Promise<void> {
+    const me = this.requireUser();
+    for (const bucket of [PHOTO_BUCKET, DOC_BUCKET]) {
+      try {
+        const { data: folders } = await supabase.storage.from(bucket).list(me.id, { limit: 1000 });
+        for (const f of folders ?? []) {
+          if (f.id) {
+            await supabase.storage.from(bucket).remove([`${me.id}/${f.name}`]);
+          } else {
+            await this.removeFolder(bucket, `${me.id}/${f.name}`);
+          }
+        }
+      } catch (e) {
+        console.warn('Storage cleanup skipped', e);
+      }
+    }
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) fail(error, 'Your account could not be deleted. Please contact support.');
+    this.clearAllDrafts();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Wizard draft (kept on this device only, one per signed-in user)
+  // ---------------------------------------------------------------------------
+  private draftKey(): string {
+    return `directhome_wizard_draft_v2:${this.user.id}`;
+  }
+
+  getDraft(): Record<string, any> | null {
+    try {
+      const raw = localStorage.getItem(this.draftKey());
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  saveDraft(draft: Record<string, any>) {
+    try {
+      localStorage.setItem(this.draftKey(), JSON.stringify(draft));
+      this.notify();
+    } catch {
+      /* device storage full or blocked: drafts are best-effort */
+    }
+  }
+
+  clearDraft() {
+    try {
+      localStorage.removeItem(this.draftKey());
+      this.notify();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  clearAllDrafts() {
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('directhome_wizard_draft_v2:'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+export const db = new DataStore();

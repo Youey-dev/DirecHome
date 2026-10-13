@@ -3,7 +3,7 @@ import * as maplibregl from 'maplibre-gl';
 import { Listing } from '../types/listing';
 import { formatCAD } from '../lib/commissionCalc';
 
-interface MapLibreMapProps {
+export interface MapLibreMapProps {
   listings: Listing[];
   selectedListingId?: string;
   onSelectListing?: (id: string) => void;
@@ -11,6 +11,9 @@ interface MapLibreMapProps {
   singleListing?: Listing;
   heightClass?: string;
 }
+
+// Optional: a hosted map-tile provider (recommended for launch). Example: https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=YOUR_KEY
+const customTileUrl = String(import.meta.env.VITE_MAP_TILE_URL ?? '').trim();
 
 export const MapLibreMap: React.FC<MapLibreMapProps> = ({
   listings,
@@ -39,13 +42,15 @@ export const MapLibreMap: React.FC<MapLibreMapProps> = ({
       sources: {
         'osm-tiles': {
           type: 'raster',
-          tiles: [
-            'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-          ],
+          tiles: customTileUrl
+            ? [customTileUrl]
+            : [
+                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+              ],
           tileSize: 256,
-          attribution: '&copy; OpenStreetMap contributors'
+          attribution: String(import.meta.env.VITE_MAP_ATTRIBUTION ?? '') || '&copy; OpenStreetMap contributors'
         }
       },
       layers: [

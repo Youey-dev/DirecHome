@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /sell
+Disallow: /saved
+
+# Add your sitemap here once the live domain is set, e.g.:
+# Sitemap: https://www.yourdomain.ca/sitemap.xml

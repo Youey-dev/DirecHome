@@ -1,283 +1,261 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserProfile } from '../types/listing';
-import { storage, DEFAULT_USER, PRESET_USERS, GUEST_USER } from '../lib/storage';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+/**
+ * Authentication for DirectHome BC (Supabase Auth).
+ *
+ * IMPORTANT: a person's role (buyer / seller / admin) is read from the database
+ * table public.users — never from anything the browser or the signup form supplies.
+ * Admin access can only be granted by the site owner inside the Supabase dashboard.
+ */
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import type { UserProfile } from '../types/listing';
+import { supabase } from '../lib/supabase';
+import { db, GUEST_USER, TERMS_VERSION } from '../lib/db';
 import { stripHtml, validateEmail } from '../lib/security';
+
+interface AuthResult {
+  success: boolean;
+  error?: string;
+  /** True when the person must click the link we emailed before they can sign in. */
+  needsEmailConfirmation?: boolean;
+}
 
 interface AuthContextType {
   user: UserProfile;
   isAuthenticated: boolean;
   isGuest: boolean;
-  isCustomAccount: boolean;
-  isSupabaseLive: boolean;
+  /** True until we know whether someone is already signed in (avoids a flash of the signed-out page). */
+  initializing: boolean;
   loading: boolean;
   error: string | null;
-  signIn: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
-  signUp: (email: string, fullName: string, role: 'buyer' | 'seller', phone?: string, password?: string) => Promise<{ success: boolean; error?: string }>;
+  recoveryMode: boolean;
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<AuthResult>;
+  signUp: (
+    email: string,
+    fullName: string,
+    role: 'buyer' | 'seller',
+    phone: string | undefined,
+    password: string,
+    captchaToken?: string
+  ) => Promise<AuthResult>;
   signOut: () => Promise<void>;
-  switchPresetUser: (presetKey: 'guest' | 'buyer' | 'seller' | 'admin') => void;
+  resetPassword: (email: string, captchaToken?: string) => Promise<AuthResult>;
+  updatePassword: (newPassword: string) => Promise<AuthResult>;
+  becomeSeller: () => Promise<AuthResult>;
   clearError: () => void;
+  dismissRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const friendlyAuthError = (message: string): string => {
+  const m = message.toLowerCase();
+  if (m.includes('invalid login')) return 'That email or password is not correct.';
+  if (m.includes('email not confirmed')) return 'Please confirm your email first — check your inbox for our message.';
+  if (m.includes('already registered') || m.includes('already been registered'))
+    return 'An account with this email already exists. Try signing in instead.';
+  if (m.includes('rate limit') || m.includes('too many'))
+    return 'Too many attempts. Please wait a few minutes and try again.';
+  if (m.includes('captcha')) return 'Please complete the verification check and try again.';
+  if (m.includes('password') && m.includes('weak')) return 'That password is too easy to guess. Please choose a stronger one.';
+  return message;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile>(() => storage.getActiveUser());
-  const [loading, setLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<UserProfile>(GUEST_USER);
+  const [initializing, setInitializing] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const loadingProfileFor = useRef<string | null>(null);
 
-  useEffect(() => {
-    // 1. Initial sync with local active user
-    const currentUser = storage.getActiveUser();
-    setUser(currentUser);
-
-    // 2. If Supabase is configured, check for live active session
-    if (supabase && isSupabaseConfigured) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          const userMeta = session.user.user_metadata || {};
-          const liveProfile: UserProfile = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: userMeta.full_name || session.user.email?.split('@')[0] || 'User',
-            phone: userMeta.phone,
-            role: userMeta.role === 'seller' ? 'seller' : userMeta.role === 'admin' ? 'admin' : 'buyer'
-          };
-          storage.setActiveUser(liveProfile);
-          setUser(liveProfile);
-        }
-      });
-
-      // Listen for auth state changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
-          const userMeta = session.user.user_metadata || {};
-          const liveProfile: UserProfile = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: userMeta.full_name || session.user.email?.split('@')[0] || 'User',
-            phone: userMeta.phone,
-            role: userMeta.role === 'seller' ? 'seller' : userMeta.role === 'admin' ? 'admin' : 'buyer'
-          };
-          storage.setActiveUser(liveProfile);
-          setUser(liveProfile);
-        }
-      });
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
+  const applyUser = useCallback((profile: UserProfile) => {
+    setUser(profile);
+    db.setUser(profile);
   }, []);
 
-  const clearError = () => setError(null);
-
-  // Sign In
-  const signIn = async (email: string, password?: string): Promise<{ success: boolean; error?: string }> => {
-    setError(null);
-    setLoading(true);
-
-    const cleanEmail = stripHtml(email).toLowerCase().trim();
-    if (!validateEmail(cleanEmail)) {
-      setLoading(false);
-      const msg = 'Please enter a valid email address.';
-      setError(msg);
-      return { success: false, error: msg };
-    }
-
-    try {
-      // If live Supabase client exists and password is provided, try real Supabase auth
-      if (supabase && isSupabaseConfigured && password) {
-        const { data, error: sbError } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password
-        });
-
-        if (sbError) {
-          // If user doesn't exist or wrong password in Supabase, return message
-          setLoading(false);
-          setError(sbError.message);
-          return { success: false, error: sbError.message };
-        }
-
-        if (data.user) {
-          const userMeta = data.user.user_metadata || {};
-          const authenticatedProfile: UserProfile = {
-            id: data.user.id,
-            email: data.user.email || cleanEmail,
-            name: userMeta.full_name || cleanEmail.split('@')[0],
-            phone: userMeta.phone,
-            role: userMeta.role === 'seller' ? 'seller' : userMeta.role === 'admin' ? 'admin' : 'buyer'
-          };
-          storage.setActiveUser(authenticatedProfile);
-          setUser(authenticatedProfile);
-          setLoading(false);
-          return { success: true };
-        }
-      }
-
-      // Seamless fallback or demo account sign-in
-      const isSeller = cleanEmail.includes('seller') || cleanEmail.includes('sarah');
-      const isAdmin = cleanEmail.includes('admin') || cleanEmail.includes('compliance');
-      const role = isAdmin ? 'admin' : isSeller ? 'seller' : 'buyer';
-      
-      const localProfile: UserProfile = {
-        id: `user-${Date.now()}`,
-        email: cleanEmail,
-        name: cleanEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        role
-      };
-
-      storage.setActiveUser(localProfile);
-      setUser(localProfile);
-      setLoading(false);
-      return { success: true };
-    } catch (err: any) {
-      setLoading(false);
-      const msg = err.message || 'Failed to sign in. Please try again.';
-      setError(msg);
-      return { success: false, error: msg };
-    }
-  };
-
-  // Sign Up / Create Account
-  const signUp = async (
-    email: string, 
-    fullName: string, 
-    role: 'buyer' | 'seller', 
-    phone?: string, 
-    password?: string
-  ): Promise<{ success: boolean; error?: string }> => {
-    setError(null);
-    setLoading(true);
-
-    const cleanEmail = stripHtml(email).toLowerCase().trim();
-    const cleanName = stripHtml(fullName).trim();
-    const cleanPhone = phone ? stripHtml(phone).trim() : undefined;
-
-    if (!validateEmail(cleanEmail)) {
-      setLoading(false);
-      const msg = 'Please enter a valid email address.';
-      setError(msg);
-      return { success: false, error: msg };
-    }
-
-    if (!cleanName || cleanName.length < 2) {
-      setLoading(false);
-      const msg = 'Please enter your full name.';
-      setError(msg);
-      return { success: false, error: msg };
-    }
-
-    try {
-      // If live Supabase client exists, register with real Supabase Auth
-      if (supabase && isSupabaseConfigured && password) {
-        const { data, error: sbError } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: {
-            data: {
-              full_name: cleanName,
-              phone: cleanPhone,
-              role
-            }
-          }
-        });
-
-        if (sbError) {
-          setLoading(false);
-          setError(sbError.message);
-          return { success: false, error: sbError.message };
-        }
-
-        if (data.user) {
-          const createdProfile: UserProfile = {
-            id: data.user.id,
-            email: cleanEmail,
-            name: cleanName,
-            phone: cleanPhone,
-            role,
-            termsAcceptedAt: new Date().toISOString(),
-            termsVersion: '2026-v1.0-draft'
-          };
-          storage.setActiveUser(createdProfile);
-          setUser(createdProfile);
-          setLoading(false);
-          return { success: true };
-        }
-      }
-
-      // Local / preview profile creation
-      const localProfile: UserProfile = {
-        id: `user-${Date.now()}`,
-        email: cleanEmail,
-        name: cleanName,
-        phone: cleanPhone,
-        role,
-        termsAcceptedAt: new Date().toISOString(),
-        termsVersion: '2026-v1.0-draft'
-      };
-
-      storage.setActiveUser(localProfile);
-      setUser(localProfile);
-      setLoading(false);
-      return { success: true };
-    } catch (err: any) {
-      setLoading(false);
-      const msg = err.message || 'Failed to create account.';
-      setError(msg);
-      return { success: false, error: msg };
-    }
-  };
-
-  // Sign Out
-  const signOut = async () => {
-    if (supabase && isSupabaseConfigured) {
+  /** Reads the person's profile (and role) from the database. */
+  const loadProfile = useCallback(
+    async (session: Session) => {
+      const uid = session.user.id;
+      if (loadingProfileFor.current === uid) return;
+      loadingProfileFor.current = uid;
       try {
-        await supabase.auth.signOut();
-      } catch {
-        // Continue with local cleanup
+        let row: Record<string, any> | null = null;
+        for (let attempt = 0; attempt < 3 && !row; attempt++) {
+          const { data } = await supabase.from('users').select('*').eq('id', uid).maybeSingle();
+          row = data;
+          if (!row) await new Promise((r) => setTimeout(r, 600));
+        }
+        applyUser({
+          id: uid,
+          email: row?.email ?? session.user.email ?? '',
+          name: row?.full_name ?? session.user.email?.split('@')[0] ?? 'Member',
+          phone: row?.phone ?? undefined,
+          // Never trust metadata for the role. If the profile row is missing we treat the person as a buyer.
+          role: (row?.role as UserProfile['role']) ?? 'buyer',
+          isGuest: false,
+          termsAcceptedAt: row?.terms_accepted_at ?? undefined,
+          termsVersion: row?.terms_version ?? undefined,
+        });
+      } finally {
+        loadingProfileFor.current = null;
+        setInitializing(false);
       }
+    },
+    [applyUser]
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!active) return;
+      if (session) void loadProfile(session);
+      else {
+        applyUser(GUEST_USER);
+        setInitializing(false);
+      }
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
+      if (event === 'SIGNED_OUT' || !session) {
+        applyUser(GUEST_USER);
+        setInitializing(false);
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
+        // Defer: calling Supabase inside this callback can deadlock the auth client
+        setTimeout(() => void loadProfile(session), 0);
+      }
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [applyUser, loadProfile]);
+
+  const signIn: AuthContextType['signIn'] = async (email, password, captchaToken) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!validateEmail(email)) throw new Error('Please enter a valid email address.');
+      if (!password) throw new Error('Please enter your password.');
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+        options: captchaToken ? { captchaToken } : undefined,
+      });
+      if (err) throw new Error(friendlyAuthError(err.message));
+      return { success: true };
+    } catch (e: any) {
+      setError(e.message);
+      return { success: false, error: e.message };
+    } finally {
+      setLoading(false);
     }
-    // Switch to guest visitor
-    storage.logout();
-    setUser(GUEST_USER);
   };
 
-  // Quick Persona Switcher (Convenient for testing buyer vs seller views)
-  const switchPresetUser = (presetKey: 'guest' | 'buyer' | 'seller' | 'admin') => {
-    if (presetKey === 'guest') {
-      storage.logout();
-      setUser(GUEST_USER);
-      return;
+  const signUp: AuthContextType['signUp'] = async (email, fullName, role, phone, password, captchaToken) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const cleanName = stripHtml(fullName).slice(0, 100);
+      if (!validateEmail(email)) throw new Error('Please enter a valid email address.');
+      if (cleanName.length < 2) throw new Error('Please enter your full name.');
+      if (!password || password.length < 10) throw new Error('Your password must be at least 10 characters.');
+
+      const { data, error: err } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          captchaToken,
+          // The database trigger only ever accepts "buyer" or "seller" here — never admin.
+          data: {
+            full_name: cleanName,
+            phone: phone ? stripHtml(phone).slice(0, 30) : '',
+            role,
+            terms_version: TERMS_VERSION,
+          },
+        },
+      });
+      if (err) throw new Error(friendlyAuthError(err.message));
+
+      // Supabase returns an empty identities list when the email is already registered
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        throw new Error('An account with this email already exists. Try signing in instead.');
+      }
+      return { success: true, needsEmailConfirmation: !data.session };
+    } catch (e: any) {
+      setError(e.message);
+      return { success: false, error: e.message };
+    } finally {
+      setLoading(false);
     }
-    const target = PRESET_USERS[presetKey] || DEFAULT_USER;
-    storage.setActiveUser(target);
-    setUser(target);
   };
 
-  const isGuest = user.id === 'guest' || Boolean(user.isGuest) || user.role === 'guest' || !user.email;
-  const isAuthenticated = !isGuest;
-  const isCustomAccount = isAuthenticated && 
-                          user.id !== DEFAULT_USER.id && 
-                          user.id !== PRESET_USERS.seller.id && 
-                          user.id !== PRESET_USERS.admin.id;
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    db.clearAllDrafts();
+    applyUser(GUEST_USER);
+  };
+
+  const resetPassword: AuthContextType['resetPassword'] = async (email, captchaToken) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!validateEmail(email)) throw new Error('Please enter a valid email address.');
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: window.location.origin,
+        captchaToken,
+      });
+      if (err) throw new Error(friendlyAuthError(err.message));
+      return { success: true };
+    } catch (e: any) {
+      setError(e.message);
+      return { success: false, error: e.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePassword: AuthContextType['updatePassword'] = async (newPassword) => {
+    if (newPassword.length < 10) return { success: false, error: 'Your password must be at least 10 characters.' };
+    const { error: err } = await supabase.auth.updateUser({ password: newPassword });
+    if (err) return { success: false, error: friendlyAuthError(err.message) };
+    setRecoveryMode(false);
+    return { success: true };
+  };
+
+  const becomeSeller: AuthContextType['becomeSeller'] = async () => {
+    if (user.isGuest) return { success: false, error: 'Please sign in first.' };
+    if (user.role === 'seller' || user.role === 'admin') return { success: true };
+    const { error: err } = await supabase.from('users').update({ role: 'seller' }).eq('id', user.id);
+    if (err) return { success: false, error: err.message };
+    applyUser({ ...user, role: 'seller' });
+    return { success: true };
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated,
-        isGuest,
-        isCustomAccount,
-        isSupabaseLive: isSupabaseConfigured,
+        isAuthenticated: !user.isGuest,
+        isGuest: !!user.isGuest,
+        initializing,
         loading,
         error,
+        recoveryMode,
         signIn,
         signUp,
         signOut,
-        switchPresetUser,
-        clearError
+        resetPassword,
+        updatePassword,
+        becomeSeller,
+        clearError: () => setError(null),
+        dismissRecovery: () => setRecoveryMode(false),
       }}
     >
       {children}
@@ -285,10 +263,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
 };

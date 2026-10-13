@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Listing, ListingReport, UserProfile } from '../types/listing';
-import { storage } from '../lib/storage';
+import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { 
   ShieldCheck, 
@@ -25,16 +25,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
   const [listings, setListings] = useState<Listing[]>([]);
   const [reports, setReports] = useState<ListingReport[]>([]);
   const [rejectModalListing, setRejectModalListing] = useState<Listing | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('Property tax notice name does not match the registered seller profile.');
+  const [rejectionReason, setRejectionReason] = useState('');
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const load = () => {
-      setListings(storage.getAllListingsRaw());
-      setReports(storage.getReports(activeUser));
+      setListings(db.getListings());
+      setReports(db.getReports());
     };
     load();
-    const unsub = storage.subscribe(load);
+    void db.refresh();
+    const unsub = db.subscribe(load);
     return unsub;
   }, [activeUser.id, activeUser.role]);
 
@@ -43,27 +44,47 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
     setTimeout(() => setActionNotice(null), 3500);
   };
 
-  const handleApprove = (id: string) => {
-    storage.updateListingStatus(id, 'live', 'Approved by BC Verification Officer');
-    showNotice('✓ Listing verified & published to live marketplace!');
+  const run = async (action: () => Promise<void>, success: string) => {
+    try {
+      await action();
+      showNotice(success);
+    } catch (err: any) {
+      showNotice(`⚠️ ${err.message || 'Something went wrong.'}`);
+    }
   };
 
-  const handleConfirmReject = (e: React.FormEvent) => {
+  const handleApprove = (id: string) => {
+    void run(() => db.approveListing(id), '✓ Ownership document approved. The listing is now live.');
+  };
+
+  const handleConfirmReject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rejectModalListing) return;
-
-    storage.updateListingStatus(rejectModalListing.id, 'rejected', rejectionReason);
+    const reason = rejectionReason.trim();
+    if (reason.length < 5) {
+      showNotice('⚠️ Please enter a reason the homeowner can act on.');
+      return;
+    }
+    const id = rejectModalListing.id;
     setRejectModalListing(null);
-    showNotice('Listing rejected. Feedback reason logged for seller.');
+    setRejectionReason('');
+    await run(() => db.rejectListing(id, reason), 'Listing rejected. The homeowner can see your reason and resubmit.');
   };
 
   const handleResolveReport = (reportId: string, action: 'dismissed' | 'resolved', listingId: string) => {
-    storage.resolveReport(reportId, action);
-    if (action === 'resolved') {
-      storage.updateListingStatus(listingId, 'paused', 'Suspended pending investigation from buyer report');
-      showNotice('Report upheld: Listing suspended from marketplace.');
-    } else {
-      showNotice('Report dismissed as unfounded.');
+    void run(async () => {
+      await db.resolveReport(reportId, action);
+      if (action === 'resolved') await db.updateListingStatus(listingId, 'paused');
+    }, action === 'resolved' ? 'Report upheld: the listing was paused.' : 'Report dismissed.');
+  };
+
+  const handleViewDocument = async (filePath?: string) => {
+    if (!filePath) return showNotice('⚠️ No document file is attached to this listing.');
+    try {
+      const url = await db.getDocumentUrl(filePath);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err: any) {
+      showNotice(`⚠️ ${err.message || 'Could not open the document.'}`);
     }
   };
 
@@ -135,7 +156,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
               <h3 className="text-lg font-bold text-slate-900">Verification Queue is Empty</h3>
               <p className="text-xs text-slate-500">
-                All submitted Fraser Valley & Lower Mainland home listings have been audited and verified.
+                There are no listings waiting for ownership verification.
               </p>
             </div>
           ) : (
@@ -158,7 +179,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                     <h3 className="text-lg font-bold text-slate-900">{listing.headline}</h3>
                     
                     <div className="text-xs text-slate-600">
-                      <strong>Address:</strong> {listing.streetAddress}, {listing.city}, BC {listing.postalCode}
+                      <strong>Address:</strong> {listing.streetAddress ?? '—'}{listing.unitNumber ? ` #${listing.unitNumber}` : ''}, {listing.city}, BC {listing.postalCode ?? ''}
                     </div>
 
                     <div className="text-xs text-slate-600">
@@ -184,20 +205,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                     </div>
                     <div>
                       <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>Private Storage: {listing.verificationDoc?.fileName || '2026_Property_Tax_Notice.pdf'}</span>
+                        <span>Private document: {listing.verificationDoc?.fileName ?? 'No document attached'}</span>
                       </div>
                       <div className="text-[11px] text-slate-500">
-                        File Type: {listing.verificationDoc?.documentType || 'property_tax_notice'} · Encrypted Private Bucket
+                        File type: {listing.verificationDoc?.documentType ?? '—'} · Private storage (admins and the owner only)
                       </div>
                     </div>
                   </div>
 
-                  <div className="text-xs text-slate-600 flex items-center gap-2">
-                    <span className="px-2.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-mono">
-                      ROLL #41829-BC
-                    </span>
-                    <span className="text-emerald-700 font-semibold">Owner Name Matches Account ✓</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleViewDocument(listing.verificationDoc?.filePath)}
+                    className="px-4 py-2 text-xs font-semibold text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-300 rounded-xl min-h-[44px] cursor-pointer"
+                  >
+                    View document
+                  </button>
                 </div>
 
                 {/* Admin Actions */}

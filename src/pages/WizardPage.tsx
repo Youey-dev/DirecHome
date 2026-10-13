@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
-import { storage } from '../lib/storage';
+import { db, TERMS_VERSION } from '../lib/db';
+import { geocodeBCAddress } from '../lib/geocode';
+import { BC_CITY_INFO } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
 import { calculateBCCommission, formatCAD } from '../lib/commissionCalc';
 import { 
@@ -24,18 +26,10 @@ import {
   Eye,
   ShieldAlert
 } from 'lucide-react';
-import { TurnstileBadge } from '../components/TurnstileBadge';
 import { sanitizeHtml, stripHtml, validateBCPostalCode } from '../lib/security';
-import { 
-  CRAFTSMAN_LANGLEY, 
-  TOWNHOUSE_BURNABY, 
-  FARMHOUSE_ABBOTSFORD, 
-  INTERIOR_LIVING 
-} from '../data/mockListings';
-
 interface WizardPageProps {
   activeUser: UserProfile;
-  onListingCreated: (listing: Listing) => void;
+  onListingCreated: () => void;
   onCancel: () => void;
   onOpenAuth?: (mode?: 'signin' | 'signup', role?: 'buyer' | 'seller') => void;
 }
@@ -50,15 +44,15 @@ const STEPS = [
   { id: 7, title: 'Review & Submit', subtitle: 'Confirm and launch your listing' }
 ];
 
-const BC_ADDRESS_SUGGESTIONS = [
-  { address: '20876 77A Avenue', city: 'Langley', postal: 'V2Y 3K9', neighborhood: 'Willoughby Heights', lat: 49.1432, lng: -122.6582 },
-  { address: '8888 University High Street', city: 'Burnaby', postal: 'V5A 4Y6', neighborhood: 'UniverCity', lat: 49.2785, lng: -122.9199 },
-  { address: '33244 Old Yale Road', city: 'Abbotsford', postal: 'V2S 2J5', neighborhood: 'Sumas Prairie', lat: 49.0499, lng: -122.2858 },
-  { address: '15420 32A Avenue', city: 'Surrey', postal: 'V3Z 0H8', neighborhood: 'Morgan Creek', lat: 49.0615, lng: -122.8021 },
-  { address: '2645 Point Grey Road', city: 'Vancouver', postal: 'V6K 1A2', neighborhood: 'Kitsilano', lat: 49.2721, lng: -123.1661 },
-  { address: '1240 Falcon Drive', city: 'Coquitlam', postal: 'V3E 2B4', neighborhood: 'Upper Eagle Ridge', lat: 49.2941, lng: -122.8123 },
-  { address: '45910 Reece Avenue', city: 'Chilliwack', postal: 'V2P 2R5', neighborhood: 'Fairfield Island', lat: 49.1824, lng: -121.9472 }
-];
+type DocType = 'property_tax_notice' | 'land_title_search' | 'bc_assessment' | 'other';
+const DOC_LABELS: Record<DocType, string> = {
+  property_tax_notice: 'BC Property Tax Notice (municipal tax bill)',
+  land_title_search: 'Land Title Search (LTSA)',
+  bc_assessment: 'BC Assessment notice',
+  other: 'Other proof of ownership',
+};
+const DOC_MAX_BYTES = 10 * 1024 * 1024;
+const DOC_TYPES_OK = ['application/pdf', 'image/jpeg', 'image/png'];
 
 export const WizardPage: React.FC<WizardPageProps> = ({
   activeUser,
@@ -71,148 +65,150 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [uploadingProgress, setUploadingProgress] = useState<Record<string, number>>({});
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
-  const [createdListing, setCreatedListing] = useState<Listing | null>(null);
+  const [submittedSummary, setSubmittedSummary] = useState<{ streetAddress: string; city: string; price: number; offersCashback: boolean; cashbackAmount: number; photoCount: number } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [geoKey, setGeoKey] = useState('');
+  // One id for this listing for the whole session, so a retry never creates a duplicate
+  const listingIdRef = useRef<string>(typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : '');
+  const [existingDoc, setExistingDoc] = useState<{ fileName: string; status: 'pending' | 'verified' | 'rejected' } | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [turnstileVerified, setTurnstileVerified] = useState(true);
 
   // Form State
   const [streetAddress, setStreetAddress] = useState('');
   const [unitNumber, setUnitNumber] = useState('');
   const [city, setCity] = useState('Langley');
   const [postalCode, setPostalCode] = useState('');
-  const [neighborhood, setNeighborhood] = useState('Willoughby Heights');
+  const [neighborhood, setNeighborhood] = useState('');
   const [propertyType, setPropertyType] = useState<PropertyType>('Single Family Detached');
   const [lat, setLat] = useState(49.1432);
   const [lng, setLng] = useState(-122.6582);
 
   // Step 2 Specs
-  const [price, setPrice] = useState<number>(1250000);
-  const [bedrooms, setBedrooms] = useState<number>(4);
-  const [bathrooms, setBathrooms] = useState<number>(3);
-  const [sqft, setSqft] = useState<number>(2600);
-  const [lotSqft, setLotSqft] = useState<number>(4200);
+  const [price, setPrice] = useState<number>(0);
+  const [bedrooms, setBedrooms] = useState<number>(3);
+  const [bathrooms, setBathrooms] = useState<number>(2);
+  const [sqft, setSqft] = useState<number>(0);
+  const [lotSqft, setLotSqft] = useState<number>(0);
   const [lotAcres, setLotAcres] = useState<number | undefined>(undefined);
-  const [yearBuilt, setYearBuilt] = useState<number>(2019);
-  const [parkingSpaces, setParkingSpaces] = useState<number>(2);
+  const [yearBuilt, setYearBuilt] = useState<number>(0);
+  const [parkingSpaces, setParkingSpaces] = useState<number>(1);
   const [strataFee, setStrataFee] = useState<number>(0);
-  const [propertyTaxesAnnual, setPropertyTaxesAnnual] = useState<number>(5100);
+  const [propertyTaxesAnnual, setPropertyTaxesAnnual] = useState<number>(0);
 
   // Step 3 Photos
-  const [photos, setPhotos] = useState<PhotoItem[]>([
-    {
-      id: 'p-seed-1',
-      url: CRAFTSMAN_LANGLEY,
-      thumbnailUrl: CRAFTSMAN_LANGLEY,
-      caption: 'Front exterior',
-      isCover: true,
-      width: 1400,
-      height: 1050
-    },
-    {
-      id: 'p-seed-2',
-      url: INTERIOR_LIVING,
-      thumbnailUrl: INTERIOR_LIVING,
-      caption: 'Open concept living area',
-      isCover: false,
-      width: 1400,
-      height: 1050
-    }
-  ]);
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
 
   // Step 4 Description
-  const [headline, setHeadline] = useState('Bright & Spacious Family Home with Private Backyard');
-  const [description, setDescription] = useState(
-    'Meticulously cared for home on a quiet street. Features wide-plank flooring, modern chef kitchen with gas range, high-efficiency heat pump, and a private fenced yard ideal for children and pets.'
-  );
-  const [neighborhoodHighlights, setNeighborhoodHighlights] = useState('Walking distance to top elementary schools, community parks, and transit.');
-  const [upgradesInput, setUpgradesInput] = useState('New heat pump with A/C (2023), EV charger in garage, Quartz kitchen counters');
-  const [inclusionsInput, setInclusionsInput] = useState('All kitchen appliances, washer & dryer, window blinds, storage shed');
+  const [headline, setHeadline] = useState('');
+  const [description, setDescription] = useState('');
+  const [neighborhoodHighlights, setNeighborhoodHighlights] = useState('');
+  const [upgradesInput, setUpgradesInput] = useState('');
+  const [inclusionsInput, setInclusionsInput] = useState('');
 
   // Step 5 Cash-back
-  const [offersCashback, setOffersCashback] = useState(true);
+  const [offersCashback, setOffersCashback] = useState(false);
   const [cashbackType, setCashbackType] = useState<'fixed' | 'percentage'>('fixed');
-  const [cashbackAmount, setCashbackAmount] = useState(15000);
+  const [cashbackAmount, setCashbackAmount] = useState(10000);
 
   // Step 6 Ownership verification
-  const [verificationFile, setVerificationFile] = useState<{
-    fileName: string;
-    fileSize: string;
-    docType: 'property_tax_notice' | 'land_title_search';
-    status: 'pending';
-  } | null>({
-    fileName: '2026_City_Property_Tax_Notice.pdf',
-    fileSize: '1.2 MB',
-    docType: 'property_tax_notice',
-    status: 'pending'
-  });
+  const [verificationFile, setVerificationFile] = useState<{ file: File; docType: DocType } | null>(null);
+  const [docType, setDocType] = useState<DocType>('property_tax_notice');
 
-  // Autosave restore on mount
+  // Restore an unfinished draft (or a listing opened with "Edit") saved on this device
+  const [editingId, setEditingId] = useState<string | null>(null);
   useEffect(() => {
-    const draft = storage.getDraft();
-    if (draft) {
-      if (draft.streetAddress) setStreetAddress(draft.streetAddress);
-      if (draft.city) setCity(draft.city);
-      if (draft.postalCode) setPostalCode(draft.postalCode);
-      if (draft.neighborhood) setNeighborhood(draft.neighborhood);
-      if (draft.propertyType) setPropertyType(draft.propertyType);
-      if (draft.price) setPrice(draft.price);
-      if (draft.bedrooms) setBedrooms(draft.bedrooms);
-      if (draft.bathrooms) setBathrooms(draft.bathrooms);
-      if (draft.sqft) setSqft(draft.sqft);
-      if (draft.headline) setHeadline(draft.headline);
-      if (draft.description) setDescription(draft.description);
-      if (draft.cashbackAmount) setCashbackAmount(draft.cashbackAmount);
-      if (draft.photos && draft.photos.length > 0) setPhotos(draft.photos);
+    const draft = db.getDraft();
+    if (!draft) return;
+    if (draft.id) {
+      setEditingId(draft.id);
+      listingIdRef.current = draft.id;
+    }
+    if (draft.streetAddress) setStreetAddress(draft.streetAddress);
+    if (draft.unitNumber) setUnitNumber(draft.unitNumber);
+    if (draft.city) setCity(draft.city);
+    if (draft.postalCode) setPostalCode(draft.postalCode);
+    if (draft.neighborhood) setNeighborhood(draft.neighborhood);
+    if (draft.propertyType) setPropertyType(draft.propertyType);
+    if (typeof draft.lat === 'number') setLat(draft.lat);
+    if (typeof draft.lng === 'number') setLng(draft.lng);
+    if (draft.price) setPrice(draft.price);
+    if (draft.bedrooms !== undefined) setBedrooms(draft.bedrooms);
+    if (draft.bathrooms) setBathrooms(draft.bathrooms);
+    if (draft.sqft) setSqft(draft.sqft);
+    if (draft.lotSqft) setLotSqft(draft.lotSqft);
+    if (draft.lotAcres) setLotAcres(draft.lotAcres);
+    if (draft.yearBuilt) setYearBuilt(draft.yearBuilt);
+    if (draft.parkingSpaces !== undefined) setParkingSpaces(draft.parkingSpaces);
+    if (draft.strataFee) setStrataFee(draft.strataFee);
+    if (draft.propertyTaxesAnnual) setPropertyTaxesAnnual(draft.propertyTaxesAnnual);
+    if (draft.headline) setHeadline(draft.headline);
+    if (draft.description) setDescription(draft.description);
+    if (draft.neighborhoodHighlights) setNeighborhoodHighlights(draft.neighborhoodHighlights);
+    if (Array.isArray(draft.recentUpgrades)) setUpgradesInput(draft.recentUpgrades.join(', '));
+    else if (draft.upgradesInput) setUpgradesInput(draft.upgradesInput);
+    if (Array.isArray(draft.inclusions)) setInclusionsInput(draft.inclusions.join(', '));
+    else if (draft.inclusionsInput) setInclusionsInput(draft.inclusionsInput);
+    if (typeof draft.offersCashback === 'boolean') setOffersCashback(draft.offersCashback);
+    if (draft.cashbackType) setCashbackType(draft.cashbackType);
+    if (draft.cashbackAmount) setCashbackAmount(draft.cashbackAmount);
+    if (draft.verificationDoc?.fileName) {
+      setExistingDoc({ fileName: draft.verificationDoc.fileName, status: draft.verificationDoc.status });
+    }
+    // Only photos that are already uploaded come back; new photos are not stored on the device
+    if (Array.isArray(draft.photos)) {
+      setPhotos(draft.photos.filter((p: PhotoItem) => typeof p.url === 'string' && p.url.startsWith('http')));
     }
   }, []);
 
-  // Autosave on change
+  // Autosave text fields on this device (new photos and documents are not kept until you submit)
   useEffect(() => {
+    if (isSubmittedSuccess) return;
     const timer = setTimeout(() => {
-      storage.saveDraft({
+      db.saveDraft({
+        id: editingId ?? undefined,
         streetAddress,
         unitNumber,
         city,
         postalCode,
         neighborhood,
         propertyType,
+        lat,
+        lng,
         price,
         bedrooms,
         bathrooms,
         sqft,
         lotSqft,
+        lotAcres,
         yearBuilt,
         parkingSpaces,
+        strataFee,
+        propertyTaxesAnnual,
         headline,
         description,
-        photos,
+        neighborhoodHighlights,
+        upgradesInput,
+        inclusionsInput,
+        photos: photos.filter((p) => p.url.startsWith('http')),
         offersCashback,
         cashbackType,
-        cashbackAmount
+        cashbackAmount,
+        verificationDoc: existingDoc ?? undefined
       });
       setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }, 600);
 
     return () => clearTimeout(timer);
   }, [
-    streetAddress, unitNumber, city, postalCode, neighborhood, propertyType,
-    price, bedrooms, bathrooms, sqft, lotSqft, yearBuilt, parkingSpaces,
-    headline, description, photos, offersCashback, cashbackType, cashbackAmount
+    streetAddress, unitNumber, city, postalCode, neighborhood, propertyType, lat, lng,
+    price, bedrooms, bathrooms, sqft, lotSqft, lotAcres, yearBuilt, parkingSpaces, strataFee, propertyTaxesAnnual,
+    headline, description, neighborhoodHighlights, upgradesInput, inclusionsInput, photos,
+    offersCashback, cashbackType, cashbackAmount, existingDoc, editingId, isSubmittedSuccess
   ]);
 
   // Live Commission calculations
   const commissionBreakdown = calculateBCCommission(price, offersCashback, cashbackType, cashbackAmount);
-
-  // Address Autocomplete Select
-  const handleSelectSuggestion = (sug: typeof BC_ADDRESS_SUGGESTIONS[0]) => {
-    setStreetAddress(sug.address);
-    setCity(sug.city);
-    setPostalCode(sug.postal);
-    setNeighborhood(sug.neighborhood);
-    setLat(sug.lat);
-    setLng(sug.lng);
-    setValidationError(null);
-  };
 
   // Photo Upload Handler with Browser Resizing & Validation
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -290,27 +286,45 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   };
 
   // Step Navigation Validation
-  const handleNext = () => {
+  const handleNext = async () => {
     setValidationError(null);
 
     if (currentStep === 1) {
       if (!streetAddress.trim()) {
-        setValidationError('Please enter a street address or select one from the suggestions.');
+        setValidationError('Please enter your street address.');
         return;
       }
-      if (!postalCode.trim()) {
-        setValidationError('Please provide a valid BC postal code (e.g. V2Y 3K9).');
+      if (!validateBCPostalCode(postalCode).valid) {
+        setValidationError('Please enter a valid BC postal code (e.g. V2Y 3K9).');
         return;
+      }
+      if (!neighborhood.trim()) {
+        setValidationError('Please enter your neighbourhood name (shown publicly instead of your street address).');
+        return;
+      }
+      // Place the home on the map. Falls back to the city centre if the lookup is unavailable.
+      const key = `${streetAddress.trim()}|${city}`;
+      if (geoKey !== key) {
+        setLocating(true);
+        const g = await geocodeBCAddress(streetAddress.trim(), city);
+        setLat(g.lat);
+        setLng(g.lng);
+        setGeoKey(key);
+        setLocating(false);
       }
     }
 
     if (currentStep === 2) {
       if (price <= 50000) {
-        setValidationError('Please enter a realistic asking price (minimum $50,000).');
+        setValidationError('Please enter your asking price (minimum $50,000).');
         return;
       }
       if (sqft <= 100) {
         setValidationError('Please enter interior square footage (e.g. 1,800 sq ft).');
+        return;
+      }
+      if (yearBuilt < 1800 || yearBuilt > new Date().getFullYear() + 1) {
+        setValidationError('Please enter the year the home was built (e.g. 1998).');
         return;
       }
     }
@@ -323,19 +337,20 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     }
 
     if (currentStep === 4) {
-      if (!headline.trim()) {
-        setValidationError('Please write a headline for your home listing.');
+      if (headline.trim().length < 5 || headline.trim().length > 150) {
+        setValidationError('Please write a headline for your listing (5 to 150 characters).');
         return;
       }
       if (description.trim().length < 30) {
-        setValidationError('Please write at least a few sentences describing your home features and neighborhood.');
+        setValidationError('Please write at least a few sentences describing your home and neighbourhood.');
         return;
       }
     }
 
     if (currentStep === 6) {
-      if (!verificationFile) {
-        setValidationError('Please attach a BC Property Tax Notice or Land Title search so our officers can verify ownership.');
+      const hasUsableExisting = !!existingDoc && existingDoc.status !== 'rejected';
+      if (!verificationFile && !hasUsableExisting) {
+        setValidationError('Please upload your BC Property Tax Notice or Land Title search so we can verify ownership.');
         return;
       }
     }
@@ -344,6 +359,22 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleDocumentPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!DOC_TYPES_OK.includes(file.type)) {
+      setValidationError('Please upload a PDF, JPG, or PNG file.');
+      return;
+    }
+    if (file.size > DOC_MAX_BYTES) {
+      setValidationError('That file is larger than 10 MB. Please upload a smaller file or a lower-resolution scan.');
+      return;
+    }
+    setValidationError(null);
+    setVerificationFile({ file, docType });
   };
 
   const handleBack = () => {
@@ -356,13 +387,12 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     }
   };
 
-  // Final Submit with Input Sanitization & Legal Terms Verification
-  const handleFinalSubmit = () => {
+  // Final submit: saves everything to the database and sends the listing to the verification queue
+  const handleFinalSubmit = async () => {
+    if (submitting) return;
     if (activeUser.role !== 'seller' && activeUser.role !== 'admin') {
-      setValidationError('A verified homeowner account is required to publish a listing. Please sign in or create a seller account.');
-      if (onOpenAuth) {
-        onOpenAuth('signup', 'seller');
-      }
+      setValidationError('A homeowner account is required to publish a listing.');
+      if (onOpenAuth) onOpenAuth('signup', 'seller');
       return;
     }
 
@@ -371,83 +401,66 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       return;
     }
 
-    const cleanHeadline = stripHtml(headline);
-    const cleanDescription = stripHtml(description);
-    const cleanAddress = stripHtml(streetAddress);
-    const cleanUnit = unitNumber ? stripHtml(unitNumber) : undefined;
-    const cleanHighlights = neighborhoodHighlights ? stripHtml(neighborhoodHighlights) : undefined;
     const { formatted: formattedPostal } = validateBCPostalCode(postalCode);
+    const upgradesList = upgradesInput.split(',').map((x) => stripHtml(x.trim())).filter(Boolean);
+    const inclusionsList = inclusionsInput.split(',').map((x) => stripHtml(x.trim())).filter(Boolean);
+    const finalCashback = offersCashback ? commissionBreakdown.offeredCashback : 0;
 
-    const upgradesList = upgradesInput.split(',').map((s) => stripHtml(s.trim())).filter(Boolean);
-    const inclusionsList = inclusionsInput.split(',').map((s) => stripHtml(s.trim())).filter(Boolean);
-
-    // Record acceptance timestamp on active user profile
-    storage.acceptTerms('2026-v1.0-draft');
-
-    const newListing: Listing = {
-      id: 'dh-' + Date.now().toString(),
-      userId: activeUser.id,
-      sellerName: activeUser.name,
-      sellerEmail: activeUser.email,
-      sellerPhone: activeUser.phone || '604-555-0100',
-      status: 'in_review', // Submitted for admin verification queue
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      termsAcceptedAt: new Date().toISOString(),
-      termsVersion: '2026-v1.0-draft',
-      streetAddress: cleanAddress,
-      unitNumber: cleanUnit,
-      city,
-      province: 'BC',
-      postalCode: formattedPostal,
-      neighborhood: neighborhood || city,
-      lat,
-      lng,
-      propertyType,
-      price,
-      bedrooms,
-      bathrooms,
-      sqft,
-      lotSqft,
-      lotAcres,
-      yearBuilt,
-      parkingSpaces,
-      strataFee: propertyType === 'Condo / Apartment' || propertyType === 'Townhouse' ? strataFee : undefined,
-      propertyTaxesAnnual,
-      offersCashback,
-      cashbackType,
-      cashbackAmount: offersCashback ? commissionBreakdown.offeredCashback : 0,
-      estimatedCommissionSaved: commissionBreakdown.traditionalTotalCommission,
-      headline: cleanHeadline,
-      description: cleanDescription,
-      neighborhoodHighlights: cleanHighlights,
-      recentUpgrades: upgradesList,
-      inclusions: inclusionsList,
-      photos,
-      verificationDoc: verificationFile ? {
-        id: 'doc-' + Date.now().toString(),
-        fileName: verificationFile.fileName,
-        fileSize: verificationFile.fileSize,
-        uploadedAt: new Date().toISOString(),
-        documentType: verificationFile.docType,
-        status: 'pending'
-      } : undefined,
-      viewsCount: 1,
-      savesCount: 0,
-      inquiriesCount: 0,
-      subscriptionTier: 'free_launch',
-      monthlyFeeCAD: 0,
-      billingCycle: 'free_launch',
-      paymentStatus: 'complimentary_launch'
-    };
-
-    storage.saveListing(newListing);
-    storage.clearDraft();
-    setCreatedListing(newListing);
-    setIsSubmittedSuccess(true);
+    setSubmitting(true);
+    setValidationError(null);
+    try {
+      await db.saveListing({
+        id: listingIdRef.current || undefined,
+        streetAddress: stripHtml(streetAddress),
+        unitNumber: unitNumber ? stripHtml(unitNumber) : undefined,
+        postalCode: formattedPostal,
+        city,
+        neighborhood: stripHtml(neighborhood) || city,
+        lat,
+        lng,
+        propertyType,
+        price,
+        bedrooms,
+        bathrooms,
+        sqft,
+        lotSqft: lotSqft || undefined,
+        lotAcres,
+        yearBuilt,
+        parkingSpaces,
+        strataFee: propertyType === 'Condo / Apartment' || propertyType === 'Townhouse' ? strataFee : 0,
+        propertyTaxesAnnual: propertyTaxesAnnual || undefined,
+        offersCashback,
+        cashbackType,
+        cashbackAmount: finalCashback,
+        estimatedCommissionSaved: commissionBreakdown.traditionalTotalCommission,
+        headline: stripHtml(headline),
+        description: stripHtml(description),
+        neighborhoodHighlights: neighborhoodHighlights ? stripHtml(neighborhoodHighlights) : undefined,
+        recentUpgrades: upgradesList,
+        inclusions: inclusionsList,
+        photos,
+        verificationFile: verificationFile ? { file: verificationFile.file, docType: verificationFile.docType } : null,
+      });
+      db.clearDraft();
+      setSubmittedSummary({
+        streetAddress: stripHtml(streetAddress),
+        city,
+        price,
+        offersCashback,
+        cashbackAmount: finalCashback,
+        photoCount: photos.length,
+      });
+      setIsSubmittedSuccess(true);
+    } catch (err: any) {
+      // Make sure a retry updates the listing that may already have been created
+      await db.refresh();
+      setValidationError(err?.message || 'Your listing could not be saved. Please check your connection and try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (isSubmittedSuccess && createdListing) {
+  if (isSubmittedSuccess && submittedSummary) {
     return (
       <div className="max-w-[640px] mx-auto px-4 py-12 text-center space-y-6">
         <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-inner">
@@ -459,7 +472,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             Your Listing is in Review!
           </h2>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg mx-auto">
-            We’ve received your listing for <strong>{createdListing.streetAddress}, {createdListing.city}</strong>. Our BC verification team audits your property tax notice (typically in under 4 hours) before publishing it to the live marketplace.
+            We’ve received your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>. Our team reviews your ownership document before the listing is published to the marketplace. You can follow its status in your dashboard.
           </p>
         </div>
 
@@ -469,23 +482,23 @@ export const WizardPage: React.FC<WizardPageProps> = ({
           </div>
           <div className="flex justify-between text-sm py-1 border-b border-slate-200/60">
             <span className="text-slate-600">Asking Price</span>
-            <span className="font-bold text-slate-900 tabular-nums">{formatCAD(createdListing.price)}</span>
+            <span className="font-bold text-slate-900 tabular-nums">{formatCAD(submittedSummary.price)}</span>
           </div>
-          {createdListing.offersCashback && (
+          {submittedSummary.offersCashback && (
             <div className="flex justify-between text-sm py-1 border-b border-slate-200/60">
               <span className="text-slate-600">Buyer Cash-Back</span>
-              <span className="font-bold text-emerald-800 tabular-nums">+{formatCAD(createdListing.cashbackAmount)}</span>
+              <span className="font-bold text-emerald-800 tabular-nums">+{formatCAD(submittedSummary.cashbackAmount)}</span>
             </div>
           )}
           <div className="flex justify-between text-sm py-1">
             <span className="text-slate-600">Photos Resized & Uploaded</span>
-            <span className="font-medium text-slate-800 tabular-nums">{createdListing.photos.length} photos</span>
+            <span className="font-medium text-slate-800 tabular-nums">{submittedSummary.photoCount} photos</span>
           </div>
         </div>
 
         <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
           <button
-            onClick={() => onListingCreated(createdListing)}
+            onClick={() => onListingCreated()}
             className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-all shadow-sm min-h-[44px]"
           >
             Go to Seller Dashboard
@@ -577,23 +590,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         {/* ---------------- STEP 1: Address & Property Type ---------------- */}
         {currentStep === 1 && (
           <div className="space-y-6">
-            {/* Quick Demo BC Address Suggestions */}
-            <div>
-              <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">
-                Quick Fraser Valley & Lower Mainland Examples:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {BC_ADDRESS_SUGGESTIONS.slice(0, 4).map((sug) => (
-                  <button
-                    key={sug.address}
-                    type="button"
-                    onClick={() => handleSelectSuggestion(sug)}
-                    className="text-xs px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg border border-slate-200 transition-colors text-left"
-                  >
-                    {sug.address}, {sug.city}
-                  </button>
-                ))}
-              </div>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-900">
+              🔒 Your exact street address stays private. Buyers only see your neighbourhood and an approximate map area until you confirm a viewing.
             </div>
 
             {/* Street Address */}
@@ -719,7 +717,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 type="number"
                 step="5000"
                 min="50000"
-                value={price}
+                value={price || ''}
                 onChange={(e) => setPrice(Number(e.target.value))}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-base font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:bg-white min-h-[44px]"
               />
@@ -767,7 +765,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   type="number"
                   step="25"
                   placeholder="e.g. 2400"
-                  value={sqft}
+                  value={sqft || ''}
                   onChange={(e) => setSqft(Number(e.target.value))}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
                 />
@@ -779,7 +777,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   id="wizard-lot-sqft"
                   type="number"
                   placeholder="e.g. 5000"
-                  value={lotSqft}
+                  value={lotSqft || ''}
                   onChange={(e) => setLotSqft(Number(e.target.value))}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
                 />
@@ -791,7 +789,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   id="wizard-year-built"
                   type="number"
                   placeholder="e.g. 2018"
-                  value={yearBuilt}
+                  value={yearBuilt || ''}
                   onChange={(e) => setYearBuilt(Number(e.target.value))}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
                 />
@@ -818,7 +816,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   id="wizard-annual-taxes"
                   type="number"
                   placeholder="e.g. 4800"
-                  value={propertyTaxesAnnual}
+                  value={propertyTaxesAnnual || ''}
                   onChange={(e) => setPropertyTaxesAnnual(Number(e.target.value))}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
                 />
@@ -1140,36 +1138,63 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 </div>
               </div>
 
+              <div className="max-w-sm mx-auto text-left">
+                <label htmlFor="wizard-doc-type" className="block text-xs font-semibold text-slate-700 mb-1">
+                  Document type
+                </label>
+                <select
+                  id="wizard-doc-type"
+                  value={docType}
+                  onChange={(e) => {
+                    const t = e.target.value as DocType;
+                    setDocType(t);
+                    if (verificationFile) setVerificationFile({ ...verificationFile, docType: t });
+                  }}
+                  className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm"
+                >
+                  {(Object.keys(DOC_LABELS) as DocType[]).map((k) => (
+                    <option key={k} value={k}>{DOC_LABELS[k]}</option>
+                  ))}
+                </select>
+              </div>
+
               {verificationFile ? (
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 inline-flex items-center gap-3 text-xs text-left shadow-sm">
                   <FileText className="w-5 h-5 text-emerald-700 shrink-0" />
                   <div>
-                    <div className="font-semibold text-slate-900">{verificationFile.fileName}</div>
-                    <div className="text-[10px] text-slate-400">{verificationFile.fileSize} · Private Hash Verified</div>
+                    <div className="font-semibold text-slate-900 break-all">{verificationFile.file.name}</div>
+                    <div className="text-[10px] text-slate-400">
+                      {(verificationFile.file.size / (1024 * 1024)).toFixed(1)} MB · uploads when you submit
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setVerificationFile(null)}
+                    aria-label="Remove document"
                     className="p-1 hover:text-rose-600 text-slate-400 ml-2"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setVerificationFile({
-                      fileName: '2026_City_Property_Tax_Notice.pdf',
-                      fileSize: '1.2 MB',
-                      docType: 'property_tax_notice',
-                      status: 'pending'
-                    })
-                  }
-                  className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold cursor-pointer"
-                >
-                  Simulate Uploading Property Tax PDF
-                </button>
+                <div className="space-y-2">
+                  {existingDoc && (
+                    <div className="text-xs text-slate-600">
+                      Document on file: <strong>{existingDoc.fileName}</strong> ({existingDoc.status}).
+                      {existingDoc.status === 'rejected' && ' Please upload a new document.'}
+                    </div>
+                  )}
+                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold cursor-pointer hover:bg-slate-800">
+                    <Upload className="w-4 h-4" />
+                    <span>{existingDoc ? 'Upload a new document' : 'Choose file'}</span>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png"
+                      onChange={handleDocumentPick}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
               )}
             </div>
           </div>
@@ -1237,22 +1262,15 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 />
                 <div className="text-xs text-slate-800 leading-normal">
                   <span className="font-semibold text-slate-900">I have read and agree to the </span>
-                  <span className="text-emerald-800 font-bold underline">Terms of Use (Version 2026-v1.0-draft)</span>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold underline">Terms of Use</a>
                   <span className="font-semibold text-slate-900"> and </span>
-                  <span className="text-emerald-800 font-bold underline">Privacy Policy (PIPEDA)</span>.
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold underline">Privacy Policy</a>.
                   <span className="text-[11px] text-slate-500 block mt-0.5">
-                    Your acceptance timestamp ({new Date().toLocaleDateString('en-CA')}) and IP will be logged to verify compliance with BC consumer protection standards.
+                    We record the date and version you accepted ({TERMS_VERSION}).
                   </span>
                 </div>
               </label>
 
-              {/* Bot Protection Widget */}
-              <div className="pt-2">
-                <TurnstileBadge
-                  action="submit_listing"
-                  onVerify={() => setTurnstileVerified(true)}
-                />
-              </div>
             </div>
           </div>
         )}
@@ -1272,19 +1290,21 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <button
               type="button"
               onClick={handleNext}
-              className="px-7 py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition-all shadow-sm min-h-[44px] flex items-center gap-2 cursor-pointer"
+              disabled={locating}
+              className="disabled:opacity-60 px-7 py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition-all shadow-sm min-h-[44px] flex items-center gap-2 cursor-pointer"
             >
-              <span>Continue</span>
+              <span>{locating ? 'Locating your home…' : 'Continue'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               type="button"
               onClick={handleFinalSubmit}
-              className="px-8 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-sm rounded-xl transition-all shadow-md min-h-[48px] flex items-center gap-2 cursor-pointer"
+              disabled={submitting}
+              className="disabled:opacity-60 px-8 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-sm rounded-xl transition-all shadow-md min-h-[48px] flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-5 h-5" />
-              <span>Submit Listing for Verification</span>
+              <span>{submitting ? 'Uploading… please keep this page open' : 'Submit Listing for Verification'}</span>
             </button>
           )}
         </div>

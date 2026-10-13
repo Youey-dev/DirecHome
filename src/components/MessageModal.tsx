@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Listing, UserProfile, ConversationThread } from '../types/listing';
-import { storage } from '../lib/storage';
+import { db } from '../lib/db';
 import { Send, X, ShieldAlert, Sparkles, AlertCircle } from 'lucide-react';
 import { stripHtml } from '../lib/security';
 
@@ -19,18 +19,15 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 }) => {
   const [inputText, setInputText] = useState('');
   const [threads, setThreads] = useState<ConversationThread[]>([]);
-  const [rateLimitInfo, setRateLimitInfo] = useState({ allowed: true, remaining: 5, resetMinutes: 60 });
   const [rateLimitError, setRateLimitError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    const unsub = storage.subscribe(() => {
-      setThreads(storage.getThreads());
-      setRateLimitInfo(storage.checkRateLimit());
-    });
-    setThreads(storage.getThreads());
-    setRateLimitInfo(storage.checkRateLimit());
+    const unsub = db.subscribe(() => setThreads(db.getThreads()));
+    setThreads(db.getThreads());
+    void db.refresh();
     return unsub;
   }, [isOpen]);
 
@@ -40,64 +37,28 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 
   if (!isOpen) return null;
 
-  const currentThread = threads.find(
-    (t) => t.listingId === listing.id && (t.buyerEmail === activeUser.email || activeUser.role === 'seller')
-  );
+  const currentThread = threads.find((t) => t.listingId === listing.id && t.buyerId === activeUser.id);
 
-  const handleSend = (e: React.FormEvent) => {
+  // Mark the homeowner's replies as read once the buyer opens the conversation
+  useEffect(() => {
+    if (isOpen && currentThread && currentThread.unreadCount > 0) void db.markThreadRead(currentThread.id);
+  }, [isOpen, currentThread?.id, currentThread?.unreadCount]);
+
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanText = stripHtml(inputText);
-    if (!cleanText) return;
+    if (!cleanText || sending) return;
 
-    // Check rate limit if starting a brand new thread
-    if (!currentThread) {
-      const check = storage.checkRateLimit();
-      if (!check.allowed) {
-        setRateLimitError(
-          `To protect BC homeowners from spam, new buyer accounts are limited to 5 new listing inquiries per hour. Please wait ${check.resetMinutes} minutes or continue existing conversations.`
-        );
-        return;
-      }
-    }
-
-    const senderRole = activeUser.role === 'seller' ? 'seller' : 'buyer';
-    const textToSend = cleanText;
-    setInputText('');
+    setSending(true);
     setRateLimitError(null);
-
-    storage.sendMessage(
-      listing.id,
-      listing.headline,
-      listing.photos[0]?.url || '',
-      listing.userId,
-      activeUser.name,
-      activeUser.email,
-      textToSend,
-      senderRole
-    );
-
-    // If buyer sent a message, simulate realistic homeowner friendly response after 2 seconds
-    if (senderRole === 'buyer') {
-      setTimeout(() => {
-        let reply = `Hi ${activeUser.name.split(' ')[0]}! Thanks for reaching out about our home on ${listing.streetAddress}. We're happy to answer questions or host a private viewing. Are you pre-approved or looking at a specific closing timeline?`;
-        
-        if (textToSend.toLowerCase().includes('closing') || textToSend.toLowerCase().includes('possession')) {
-          reply = `Hi ${activeUser.name.split(' ')[0]}, our preferred closing date is flexible around late autumn or winter. Feel free to request a viewing through the button if you'd like to walk through!`;
-        } else if (textToSend.toLowerCase().includes('cash') || textToSend.toLowerCase().includes('rebate') || textToSend.toLowerCase().includes('offer')) {
-          reply = `Yes! The $${listing.cashbackAmount.toLocaleString()} cash-back will be credited directly to you on the statement of adjustments via your notary/lawyer at closing.`;
-        }
-
-        storage.sendMessage(
-          listing.id,
-          listing.headline,
-          listing.photos[0]?.url || '',
-          listing.userId,
-          activeUser.name,
-          activeUser.email,
-          reply,
-          'seller'
-        );
-      }, 1800);
+    try {
+      // Spam limits (5 new conversations per hour) are enforced by the server.
+      await db.sendMessageToSeller(listing, cleanText);
+      setInputText('');
+    } catch (err: any) {
+      setRateLimitError(err.message || 'Your message could not be sent. Please try again.');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -109,7 +70,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
         <div className="px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center text-sm shadow-sm">
-              {listing.sellerName.substring(0, 2)}
+              {(listing.sellerName || 'H').charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -119,7 +80,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                 </span>
               </div>
               <div className="text-xs text-slate-500 truncate max-w-[220px]">
-                {listing.streetAddress}, {listing.city}
+                {listing.neighborhood}, {listing.city}
               </div>
             </div>
           </div>
@@ -138,7 +99,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           <div className="px-4 py-2 bg-slate-100/80 border-b border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
-              <span>Anti-Spam Protection: {rateLimitInfo.remaining} new inquiries remaining this hour</span>
+              <span>Messages go directly to the homeowner. To prevent spam, new conversations are limited to 5 per hour.</span>
             </span>
           </div>
         )}
@@ -164,8 +125,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
             </div>
           ) : (
             currentThread.messages.map((msg) => {
-              const isMe = (activeUser.role === 'seller' && msg.senderRole === 'seller') ||
-                           (activeUser.role !== 'seller' && msg.senderRole === 'buyer');
+              const isMe = msg.senderId === activeUser.id;
 
               return (
                 <div
@@ -211,7 +171,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           />
           <button
             type="submit"
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || sending}
             className="w-11 h-11 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
             aria-label="Send message"
           >

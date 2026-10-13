@@ -15,7 +15,7 @@ import {
   Compass,
   MapPin
 } from 'lucide-react';
-import { BC_CITIES } from '../data/mockListings';
+import { BC_CITIES } from '../data/cities';
 
 interface LandingPageProps {
   listings: Listing[];

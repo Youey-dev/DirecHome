@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Listing, ListingReport } from '../types/listing';
-import { storage } from '../lib/storage';
+import { db } from '../lib/db';
 import { X, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
-import { TurnstileBadge } from './TurnstileBadge';
-import { stripHtml, validateEmail, checkActionRateLimit, recordActionRateLimit } from '../lib/security';
+import { stripHtml } from '../lib/security';
 
 interface ReportModalProps {
   listing: Listing;
@@ -14,46 +13,32 @@ interface ReportModalProps {
 export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClose }) => {
   const [reason, setReason] = useState<ListingReport['reason']>('incorrect_info');
   const [details, setDetails] = useState('');
-  const [reporterEmail, setReporterEmail] = useState('');
+  const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
     const cleanDetails = stripHtml(details);
-    const cleanEmail = reporterEmail ? stripHtml(reporterEmail) : '';
-
     if (!cleanDetails || cleanDetails.length < 10) {
       setErrorMsg('Please provide a short explanation (at least 10 characters).');
       return;
     }
 
-    if (cleanEmail && !validateEmail(cleanEmail)) {
-      setErrorMsg('Please provide a valid email format or leave it blank.');
-      return;
+    setSending(true);
+    try {
+      // Reports require a signed-in account and are limited to 5 per hour by the server.
+      await db.submitReport({ listingId: listing.id, reason, details: cleanDetails.slice(0, 2000) });
+      setSubmitted(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Your report could not be sent. Please try again.');
+    } finally {
+      setSending(false);
     }
-
-    // Rate-limiting check: max 5 reports per hour per IP/client
-    const rateCheck = checkActionRateLimit('directhome_reports_rate_v1', 5);
-    if (!rateCheck.allowed) {
-      setErrorMsg(`To prevent abuse, reports are limited to 5 per hour. Please wait ${rateCheck.resetMinutes} minutes.`);
-      return;
-    }
-
-    recordActionRateLimit('directhome_reports_rate_v1');
-
-    storage.submitReport({
-      listingId: listing.id,
-      listingTitle: listing.headline,
-      reporterEmail: cleanEmail || 'anonymous@buyer.ca',
-      reason,
-      details: cleanDetails
-    });
-    setSubmitted(true);
   };
 
   return (
@@ -80,7 +65,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
             </div>
             <h4 className="text-lg font-bold text-slate-900">Report Received</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Thank you for helping keep DirectHome BC safe. Our compliance officers will audit the land title and ownership documents for this property.
+              Thank you for helping keep DirectHome BC safe. Our team will review this listing.
             </p>
             <button
               onClick={onClose}
@@ -125,20 +110,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
               />
             </div>
 
-            <div>
-              <label htmlFor="report-email" className="block text-xs font-semibold text-slate-700 mb-1">
-                Your Email (optional, for follow-up)
-              </label>
-              <input
-                id="report-email"
-                type="email"
-                placeholder="your.email@example.ca"
-                value={reporterEmail}
-                onChange={(e) => setReporterEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700"
-              />
-            </div>
-
             {/* Error Message */}
             {errorMsg && (
               <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2">
@@ -146,11 +117,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
                 <span>{errorMsg}</span>
               </div>
             )}
-
-            {/* Cloudflare Turnstile Bot Challenge */}
-            <div className="pt-1">
-              <TurnstileBadge action="report_listing" />
-            </div>
 
             <div className="pt-2 flex items-center justify-end gap-3">
               <button
@@ -162,9 +128,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-sm font-semibold min-h-[44px]"
+                disabled={sending}
+                className="px-5 py-2.5 bg-rose-700 hover:bg-rose-800 disabled:opacity-60 text-white rounded-xl text-sm font-semibold min-h-[44px]"
               >
-                Submit Report
+                {sending ? 'Sending…' : 'Submit Report'}
               </button>
             </div>
           </form>

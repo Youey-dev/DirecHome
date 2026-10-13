@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Listing, UserProfile } from '../types/listing';
 import { ListingGallery } from '../components/ListingGallery';
-import { MapLibreMap } from '../components/MapLibreMap';
+import { MapLibreMap } from '../components/LazyMap';
 import { ViewingModal } from '../components/ViewingModal';
 import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
 import { formatCAD } from '../lib/commissionCalc';
+import { db, isGuestUser } from '../lib/db';
 import { 
   Heart, 
   Share2, 
@@ -30,13 +31,7 @@ interface ListingDetailPageProps {
   isFavorited: boolean;
   onToggleFavorite: (e: React.MouseEvent, id: string) => void;
   onBack: () => void;
-  onOpenAuth?: (
-    mode?: 'signin' | 'signup', 
-    role?: 'buyer' | 'seller', 
-    title?: string, 
-    subtitle?: string, 
-    onSuccessAction?: () => void
-  ) => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup', role?: 'buyer' | 'seller') => void;
 }
 
 export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
@@ -52,47 +47,29 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Check if active user has an approved/confirmed viewing request or is the owner/admin
-  const viewings = storage.getViewingRequests(activeUser);
   const isOwnerOrAdmin = activeUser.role === 'admin' || listing.userId === activeUser.id;
-  const hasApprovedViewing = isOwnerOrAdmin || viewings.some(
-    (v) => v.listingId === listing.id && v.status === 'confirmed'
-  );
+  const isOwner = listing.userId === activeUser.id;
+  // The exact address is only sent by the database to the owner, admins, and buyers with a confirmed viewing.
+  const addressUnlocked = !!listing.streetAddress;
+  const hasApprovedViewing = addressUnlocked;
+
+  useEffect(() => {
+    if (listing.status === 'live' && !isOwner) db.incrementViews(listing.id);
+  }, [listing.id]);
 
   const handleOpenMessage = () => {
-    if (storage.isGuest(activeUser)) {
-      if (onOpenAuth) {
-        onOpenAuth(
-          'signin',
-          'buyer',
-          `Sign in to message ${listing.sellerName}`,
-          'Create a free buyer account or sign in to chat directly with the verified homeowner.',
-          () => setMessageModalOpen(true)
-        );
-      } else {
-        setMessageModalOpen(true);
-      }
-    } else {
-      setMessageModalOpen(true);
-    }
+    if (isGuestUser(activeUser)) onOpenAuth?.('signin', 'buyer');
+    else setMessageModalOpen(true);
   };
 
   const handleOpenViewing = () => {
-    if (storage.isGuest(activeUser)) {
-      if (onOpenAuth) {
-        onOpenAuth(
-          'signin',
-          'buyer',
-          'Sign in to request private viewing',
-          'Create a free buyer account or sign in to schedule a private viewing and unlock the civic address.',
-          () => setViewingModalOpen(true)
-        );
-      } else {
-        setViewingModalOpen(true);
-      }
-    } else {
-      setViewingModalOpen(true);
-    }
+    if (isGuestUser(activeUser)) onOpenAuth?.('signin', 'buyer');
+    else setViewingModalOpen(true);
+  };
+
+  const handleOpenReport = () => {
+    if (isGuestUser(activeUser)) onOpenAuth?.('signin', 'buyer');
+    else setReportModalOpen(true);
   };
 
   const handleShare = () => {
@@ -154,7 +131,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               <span aria-hidden="true">·</span>
               <span className="flex items-center gap-1 text-slate-700">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Verified BC Land Title</span>
+                <span>Ownership document verified</span>
               </span>
             </div>
 
@@ -167,8 +144,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
                 <span>
                   {hasApprovedViewing 
-                    ? `${listing.streetAddress}${listing.unitNumber ? ` #${listing.unitNumber}` : ''}, ${listing.neighborhood}, ${listing.city}, BC ${listing.postalCode}`
-                    : `${listing.neighborhood}, ${listing.city}, BC ${listing.postalCode.substring(0, 3)} ***`}
+                    ? `${listing.streetAddress}${listing.unitNumber ? ` #${listing.unitNumber}` : ''}, ${listing.neighborhood}, ${listing.city}, BC ${listing.postalCode ?? ''}`
+                    : `${listing.neighborhood}, ${listing.city}, BC ${listing.postalFsa ?? ''} ***`}
                 </span>
               </div>
 
@@ -346,7 +323,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
             <span>Listing ID: {listing.id}</span>
             <button
-              onClick={() => setReportModalOpen(true)}
+              onClick={handleOpenReport}
               className="text-slate-500 hover:text-rose-700 flex items-center gap-1 cursor-pointer transition-colors"
             >
               <AlertTriangle className="w-3.5 h-3.5" />
@@ -362,7 +339,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             {/* Homeowner Profile Card */}
             <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
               <div className="w-12 h-12 rounded-full bg-emerald-800 text-white font-bold flex items-center justify-center text-base shadow-sm">
-                {listing.sellerName.substring(0, 2)}
+                {(listing.sellerName || 'H').charAt(0).toUpperCase()}
               </div>
               <div>
                 <div className="text-sm font-bold text-slate-900">{listing.sellerName}</div>

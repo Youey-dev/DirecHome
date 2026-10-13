@@ -6,16 +6,14 @@ import {
   Mail, 
   User, 
   Phone, 
-  ShieldCheck, 
   CheckCircle2, 
   AlertCircle, 
   ArrowRight,
-  Loader2,
-  Sparkles,
-  UserCheck
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { TurnstileBadge } from './TurnstileBadge';
+import { Turnstile, isTurnstileEnabled } from './Turnstile';
+import { TERMS_VERSION } from '../lib/db';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -24,7 +22,7 @@ interface AuthModalProps {
   initialRole?: 'buyer' | 'seller';
   title?: string;
   subtitle?: string;
-  onSuccess?: () => void;
+  onSuccess?: (role: 'buyer' | 'seller' | 'admin' | 'guest') => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -36,8 +34,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   subtitle,
   onSuccess
 }) => {
-  const { signIn, signUp, switchPresetUser, loading, error, clearError, isSupabaseLive } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
+  const { signIn, signUp, resetPassword, loading, error, clearError } = useAuth();
+  const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>(initialMode);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [role, setRole] = useState<'buyer' | 'seller'>(initialRole);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,6 +59,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
+  const resetCaptcha = () => {
+    setCaptchaToken(null);
+    setCaptchaKey((k) => k + 1);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
@@ -68,35 +73,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setLocalError('Please accept the Terms of Use and Privacy Policy to create an account.');
       return;
     }
+    if (isTurnstileEnabled && !captchaToken) {
+      setLocalError('Please complete the verification check below.');
+      return;
+    }
+    const token = captchaToken ?? undefined;
 
     if (mode === 'signin') {
-      const res = await signIn(email, password);
+      const res = await signIn(email, password, token);
       if (res.success) {
         setSuccessMsg('Signed in successfully!');
         setTimeout(() => {
           onClose();
-          if (onSuccess) onSuccess();
-        }, 700);
+          onSuccess?.(role);
+        }, 600);
+      } else {
+        resetCaptcha();
+      }
+    } else if (mode === 'signup') {
+      const res = await signUp(email, fullName, role, phone, password, token);
+      if (res.success) {
+        if (res.needsEmailConfirmation) {
+          setSuccessMsg('Check your email');
+        } else {
+          setSuccessMsg(`Welcome to DirectHome BC! Your ${role} account is ready.`);
+          setTimeout(() => {
+            onClose();
+            onSuccess?.(role);
+          }, 800);
+        }
+      } else {
+        resetCaptcha();
       }
     } else {
-      const res = await signUp(email, fullName, role, phone, password);
-      if (res.success) {
-        setSuccessMsg(`Welcome to DirectHome BC! Your ${role} account is ready.`);
-        setTimeout(() => {
-          onClose();
-          if (onSuccess) onSuccess();
-        }, 800);
-      }
+      const res = await resetPassword(email, token);
+      if (res.success) setSuccessMsg('Check your email');
+      else resetCaptcha();
     }
-  };
-
-  const handleQuickDemoSelect = (persona: 'buyer' | 'seller' | 'admin') => {
-    switchPresetUser(persona);
-    setSuccessMsg(`Switched to demo ${persona} persona.`);
-    setTimeout(() => {
-      onClose();
-      if (onSuccess) onSuccess();
-    }, 500);
   };
 
   return (
@@ -168,10 +181,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <h4 className="text-base font-bold text-slate-900">{successMsg}</h4>
-              <p className="text-xs text-slate-500">Redirecting to your requested action...</p>
+              {successMsg === 'Check your email' ? (
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {mode === 'reset'
+                    ? 'If an account exists for that address, we have sent a link to reset your password.'
+                    : 'We sent a confirmation link to your email address. Click it to activate your account, then sign in. Check your spam folder if you do not see it within a few minutes.'}
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500">One moment…</p>
+              )}
+              {successMsg === 'Check your email' && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="mt-2 text-xs font-semibold text-emerald-800 underline cursor-pointer"
+                >
+                  Close
+                </button>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'reset' && (
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Enter the email you signed up with and we will send you a link to choose a new password.
+                </p>
+              )}
               
               {/* Account role toggle for Sign Up */}
               {mode === 'signup' && (
@@ -275,19 +310,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
 
               {/* Password */}
+              {mode !== 'reset' && (
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label htmlFor="auth-password" className="text-xs font-semibold text-slate-700">
                     Password
                   </label>
-                  <span className="text-[10px] text-slate-400">Min 6 characters</span>
+                  {mode === 'signup' && <span className="text-[10px] text-slate-400">At least 10 characters</span>}
+                  {mode === 'signin' && (
+                    <button
+                      type="button"
+                      onClick={() => { setMode('reset'); clearError(); setLocalError(null); }}
+                      className="text-[11px] font-semibold text-emerald-800 hover:underline cursor-pointer"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
                 </div>
                 <div className="relative">
                   <input
                     id="auth-password"
                     type="password"
                     required
-                    minLength={6}
+                    minLength={mode === 'signup' ? 10 : undefined}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -296,6 +341,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 </div>
               </div>
+              )}
 
               {/* Mandatory Terms acceptance on Sign Up */}
               {mode === 'signup' && (
@@ -309,11 +355,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                   <div className="text-[11px] text-slate-600 leading-normal">
                     <span>I agree to the </span>
-                    <strong className="text-slate-900 underline">Terms of Use</strong>
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-900 underline">Terms of Use</a>
                     <span> and </span>
-                    <strong className="text-slate-900 underline">Privacy Policy</strong>.
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-900 underline">Privacy Policy</a>.
                     <span className="text-[10px] text-slate-400 block mt-0.5">
-                      Acceptance version (2026-v1.0-draft) and timestamp will be audited.
+                      We record the date and version you accepted ({TERMS_VERSION}).
                     </span>
                   </div>
                 </label>
@@ -327,10 +373,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               )}
 
-              {/* Turnstile Bot Protection Widget */}
-              <div className="pt-1">
-                <TurnstileBadge action={mode === 'signin' ? 'user_signin' : 'user_signup'} />
-              </div>
+              {/* Bot protection (only shown when a Cloudflare Turnstile key is configured) */}
+              <Turnstile key={captchaKey} onToken={setCaptchaToken} />
 
               {/* Submit CTA */}
               <button
@@ -345,56 +389,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <span>{mode === 'signin' ? 'Sign In to DirectHome' : 'Create My Account'}</span>
+                    <span>{mode === 'signin' ? 'Sign In to DirectHome' : mode === 'signup' ? 'Create My Account' : 'Send reset link'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
 
-              {/* Live Supabase Connected indicator or local preview notice */}
-              <div className="text-center pt-1">
-                {isSupabaseLive ? (
-                  <span className="text-[10px] text-emerald-800 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    🔒 Connected to Supabase Production Auth & Postgres
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 inline-flex items-center gap-1">
-                    <span>⚡ Development / Local storage enabled</span>
-                  </span>
-                )}
-              </div>
-
-              {/* Quick Persona Demo Switcher for fast evaluation */}
-              <div className="pt-3 border-t border-slate-100">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center mb-2">
-                  Quick Demo Testing (1-Click)
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickDemoSelect('buyer')}
-                    className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-left text-xs transition-colors cursor-pointer"
-                  >
-                    <div className="font-semibold text-slate-800 flex items-center gap-1">
-                      <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Alex Rivera</span>
-                    </div>
-                    <div className="text-[10px] text-slate-500">Test Buyer Role</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuickDemoSelect('seller')}
-                    className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-left text-xs transition-colors cursor-pointer"
-                  >
-                    <div className="font-semibold text-slate-800 flex items-center gap-1">
-                      <Building2 className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Sarah Miller</span>
-                    </div>
-                    <div className="text-[10px] text-slate-500">Test Seller Role</div>
-                  </button>
-                </div>
-              </div>
             </form>
           )}
         </div>

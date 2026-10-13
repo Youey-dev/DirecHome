@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Listing, ViewingRequest, ConversationThread, UserProfile } from '../types/listing';
-import { storage } from '../lib/storage';
+import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { 
   Building2, 
@@ -43,84 +43,84 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   useEffect(() => {
     const load = () => {
-      setListings(storage.getListings(activeUser));
-      setViewings(storage.getViewingRequests(activeUser));
-      setThreads(storage.getThreads(activeUser));
+      setListings(db.getListings());
+      setViewings(db.getViewingRequests());
+      setThreads(db.getThreads().filter((t) => t.sellerId === activeUser.id));
     };
     load();
-    const unsub = storage.subscribe(load);
+    void db.refresh();
+    const unsub = db.subscribe(load);
     return unsub;
   }, [activeUser.id, activeUser.role]);
 
   // RLS Enforced: Sellers see their own listings in the portal; admins see all
-  const myListings = activeUser.role === 'admin' 
-    ? listings 
-    : listings.filter((l) => l.userId === activeUser.id);
+  const myListings = listings.filter((l) => l.userId === activeUser.id);
+  const myListingIds = new Set(myListings.map((l) => l.id));
+  const myViewings = viewings.filter((v) => myListingIds.has(v.listingId));
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleTogglePause = (id: string, currentStatus: Listing['status']) => {
-    const listing = myListings.find((l) => l.id === id);
-    if (!listing) return;
+  const run = async (action: () => Promise<void>, successMessage: string) => {
+    try {
+      await action();
+      showToast(successMessage);
+    } catch (err: any) {
+      showToast(`⚠️ ${err.message || 'Something went wrong. Please try again.'}`);
+    }
+  };
 
-    if (currentStatus !== 'live') {
-      // Must be approved before going live
-      if (listing.verificationDoc?.status !== 'verified') {
-        showToast('⚠️ A listing cannot go live until ownership verification is approved by compliance officers.');
-        return;
-      }
-      storage.updateListingStatus(id, 'live');
-      showToast('Listing is now live on marketplace!');
+  const handleTogglePause = (id: string, currentStatus: Listing['status']) => {
+    if (currentStatus === 'paused') {
+      void run(() => db.updateListingStatus(id, 'live'), 'Listing is live again on the marketplace.');
+    } else if (currentStatus === 'live') {
+      void run(() => db.updateListingStatus(id, 'paused'), 'Listing paused. It is hidden from search.');
     } else {
-      storage.updateListingStatus(id, 'paused');
-      showToast('Listing paused. Hidden from search.');
+      showToast('⚠️ Only live or paused listings can be switched. Listings go live after ownership verification is approved.');
     }
   };
 
   const handleMarkSold = (id: string) => {
-    storage.updateListingStatus(id, 'sold');
-    showToast('🎉 Congratulations on selling your home! Marked as Sold.');
+    void run(() => db.updateListingStatus(id, 'sold'), '🎉 Congratulations on selling your home! Marked as Sold.');
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this listing?')) {
-      storage.deleteListing(id);
-      showToast('Listing removed.');
+    if (confirm('Are you sure you want to delete this listing? This cannot be undone.')) {
+      void run(() => db.deleteListing(id), 'Listing removed.');
     }
   };
 
   const handleViewingStatus = (id: string, status: ViewingRequest['status']) => {
-    storage.updateViewingStatus(id, status);
-    showToast(`Viewing request ${status}! Email notification sent to buyer.`);
+    void run(
+      () => db.updateViewingStatus(id, status),
+      status === 'confirmed'
+        ? 'Viewing confirmed. The buyer can now see your exact address on the listing page.'
+        : `Viewing request marked ${status}.`
+    );
   };
 
   const handleSendReply = (e: React.FormEvent, thread: ConversationThread) => {
     e.preventDefault();
-    if (!replyText.trim()) return;
-
-    storage.sendMessage(
-      thread.listingId,
-      thread.listingTitle,
-      thread.listingCoverUrl,
-      thread.sellerId,
-      thread.buyerName,
-      thread.buyerEmail,
-      replyText,
-      'seller'
-    );
+    const text = replyText.trim();
+    if (!text) return;
     setReplyText('');
-    showToast('Reply dispatched to buyer!');
+    void run(() => db.replyToThread(thread.id, text), 'Reply sent.');
   };
+
+  // Opening a conversation marks the buyer's messages as read
+  useEffect(() => {
+    const t = threads.find((x) => x.id === selectedThreadId) || threads[0];
+    if (activeTab === 'messages' && t && t.unreadCount > 0) void db.markThreadRead(t.id);
+  }, [activeTab, selectedThreadId, threads]);
 
   const activeThread = threads.find((t) => t.id === selectedThreadId) || threads[0];
 
   // Aggregate Metrics
   const totalViews = myListings.reduce((sum, l) => sum + l.viewsCount, 0);
   const totalSaves = myListings.reduce((sum, l) => sum + l.savesCount, 0);
-  const pendingViewings = viewings.filter((v) => v.status === 'pending').length;
+  const pendingViewings = myViewings.filter((v) => v.status === 'pending').length;
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 pb-20 space-y-6">
@@ -198,7 +198,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <Calendar className="w-4 h-4 text-emerald-700" />
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">
-            {viewings.length}
+            {myViewings.length}
           </div>
           <div className="text-[11px] text-emerald-800 font-medium mt-1">
             {pendingViewings} pending confirmation
@@ -238,7 +238,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          <span>Viewing Requests ({viewings.length})</span>
+          <span>Viewing Requests ({myViewings.length})</span>
           {pendingViewings > 0 && (
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           )}
@@ -396,7 +396,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       {/* TAB 2: Viewing Requests */}
       {activeTab === 'viewings' && (
         <div className="space-y-4">
-          {viewings.length === 0 ? (
+          {myViewings.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-3">
               <Calendar className="w-10 h-10 text-slate-400 mx-auto" />
               <h3 className="text-lg font-bold text-slate-900">No viewing requests yet</h3>
@@ -406,7 +406,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
           ) : (
             <div className="space-y-3">
-              {viewings.map((viewing) => (
+              {myViewings.map((viewing) => (
                 <div
                   key={viewing.id}
                   className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3"

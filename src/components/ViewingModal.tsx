@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Listing, UserProfile } from '../types/listing';
-import { storage } from '../lib/storage';
+import { db } from '../lib/db';
 import { Calendar, Clock, X, CheckCircle2, ShieldCheck, Mail, AlertCircle } from 'lucide-react';
-import { TurnstileBadge } from './TurnstileBadge';
-import { stripHtml, validateEmail, validatePhone, checkActionRateLimit, recordActionRateLimit } from '../lib/security';
+import { stripHtml, validateEmail, validatePhone } from '../lib/security';
 
 interface ViewingModalProps {
   listing: Listing;
@@ -46,7 +45,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -71,20 +70,11 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
       return;
     }
 
-    // Rate-limiting check: max 6 viewing requests per hour per buyer
-    const rateCheck = checkActionRateLimit('directhome_viewing_rate_v1', 6);
-    if (!rateCheck.allowed) {
-      setErrorMsg(`To protect homeowners from spam, viewing requests are limited to 6 per hour. Please wait ${rateCheck.resetMinutes} minutes.`);
-      return;
-    }
-
     setSubmitting(true);
-    recordActionRateLimit('directhome_viewing_rate_v1');
-
-    setTimeout(() => {
-      storage.addViewingRequest({
+    try {
+      // Rate limits (6 per hour) are enforced by the server, not the browser.
+      await db.addViewingRequest({
         listingId: listing.id,
-        listingAddress: `${listing.streetAddress}, ${listing.city}`,
         buyerName: cleanName,
         buyerEmail: cleanEmail,
         buyerPhone: cleanPhone,
@@ -92,11 +82,13 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
         preferredTimeSlot,
         notes: cleanNotes
       });
-
-      setSubmitting(false);
       setSubmitted(true);
       onSuccess();
-    }, 400);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Your request could not be sent. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -125,12 +117,8 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
             </div>
             <h4 className="text-xl font-bold text-slate-900">Viewing Request Sent!</h4>
             <p className="text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
-              Your request was sent directly to <strong>{listing.sellerName}</strong>. You will receive an email confirmation and the exact street number once confirmed.
+              Your request was sent to the homeowner. Once they confirm a time, the exact street address will appear on this listing and in your viewing details.
             </p>
-            <div className="bg-slate-50 p-4 rounded-xl text-xs text-slate-500 border border-slate-200 flex items-center gap-2 text-left">
-              <Mail className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Simulated Resend email alert sent to seller: <code>{listing.sellerEmail}</code></span>
-            </div>
             <div className="pt-2">
               <button
                 onClick={onClose}
@@ -255,10 +243,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
               </div>
             )}
 
-            {/* Cloudflare Turnstile Bot Challenge */}
-            <div className="pt-1">
-              <TurnstileBadge action="viewing_request" />
-            </div>
+
 
             {/* Actions */}
             <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
