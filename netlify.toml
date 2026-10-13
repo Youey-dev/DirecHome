@@ -1,0 +1,31 @@
+# Netlify settings for DirectHome BC
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # These values are PUBLIC by design (they end up in the website's code), so Netlify's
+  # secret scanner must not treat them as leaked secrets and fail the build.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_TURNSTILE_SITE_KEY,VITE_MAP_TILE_URL,VITE_MAP_ATTRIBUTION"
+
+# Makes page addresses like /browse and /listing/<id> work when opened directly or refreshed
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
