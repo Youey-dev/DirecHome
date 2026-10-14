@@ -13,6 +13,11 @@ const json = (body: unknown, status = 200) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
+    const missing = ["STRIPE_SECRET_KEY", "STRIPE_PRICE_ID", "SITE_URL"].filter((k) => !Deno.env.get(k));
+    if (missing.length) {
+      console.error("Missing secrets:", missing.join(", "));
+      return json({ error: `Setup incomplete: missing secret ${missing.join(", ")} in Supabase.` }, 500);
+    }
     const auth = req.headers.get("Authorization") ?? "";
     const url = Deno.env.get("SUPABASE_URL")!;
     const asUser = createClient(url, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: auth } } });
@@ -53,6 +58,8 @@ Deno.serve(async (req) => {
     return json({ url: session.url });
   } catch (e) {
     console.error("create-checkout", e);
-    return json({ error: "We could not start checkout. Please try again." }, 500);
+    // Stripe's own message (e.g. "No such price") is safe to show and tells us exactly what to fix
+    const stripeMsg = (e as any)?.type?.startsWith?.("Stripe") ? (e as any).message : null;
+    return json({ error: stripeMsg ? `Stripe: ${stripeMsg}` : "We could not start checkout. Please try again." }, 500);
   }
 });

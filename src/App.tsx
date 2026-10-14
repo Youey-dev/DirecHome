@@ -109,6 +109,8 @@ function MainApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+  // The listing being edited. Null means the wizard creates a brand-new listing.
+  const [editListing, setEditListing] = useState<Listing | null>(null);
   const [dashboardIntent, setDashboardIntent] = useState<DashboardIntent | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [dashboardBadge, setDashboardBadge] = useState(0);
@@ -141,6 +143,7 @@ function MainApp() {
       const { tab, listingId } = parsePath(window.location.pathname);
       setCurrentTab(tab);
       setSelectedListingId(listingId);
+      setEditListing(null);
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
@@ -164,6 +167,7 @@ function MainApp() {
   const handleNavigate = useCallback((tab: string, listingId?: string) => {
     const nextListing = tab === 'detail' ? listingId ?? null : null;
     setSelectedListingId(nextListing);
+    setEditListing(null); // every normal "List your home" starts a NEW listing
     setCurrentTab(tab);
     const path = pathFor(tab, nextListing);
     if (window.location.pathname !== path) window.history.pushState({}, '', path);
@@ -295,6 +299,8 @@ function MainApp() {
               />
             ) : (
               <WizardPage
+                key={editListing?.id ?? 'new'}
+                editListing={editListing}
                 activeUser={activeUser}
                 onListingCreated={() => handleNavigate('dashboard')}
                 onCancel={() => handleNavigate('dashboard')}
@@ -308,8 +314,8 @@ function MainApp() {
                 onNavigate={handleNavigate}
                 intent={dashboardIntent}
                 onEditListing={(listing) => {
-                  db.saveDraft(listing as unknown as Record<string, any>);
                   handleNavigate('wizard');
+                  setEditListing(listing);
                 }}
               />
             ) : (

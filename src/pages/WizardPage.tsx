@@ -32,6 +32,8 @@ interface WizardPageProps {
   onListingCreated: () => void;
   onCancel: () => void;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  /** An existing listing to edit. When absent, the wizard always creates a NEW listing. */
+  editListing?: Listing | null;
 }
 
 const STEPS = [
@@ -58,6 +60,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   activeUser,
   onListingCreated,
   onCancel,
+  editListing,
   onOpenAuth
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -118,7 +121,13 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   // Restore an unfinished draft (or a listing opened with "Edit") saved on this device
   const [editingId, setEditingId] = useState<string | null>(null);
   useEffect(() => {
-    const draft = db.getDraft();
+    // Editing: load that listing directly. New listing: use the device draft, but never
+    // one that points at an existing listing (that would overwrite it).
+    let draft: Record<string, any> | null = editListing ? (editListing as unknown as Record<string, any>) : db.getDraft();
+    if (!editListing && draft?.id) {
+      db.clearDraft();
+      draft = null;
+    }
     if (!draft) return;
     if (draft.id) {
       setEditingId(draft.id);
@@ -164,6 +173,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   // Autosave text fields on this device (new photos and documents are not kept until you submit)
   useEffect(() => {
     if (isSubmittedSuccess) return;
+    if (editingId) return; // edits are not autosaved into the new-listing draft
     const timer = setTimeout(() => {
       db.saveDraft({
         id: editingId ?? undefined,
@@ -435,7 +445,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         photos,
         verificationFile: verificationFile ? { file: verificationFile.file, docType: verificationFile.docType } : null,
       });
-      db.clearDraft();
+      if (!editingId) db.clearDraft(); // keep any unfinished new-listing draft when saving an edit
       setSubmittedSummary({
         streetAddress: stripHtml(streetAddress),
         city,
