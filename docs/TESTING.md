@@ -20,13 +20,13 @@ Tick each box. If anything fails, note what you clicked and send a screenshot (o
 
 ## B. Anna lists a home
 - [ ] **List Your Home** opens the form (no switching or extra step). It starts **empty**.
-- [ ] Fill in all 7 steps, add 2+ real photos, upload a real PDF/photo as the ownership document, **Submit**.
+- [ ] Fill in all 6 steps, add 2+ real photos, **Submit**. (No ownership document is asked for.)
 - [ ] Dashboard → **My Homes** shows it as *In review*.
 - [ ] Ben cannot see it in Browse yet.
 
 ## C. Admin approves
-- [ ] The admin's **bell** shows a notification "New listing awaiting verification".
-- [ ] Click it → the Verification queue opens. **View document** opens Anna's file. Click **Approve**.
+- [ ] The admin's **bell** shows a notification "New listing awaiting review".
+- [ ] Click it → the Review queue opens. Check the listing against the checklist. Click **Approve**.
 - [ ] Anna's bell shows "Your listing is live" (refresh if it takes more than ~30 seconds).
 - [ ] (Optional) Reject a second test listing with a reason → Anna's bell shows "Your listing needs changes" with the reason.
 

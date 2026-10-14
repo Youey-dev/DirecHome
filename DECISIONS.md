@@ -20,7 +20,7 @@ This document details the product, UX, legal, and engineering decisions made dur
 
 ---
 
-## 3. Mandatory Ownership Verification via Private Storage
+## 3. Mandatory Ownership Verification via Private Storage — SUPERSEDED (see 'Oct 2026: ownership verification removed')
 - **Decision:** Require sellers to upload a proof-of-ownership document (e.g., annual BC Property Tax Notice, BC Assessment notice, or LTSA Land Title Search) before a listing transitions to `live`.
 - **Rationale:** Fake listings and rental scam impersonators destroy marketplace trust.
 - **Storage Strategy:**
@@ -190,3 +190,11 @@ The system is implemented across 9 core entities matching production Supabase Po
 - **Where people see them:** bell in the header, red badges on "My Dashboard" and its tabs, a "Needs your attention" panel, a pop-up banner when something arrives, and an unread count in the browser tab. Live updates use Supabase Realtime with a 30-second check as a fallback.
 - **Not yet:** email notifications (needs Resend).
 - **Bug fixes:** the message window crashed because a hook ran after an early return; the map failed because its background worker file was not shipped with the build.
+
+
+## Oct 2026: Ownership verification removed
+- **Decision (founder):** DirectHome no longer collects, reviews or stores ownership documents, and makes no claim that owners are verified. Holding tax/title documents and implying "verified ownership" was judged the site's biggest legal risk.
+- **New flow:** owner submits → admin does a quick content review (approve, or send back with a reason shown on the owner's dashboard) → owner activates ($25/month) → live.
+- **Protections instead:** seller declares at submission they own the home or are authorized to sell it; Terms v1.1 state DirectHome does not verify ownership and seller indemnifies; buyers are told to confirm title (LTSA) and use a BC lawyer/notary; Report button stays.
+- **Database:** migration 007 drops the `verifications` table, document rules and storage permissions, and adds `listings.review_notes`. Stored files in `private_verification_docs` are deleted by hand.
+- **Needs lawyer review** before launch (Terms section 3, Privacy section 1).

@@ -55,7 +55,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Value Proposition Prose */}
             <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Why pay $30,000+ in listing commissions? DirectHome lets BC homeowners list verified properties directly. Offer a closing cash-back incentive to attract buyers, and keep the rest.
+              No commission — just a flat $25/month per active listing. List your BC home directly, and if you choose, offer buyers a closing cash-back from what you could save.
             </p>
 
             {/* Primary Action Buttons */}
@@ -64,7 +64,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={() => onNavigate('wizard')}
                 className="w-full sm:w-auto px-7 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-semibold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
               >
-                <span>List Your Home for Free</span>
+                <span>List Your Home</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -79,7 +79,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Reassuring Legal Sub-note */}
             <p className="text-xs text-slate-400 pt-2">
-              Advertising marketplace only · Not a brokerage · No pressure · Verified BC Land Title ownership
+              Advertising marketplace only · Not a brokerage · No pressure · Every listing reviewed
             </p>
           </div>
 
@@ -104,13 +104,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">
-              Direct From Verified Owners
+              Direct From Owners
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               Featured Homes in Fraser Valley & Lower Mainland
             </h2>
             <p className="text-sm text-slate-500 mt-0.5">
-              Every home offers verified title records and direct communication with the seller.
+              Talk directly with the seller. No agents in the middle.
             </p>
           </div>
 
@@ -147,7 +147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Where Does the Money Go?
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
-            In British Columbia, typical real estate commissions consume $30,000 to $70,000+. When you sell yourself, that equity stays with the buyer and seller.
+            Selling yourself means no commission to a listing brokerage. Use the estimator below to see what you could keep. All figures are estimates; commissions are negotiable.
           </p>
         </div>
 
@@ -178,9 +178,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="w-12 h-12 rounded-xl bg-emerald-700 text-white font-bold text-lg flex items-center justify-center shadow-sm">
               1
             </div>
-            <h3 className="text-lg font-bold text-slate-900">List & Verify in 15 Minutes</h3>
+            <h3 className="text-lg font-bold text-slate-900">List in 15 Minutes</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Upload photos straight from your phone. Our system resizes them automatically. Upload your BC Property Tax notice to verify ownership privately before your listing goes live.
+              Upload photos straight from your phone. Our system resizes them automatically. Our team gives it a quick review, then you activate it and it goes live.
             </p>
             <div className="text-xs text-emerald-800 font-semibold flex items-center gap-1.5 pt-2">
               <CheckCircle2 className="w-4 h-4" />
@@ -195,11 +195,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h3 className="text-lg font-bold text-slate-900">Offer a Buyer Cash-Back</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Because you are not paying a listing agent, you can offer a $5,000 to $25,000 cash-back credit to the buyer at completion. It makes your home stand out against MLS listings.
+              If you choose, you can offer the buyer a cash-back credit at completion, funded by you from the commission you could save. You set the amount; DirectHome does not fund or guarantee it.
             </p>
             <div className="text-xs text-emerald-800 font-semibold flex items-center gap-1.5 pt-2">
               <CheckCircle2 className="w-4 h-4" />
-              <span>Credited at completion</span>
+              <span>Seller's voluntary offer</span>
             </div>
           </div>
 
@@ -210,11 +210,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h3 className="text-lg font-bold text-slate-900">Show & Complete with a Notary</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Approve private viewing times directly from your dashboard. When you receive an offer, complete the standard BC Contract of Purchase and Sale through your independent conveyancing notary or lawyer.
+              Approve private viewing times directly from your dashboard. When you receive an offer, your own lawyer or notary prepares the purchase contract. DirectHome does not provide, draft or review contracts.
             </p>
             <div className="text-xs text-emerald-800 font-semibold flex items-center gap-1.5 pt-2">
               <CheckCircle2 className="w-4 h-4" />
-              <span>Safe & legally binding</span>
+              <span>Handled by your lawyer or notary</span>
             </div>
           </div>
         </div>
@@ -228,7 +228,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Ready to take control of your home sale?
             </h2>
             <p className="text-emerald-100 text-sm sm:text-base leading-relaxed">
-              Join homeowners across Langley, Surrey, Burnaby, and Abbotsford who are keeping their hard-earned equity. Zero listing fee.
+              List your home in the Fraser Valley and Lower Mainland. No commission — flat $25/month per active listing.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button

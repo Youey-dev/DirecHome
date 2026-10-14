@@ -114,7 +114,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     } else if (currentStatus === 'live') {
       void run(() => db.updateListingStatus(id, 'paused'), 'Listing paused. It is hidden from search.');
     } else {
-      showToast('⚠️ Only live or paused listings can be switched. Listings go live after ownership verification is approved.');
+      showToast('⚠️ Only live or paused listings can be switched. Listings can go live after our team approves them.');
     }
   };
 
@@ -220,7 +220,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <button
             onClick={() => onNavigate('privacy')}
             className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors min-h-[44px] flex items-center gap-1.5 cursor-pointer"
-            title="Download personal data or manage PIPEDA deletion"
+            title="Download your data or delete your account"
           >
             <ShieldCheck className="w-4 h-4 text-emerald-700" />
             <span>Privacy & Data Tools</span>
@@ -435,7 +435,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           }`}
                         >
                           {listing.status === 'in_review'
-                            ? 'In Review (Verification)'
+                            ? 'In Review'
                             : listing.status === 'live' && !isListingLive(listing)
                             ? 'Approved · not published'
                             : listing.status}
@@ -459,6 +459,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       </div>
                     </div>
                   </div>
+
+                  {/* Sent back by the review team */}
+                  {listing.status === 'rejected' && (
+                    <div className="px-5 py-3 border-t border-rose-100 bg-rose-50 text-xs text-rose-900">
+                      <strong>Changes needed:</strong> {listing.reviewNotes || 'Please review your listing and resubmit.'}{' '}
+                      Tap <strong>Edit</strong>, fix it, and submit again.
+                    </div>
+                  )}
 
                   {/* Billing */}
                   {(listing.status === 'live' || listing.status === 'paused') && listing.paymentStatus !== 'complimentary_launch' && (

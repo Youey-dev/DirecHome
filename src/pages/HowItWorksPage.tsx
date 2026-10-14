@@ -1,4 +1,5 @@
 import React from 'react';
+import { CASHBACK_LENDER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { 
   Building2, 
   ShieldCheck, 
@@ -43,13 +44,13 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center">
             1
           </div>
-          <h3 className="text-lg font-bold text-slate-900">Verified Ownership First</h3>
+          <h3 className="text-lg font-bold text-slate-900">Listing Review First</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            Every seller must upload a recent BC Property Tax notice or LTSA Land Title search to our private encrypted vault. Our verification officers confirm ownership before any home is published to search.
+            Every listing gets a quick review by our team for spam, scams and inappropriate content before it can be published. Sellers confirm they own the home or are authorized to sell it; DirectHome does not verify ownership, so buyers should confirm title with a lawyer or notary before any deal.
           </p>
           <div className="pt-2 text-xs text-emerald-800 font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" />
-            <span>Zero fake or phantom listings</span>
+            <span>Spam &amp; scam screening</span>
           </div>
         </div>
 
@@ -60,11 +61,11 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           </div>
           <h3 className="text-lg font-bold text-slate-900">The Buyer Cash-Back Mechanism</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            In BC, sellers typically surrender 7% on the first $100k and 2.5% on the balance. DirectHome charges $0 listing commission. Sellers use part of that $30,000+ saving to offer a cash-back credit to the buyer upon completion.
+            DirectHome charges no commission — just a flat $25/month per active listing. A seller who would otherwise pay a commission (for example, 7% on the first $100k and 2.5% on the balance, used here only as an example; commissions are negotiable) could save a significant amount, and may choose to offer part of it to the buyer as a cash-back credit at completion.
           </p>
           <div className="pt-2 text-xs text-emerald-800 font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" />
-            <span>Credited on the Statement of Adjustments</span>
+            <span>Seller's voluntary offer, written into the contract</span>
           </div>
         </div>
 
@@ -90,11 +91,11 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           </div>
           <h3 className="text-lg font-bold text-slate-900">Closing Through BC Notaries & Lawyers</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            Offers are documented on the standard BC Contract of Purchase and Sale. Both sides retain their own independent conveyancing notary public or real estate lawyer to transfer funds and register the title.
+            {CONTRACT_NOTICE} Both sides retain their own notary public or real estate lawyer to prepare the contract, transfer funds and register the title.
           </p>
           <div className="pt-2 text-xs text-emerald-800 font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" />
-            <span>Same legal protections as traditional deals</span>
+            <span>Your own lawyer or notary handles the contract</span>
           </div>
         </div>
       </div>
@@ -115,13 +116,13 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Listing Commission</td>
-                <td className="py-3 px-4 text-rose-700">Typically ~2.5% to 3.5% + GST</td>
-                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">$0.00 (Zero)</td>
+                <td className="py-3 px-4 text-rose-700">Varies by brokerage and is negotiable</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">No commission — flat $25/month per active listing</td>
               </tr>
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Buyer Cash-Back</td>
                 <td className="py-3 px-4 text-slate-500">Rare or none</td>
-                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Up to $25,000+ at closing</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Optional, set by each seller</td>
               </tr>
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Direct Contact with Owner</td>
@@ -129,14 +130,14 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
                 <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Direct & instant in-app messaging</td>
               </tr>
               <tr>
-                <td className="py-3 px-4 font-semibold text-slate-900">Ownership Verification</td>
+                <td className="py-3 px-4 font-semibold text-slate-900">Listing Screening</td>
                 <td className="py-3 px-4 text-slate-500">MLS agent check</td>
-                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Mandatory BC Land Title & Tax Audit</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Every listing reviewed before publishing</td>
               </tr>
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Contract & Closing</td>
-                <td className="py-3 px-4 text-slate-500">Standard BC Contract + Conveyancer</td>
-                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Standard BC Contract + Conveyancer</td>
+                <td className="py-3 px-4 text-slate-500">Prepared by the parties' agents and lawyers or notaries</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Prepared by your own lawyer or notary (DirectHome provides no contracts)</td>
               </tr>
             </tbody>
           </table>
@@ -161,7 +162,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               How does the buyer actually receive the cash-back?
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              The cash-back amount is written directly into the standard BC Contract of Purchase and Sale as a seller closing credit. When your notary public or lawyer prepares the Statement of Adjustments prior to completion day, this amount is deducted from the funds the buyer brings to the table.
+              If the buyer and seller agree to a cash-back, it must be included in the purchase contract. {CONTRACT_NOTICE} How the credit is applied at completion is handled by their lawyers or notaries. {CASHBACK_LENDER_NOTICE}
             </p>
           </div>
 
@@ -170,7 +171,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               What if a buyer is already represented by their own Realtor?
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Sellers can choose whether they are willing to pay a cooperating buyer-agent commission (typically 2.5% on the balance) or work exclusively with direct unrepresented buyers. You remain in complete control.
+              Sellers can choose whether they are willing to pay a cooperating buyer-agent commission (an amount you negotiate) or work exclusively with direct unrepresented buyers. You remain in complete control.
             </p>
           </div>
         </div>
@@ -180,7 +181,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <div className="p-8 rounded-3xl bg-emerald-900 text-white text-center space-y-4">
         <h3 className="text-2xl font-bold">Ready to list your home in under 15 minutes?</h3>
         <p className="text-emerald-100 text-sm max-w-md mx-auto">
-          Autosaved progress, photo resizing in browser, and verified title. Keep your hard-earned equity.
+          Autosaved progress, photo resizing in browser, and a quick listing review. You could keep more of your equity.
         </p>
         <button
           onClick={() => onNavigate('wizard')}

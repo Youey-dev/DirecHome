@@ -17,15 +17,6 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
     }
   }, []);
 
-  const handleAcceptAll = () => {
-    localStorage.setItem('directhome_cookie_consent_v1', JSON.stringify({
-      analytics: true,
-      essential: true,
-      timestamp: new Date().toISOString()
-    }));
-    setIsVisible(false);
-  };
-
   const handleEssentialOnly = () => {
     localStorage.setItem('directhome_cookie_consent_v1', JSON.stringify({
       analytics: false,
@@ -50,7 +41,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
         <div className="space-y-2 flex-1">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-white tracking-tight">
-              Privacy-First Analytics Notice
+              Essential Storage Only
             </h4>
             <button
               onClick={handleEssentialOnly}
@@ -62,22 +53,15 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
           </div>
 
           <p className="text-xs text-slate-300 leading-relaxed">
-            DirectHome BC uses strictly privacy-friendly analytics and minimal essential storage to remember your saved homes and draft listings. We never sell your personal data or track you across other websites.
+            DirectHome BC uses only essential browser storage to keep you signed in and remember your listing draft and preferences. We do not use analytics or advertising trackers, and we never sell your personal data.
           </p>
 
           <div className="flex items-center gap-2 pt-1 flex-wrap">
             <button
-              onClick={handleAcceptAll}
+              onClick={handleEssentialOnly}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
             >
-              Accept Privacy Analytics
-            </button>
-
-            <button
-              onClick={handleEssentialOnly}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-all cursor-pointer min-h-[36px]"
-            >
-              Essential Only
+              OK
             </button>
 
             <button

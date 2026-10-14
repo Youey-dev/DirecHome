@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { calculateBCCommission, formatCAD } from '../lib/commissionCalc';
+import { calculateBCCommission, formatCAD, LISTING_FEE_CAD_PER_MONTH } from '../lib/commissionCalc';
+import { CASHBACK_LENDER_NOTICE } from '../lib/legalText';
 import { DollarSign, CheckCircle2, Info, ArrowRight, Sparkles } from 'lucide-react';
 
 interface SavingsCalculatorProps {
@@ -20,7 +21,11 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
   const [cashbackType, setCashbackType] = useState<'fixed' | 'percentage'>('fixed');
   const [cashbackValue, setCashbackValue] = useState<number>(initialCashback);
 
+  const [monthsListed, setMonthsListed] = useState<number>(3);
+
   const breakdown = calculateBCCommission(price, offersCashback, cashbackType, cashbackValue);
+  const listingFees = LISTING_FEE_CAD_PER_MONTH * monthsListed;
+  const estimatedNet = Math.max(0, breakdown.netSellerSavingsWithCashback - listingFees);
 
   return (
     <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm ${compact ? 'p-5' : 'p-6 sm:p-8'}`}>
@@ -28,13 +33,13 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>BC Commission & Cash-Back Simulator</span>
+            <span>BC Commission & Cash-Back Estimator (estimates only)</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
-            See How Much You Keep — and Give to Buyers
+            See What You Could Keep — and Offer to Buyers
           </h3>
           <p className="text-sm text-slate-500 mt-0.5">
-            By not hiring a listing brokerage, you save tens of thousands in fees. Offer part of that as a cash-back to attract buyers fast.
+            Without a listing brokerage, you could avoid a large commission. You may offer part of it as a cash-back to buyers. All figures are estimates.
           </p>
         </div>
 
@@ -96,7 +101,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
                   Offer a Buyer Cash-Back at Closing?
                 </span>
                 <span className="text-xs text-slate-500">
-                  Funded directly from your listing savings to make your home irresistible.
+                  Paid by you, the seller, at closing. DirectHome does not fund or guarantee it.
                 </span>
               </div>
               <button
@@ -193,7 +198,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           <div className="flex items-start gap-2.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
             <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
             <p>
-              <strong>BC Commission Formula Used:</strong> Standard 7% on the first $100k + 2.5% on the balance + 5% GST. Commissions in BC are negotiable and not set by law.
+              <strong>Example commission rate used for this estimate:</strong> 7% on the first $100k + 2.5% on the balance + 5% GST. This is an example only, not a standard or required rate. Commissions in BC are negotiable, vary by brokerage and are not set by law.
             </p>
           </div>
         </div>
@@ -201,28 +206,50 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
         {/* Right: Results Comparison Panel */}
         <div className="lg:col-span-6 bg-slate-50 rounded-2xl p-6 border border-slate-200">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
-            Comparison Summary for {formatCAD(price)}
+            Estimated Comparison for {formatCAD(price)}
           </div>
 
           {/* Traditional Cost */}
           <div className="flex items-center justify-between py-2.5 border-b border-slate-200 text-sm">
-            <span className="text-slate-600">Typical Brokerage Commission (7%/2.5% + GST)</span>
-            <span className="font-semibold text-rose-700 line-through tabular-nums">
+            <span className="text-slate-600">Estimated commission at example rate (7% / 2.5% + GST)</span>
+            <span className="font-semibold text-rose-700 tabular-nums">
               {formatCAD(breakdown.traditionalTotalCommission)}
             </span>
           </div>
 
           {/* DirectHome cost */}
           <div className="flex items-center justify-between py-2.5 border-b border-slate-200 text-sm">
-            <span className="text-slate-600">DirectHome Listing Commission</span>
+            <span className="text-slate-600">DirectHome commission</span>
             <span className="font-semibold text-emerald-800 tabular-nums">
               $0.00
             </span>
           </div>
 
+          {/* DirectHome listing fee */}
+          <div className="flex items-center justify-between gap-3 py-2.5 border-b border-slate-200 text-sm">
+            <span className="text-slate-600">
+              DirectHome listing fee: ${LISTING_FEE_CAD_PER_MONTH}/month ×{' '}
+              <label htmlFor="calculator-months" className="sr-only">Months listed</label>
+              <select
+                id="calculator-months"
+                value={monthsListed}
+                onChange={(e) => setMonthsListed(Number(e.target.value))}
+                className="border border-slate-300 rounded-md px-1 py-0.5 text-sm bg-white"
+              >
+                {[1, 2, 3, 4, 6, 9, 12].map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>{' '}
+              {monthsListed === 1 ? 'month' : 'months'} listed
+            </span>
+            <span className="font-semibold text-slate-900 tabular-nums">
+              -{formatCAD(listingFees)}
+            </span>
+          </div>
+
           {/* Gross savings */}
           <div className="flex items-center justify-between py-2.5 border-b border-slate-200 text-sm font-medium">
-            <span className="text-slate-800">Gross Commission Saved</span>
+            <span className="text-slate-800">Estimated commission avoided</span>
             <span className="font-bold text-emerald-800 tabular-nums">
               +{formatCAD(breakdown.traditionalTotalCommission)}
             </span>
@@ -246,14 +273,14 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs uppercase tracking-wider font-bold text-emerald-900 block">
-                  Net Cash Retained by Seller
+                  Estimated amount you could keep
                 </span>
                 <span className="text-[11px] text-emerald-700">
-                  After granting {formatCAD(breakdown.offeredCashback)} buyer cash-back
+                  Estimate after {formatCAD(breakdown.offeredCashback)} buyer cash-back and {formatCAD(listingFees)} in listing fees
                 </span>
               </div>
               <div className="text-2xl sm:text-3xl font-extrabold text-emerald-800 tabular-nums">
-                {formatCAD(breakdown.netSellerSavingsWithCashback)}
+                {formatCAD(estimatedNet)}
               </div>
             </div>
 
@@ -271,8 +298,12 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           <div className="mt-4 p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 leading-relaxed space-y-1">
             <div className="font-semibold text-slate-800">Legal Terms & Assumptions:</div>
             <p>
-              * Estimate only. Any cash-back represents the seller's voluntary offer, not a platform guarantee, and must be formally documented in the purchase contract to be applied on the Statement of Adjustments at completion.
+              * All figures are estimates, not quotes. Your actual costs and any commission you would otherwise pay depend on your situation and are negotiable.
             </p>
+            <p>
+              * Any cash-back represents the seller's voluntary offer, not a platform guarantee. DirectHome BC does not fund, pay or guarantee it. It must be documented in the purchase contract.
+            </p>
+            <p className="font-medium text-slate-800">* {CASHBACK_LENDER_NOTICE}</p>
           </div>
 
           {onApplyToListing && (

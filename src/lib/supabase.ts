@@ -28,4 +28,3 @@ export const supabase = createClient(
 );
 
 export const PHOTO_BUCKET = 'public_listing_photos';
-export const DOC_BUCKET = 'private_verification_docs';

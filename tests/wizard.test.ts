@@ -1,5 +1,5 @@
 import { validateImageFile } from '../src/lib/imageUtils';
-import { Listing } from '../src/types/listing';
+import { Listing, isListingLive } from '../src/types/listing';
 
 export async function runWizardTests() {
   console.log('🧪 Testing Seller Listing Wizard & Image Processing Logic...');
@@ -92,40 +92,35 @@ export async function runWizardTests() {
   }
   console.log('  ✅ Wizard Step 2 (Specs & Pricing) validation passes');
 
-  // Test 5: Mandatory Ownership Verification Check before Submission
+  // Test 5: Submission needs photos only (ownership documents are no longer collected)
   function canSubmitListingForReview(listing: Partial<Listing>): { canSubmit: boolean; reason?: string } {
     if (!listing.photos || listing.photos.length === 0) {
       return { canSubmit: false, reason: 'At least one photo is required.' };
     }
-    if (!listing.verificationDoc) {
-      return { canSubmit: false, reason: 'Ownership verification document (Property Tax Notice or Land Title) is required.' };
-    }
     return { canSubmit: true };
   }
-
-  const unverifiedListing: Partial<Listing> = {
-    photos: [{ id: '1', url: 'photo.jpg', thumbnailUrl: 'thumb.jpg', isCover: true }],
-    verificationDoc: undefined
-  };
-  const verifiedListing: Partial<Listing> = {
-    photos: [{ id: '1', url: 'photo.jpg', thumbnailUrl: 'thumb.jpg', isCover: true }],
-    verificationDoc: {
-      id: 'doc-1',
-      fileName: 'tax_notice.pdf',
-      fileSize: '1.2MB',
-      uploadedAt: '2026-10-10',
-      documentType: 'property_tax_notice',
-      status: 'pending'
-    }
-  };
-
-  if (canSubmitListingForReview(unverifiedListing).canSubmit) {
-    throw new Error('A listing without ownership verification document must NOT be submittable!');
+  if (canSubmitListingForReview({ photos: [] }).canSubmit) {
+    throw new Error('A listing without photos must NOT be submittable');
   }
-  if (!canSubmitListingForReview(verifiedListing).canSubmit) {
-    throw new Error('Verified listing should be eligible for submission');
+  if (!canSubmitListingForReview({ photos: [{ id: '1', url: 'photo.jpg', thumbnailUrl: 'thumb.jpg', isCover: true }] }).canSubmit) {
+    throw new Error('A listing with photos and no document should be submittable');
   }
-  console.log('  ✅ Mandatory Ownership Verification requirement enforced before submission');
+  console.log('  ✅ Listings submit without any ownership document');
+
+  // Test 6: Buyers only see approved AND paid listings (1-day grace after a failed payment)
+  const hoursAgo = (h: number) => new Date(Date.now() - h * 3600_000).toISOString();
+  const cases: [Partial<Listing>, boolean, string][] = [
+    [{ status: 'live', paymentStatus: 'active' }, true, 'approved + paid'],
+    [{ status: 'live', paymentStatus: 'unpaid' }, false, 'approved but unpaid'],
+    [{ status: 'in_review', paymentStatus: 'active' }, false, 'paid but not approved'],
+    [{ status: 'live', paymentStatus: 'past_due', pastDueSince: hoursAgo(5) }, true, 'failed payment, within 1 day'],
+    [{ status: 'live', paymentStatus: 'past_due', pastDueSince: hoursAgo(30) }, false, 'failed payment, over 1 day'],
+    [{ status: 'live', paymentStatus: 'canceled' }, false, 'subscription ended'],
+  ];
+  for (const [l, expected, label] of cases) {
+    if (isListingLive(l as Listing) !== expected) throw new Error(`Visibility wrong for: ${label}`);
+  }
+  console.log('  ✅ Visibility rules: approved + paid, with 1-day payment grace');
 
   console.log('🎉 All Wizard & Image validation tests passed successfully!\n');
 }

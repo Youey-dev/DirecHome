@@ -56,7 +56,7 @@ const TAB_TITLES: Record<string, string> = {
   rules: 'Listing Rules · DirectHome BC',
   cashback: 'Cash-Back Policy · DirectHome BC',
   notifications: 'Notification Preferences · DirectHome BC',
-  calculator: 'Commission Savings Calculator · DirectHome BC',
+  calculator: 'Commission & Cash-Back Estimator · DirectHome BC',
 };
 
 function parsePath(pathname: string): { tab: string; listingId: string | null } {
@@ -352,11 +352,10 @@ function MainApp() {
             <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
               <div className="mb-6">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  BC Real Estate Commission Savings Calculator
+                  BC Commission & Cash-Back Estimator
                 </h1>
                 <p className="text-sm text-slate-500 mt-1">
-                  Calculate standard 7%/2.5% BC commission savings and simulate how much closing cash-back you can offer
-                  to buyers.
+                  Estimate what you could save using an example commission rate, and how much closing cash-back you could offer. All figures are estimates.
                 </p>
               </div>
               <SavingsCalculator onApplyToListing={() => handleNavigate('wizard')} />

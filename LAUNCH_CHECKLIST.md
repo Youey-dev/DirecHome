@@ -35,8 +35,8 @@ Last updated 2026-10-12. `[x]` = done, `[ ]` = still to do.
 - [ ] Confirm BCFSA guidance for for-sale-by-owner advertising portals, including how cash-back to buyers is described
 - [ ] Business registration, business bank account
 - [ ] Privacy officer named and contact address published (`privacy@…`)
-- [ ] Rejected-document retention: delete rejected ownership documents after 90 days (manual until automated)
-- [ ] Consider whether you want a minimum seller age or ID check beyond the ownership document
+- [ ] Ownership documents are no longer collected: run migration 007 and delete the `private_verification_docs` bucket in Supabase Storage
+- [ ] Lawyer review of Terms v1.1 section 3 (no ownership verification, seller representation & indemnity)
 
 ## 5. Known gaps (the site works without these, but plan for them)
 - [ ] **Email notifications** — in-site notifications are built (bell, dashboard badges, pop-up banner, tab count), but people are NOT emailed when a message or viewing update arrives. Build with a Supabase Edge Function + Resend once your email domain is set up. Until then, tell early users to check the site
@@ -46,3 +46,9 @@ Last updated 2026-10-12. `[x]` = done, `[ ]` = still to do.
 - [ ] **Security policy header (CSP)** — currently a permissive policy in `index.html`; tighten once the final set of services is known
 - [ ] **Notification preferences** — saved on the device only; no marketing email is sent today
 - [ ] View counter can be inflated by repeat visitors; add per-visitor limits if the numbers matter
+
+## Legal copy (Oct 2026, after lawyer discussion)
+- [x] Supabase data region filled in: United States (US West)
+- [ ] Lawyer sign-off on Terms v1.1, Privacy Policy v1.1 (BC PIPA), and the cash-back lender notice
+- [ ] Email & CASL Preferences tab describes emails the site does not send yet (weekly digest, marketing) — trim or build before launch
+- [ ] When Cloudflare Turnstile or any analytics is turned on, add it to the Privacy Policy first

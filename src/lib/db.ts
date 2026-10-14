@@ -11,7 +11,7 @@
  * the database still refuses anything they are not allowed to do.
  */
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { supabase, PHOTO_BUCKET, DOC_BUCKET } from './supabase';
+import { supabase, PHOTO_BUCKET } from './supabase';
 import { stripHtml } from './security';
 import type {
   AppNotification,
@@ -22,13 +22,12 @@ import type {
   PhotoItem,
   PropertyType,
   UserProfile,
-  VerificationDocument,
   ViewingRequest,
 } from '../types/listing';
 
 type Row = Record<string, any>;
 
-export const TERMS_VERSION = '2026-v1.0-draft';
+export const TERMS_VERSION = '2026-v1.1-draft'; // v1.1: ownership is no longer verified
 
 export const GUEST_USER: UserProfile = {
   id: 'guest',
@@ -72,7 +71,6 @@ export interface ListingSubmission {
   recentUpgrades: string[];
   inclusions: string[];
   photos: PhotoItem[]; // already-uploaded photos have http(s) URLs, new ones are data: URLs
-  verificationFile?: { file: File; docType: VerificationDocument['documentType'] } | null;
 }
 
 const num = (v: unknown): number | undefined => (v === null || v === undefined ? undefined : Number(v));
@@ -295,7 +293,6 @@ class DataStore {
     const listingRows: Row[] = listingRes.data ?? [];
 
     let privates: Row[] = [];
-    let verifs: Row[] = [];
     let viewingRows: Row[] = [];
     let convoRows: Row[] = [];
     let favRows: Row[] = [];
@@ -303,9 +300,8 @@ class DataStore {
     let notificationRows: Row[] = [];
 
     if (signedIn) {
-      const [p, v, vr, c, f, r, nt] = await Promise.all([
+      const [p, vr, c, f, r, nt] = await Promise.all([
         supabase.from('listing_private_details').select('*'),
-        supabase.from('verifications').select('*').order('created_at', { ascending: false }),
         supabase.from('viewing_requests').select('*').order('created_at', { ascending: false }),
         supabase.from('conversations').select('*, messages(*)').order('last_message_at', { ascending: false }),
         supabase.from('favourites').select('listing_id'),
@@ -314,9 +310,8 @@ class DataStore {
           : Promise.resolve({ data: [] as Row[], error: null }),
         supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50),
       ]);
-      for (const res of [p, v, vr, c, f, r, nt]) if (res.error) throw res.error;
+      for (const res of [p, vr, c, f, r, nt]) if (res.error) throw res.error;
       privates = p.data ?? [];
-      verifs = v.data ?? [];
       viewingRows = vr.data ?? [];
       convoRows = c.data ?? [];
       favRows = f.data ?? [];
@@ -347,11 +342,9 @@ class DataStore {
     if (version !== this.userVersion) return; // someone signed in/out while we were loading
 
     const privateById = new Map<string, Row>(privates.map((p) => [p.listing_id, p]));
-    const verifById = new Map<string, Row>();
-    for (const v of verifs) if (!verifById.has(v.listing_id)) verifById.set(v.listing_id, v); // newest first
 
     const listings = listingRows.map((row) =>
-      this.mapListing(row, privateById.get(row.id), verifById.get(row.id), people.get(row.user_id))
+      this.mapListing(row, privateById.get(row.id), people.get(row.user_id))
     );
     const byId = new Map(listings.map((l) => [l.id, l]));
 
@@ -453,7 +446,7 @@ class DataStore {
       : `${l.neighborhood}, ${l.city}`;
   }
 
-  private mapListing(row: Row, priv?: Row, verif?: Row, seller?: Row): Listing {
+  private mapListing(row: Row, priv?: Row, seller?: Row): Listing {
     const photos: PhotoItem[] = ((row.listing_photos ?? []) as Row[])
       .slice()
       .sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -468,23 +461,11 @@ class DataStore {
         fileSize: p.file_size ?? undefined,
       }));
 
-    const verificationDoc: VerificationDocument | undefined = verif
-      ? {
-          id: verif.id,
-          fileName: verif.file_name,
-          fileSize: verif.file_size,
-          uploadedAt: verif.created_at,
-          documentType: verif.document_type,
-          status: verif.status,
-          rejectionReason: verif.rejection_reason ?? undefined,
-          filePath: verif.file_path,
-        }
-      : undefined;
 
     return {
       id: row.id,
       userId: row.user_id,
-      sellerName: seller?.full_name ?? 'Verified homeowner',
+      sellerName: seller?.full_name ?? 'Homeowner',
       sellerEmail: seller?.email ?? '',
       sellerPhone: seller?.phone ?? '',
       status: row.status,
@@ -520,8 +501,7 @@ class DataStore {
       neighborhoodHighlights: row.neighborhood_highlights ?? undefined,
       recentUpgrades: Array.isArray(row.recent_upgrades) ? row.recent_upgrades : [],
       inclusions: Array.isArray(row.inclusions) ? row.inclusions : [],
-      verificationDoc,
-      verificationNotes: verif?.rejection_reason ?? undefined,
+      reviewNotes: row.review_notes ?? undefined,
       viewsCount: Number(row.views_count),
       savesCount: Number(row.saves_count),
       inquiriesCount: Number(row.inquiries_count),
@@ -625,28 +605,6 @@ class DataStore {
 
     // 3. Photos
     await this.syncPhotos(id, ownerId, existing?.photos ?? [], input.photos);
-
-    // 4. Ownership document
-    if (input.verificationFile) {
-      const { file, docType } = input.verificationFile;
-      const safeName = file.name.replace(/[^A-Za-z0-9._-]/g, '_').slice(-80);
-      const path = `${ownerId}/${id}/${Date.now()}_${safeName}`;
-      const up = await supabase.storage.from(DOC_BUCKET).upload(path, file, {
-        contentType: file.type || 'application/octet-stream',
-        upsert: false,
-      });
-      if (up.error) fail(up.error, 'We could not upload your ownership document.');
-      const { error } = await supabase.from('verifications').insert({
-        listing_id: id,
-        document_type: docType,
-        file_name: stripHtml(file.name).slice(0, 150),
-        file_size: humanSize(file.size),
-        file_path: path,
-      });
-      if (error) fail(error, 'We could not record your ownership document.');
-    } else if (!existing?.verificationDoc) {
-      throw new Error('Please upload your ownership document before submitting.');
-    }
 
     // 5. Submit for review (drafts and rejected listings go back to the review queue)
     const status: ListingStatus = existing?.status ?? 'draft';
@@ -766,7 +724,6 @@ class DataStore {
     if (!data?.length) throw new Error('You do not have permission to delete this listing.');
     if (listing) {
       await this.removeFolder(PHOTO_BUCKET, `${listing.userId}/${id}`);
-      await this.removeFolder(DOC_BUCKET, `${listing.userId}/${id}`);
     }
     await this.refresh();
   }
@@ -782,29 +739,31 @@ class DataStore {
   }
 
   // ---------------------------------------------------------------------------
-  // Admin: verification + reports
+  // Admin: listing review + reports
   // ---------------------------------------------------------------------------
+  /** Approve a listing after a quick content review. The owner can then activate (pay) to publish it. */
   async approveListing(listingId: string): Promise<void> {
     const { data, error } = await supabase
-      .from('verifications')
-      .update({ status: 'verified', rejection_reason: null })
-      .eq('listing_id', listingId)
-      .eq('status', 'pending')
+      .from('listings')
+      .update({ status: 'live', review_notes: null })
+      .eq('id', listingId)
+      .eq('status', 'in_review')
       .select('id');
     if (error) fail(error);
-    if (!data?.length) throw new Error('There is no pending ownership document to approve for this listing.');
+    if (!data?.length) throw new Error('This listing is no longer waiting for review.');
     await this.refresh();
   }
 
+  /** Send a listing back to the owner with a reason (shown to them in their dashboard). */
   async rejectListing(listingId: string, reason: string): Promise<void> {
     const { data, error } = await supabase
-      .from('verifications')
-      .update({ status: 'rejected', rejection_reason: stripHtml(reason).slice(0, 500) })
-      .eq('listing_id', listingId)
-      .eq('status', 'pending')
+      .from('listings')
+      .update({ status: 'rejected', review_notes: stripHtml(reason).slice(0, 500) })
+      .eq('id', listingId)
+      .eq('status', 'in_review')
       .select('id');
     if (error) fail(error);
-    if (!data?.length) throw new Error('There is no pending ownership document to reject for this listing.');
+    if (!data?.length) throw new Error('This listing is no longer waiting for review.');
     await this.refresh();
   }
 
@@ -813,13 +772,6 @@ class DataStore {
     if (error) fail(error);
     if (!data?.length) throw new Error('Only administrators can resolve reports.');
     await this.refresh();
-  }
-
-  /** Short-lived link to view a private ownership document (owner or admin only). */
-  async getDocumentUrl(filePath: string): Promise<string> {
-    const { data, error } = await supabase.storage.from(DOC_BUCKET).createSignedUrl(filePath, 120);
-    if (error || !data) fail(error, 'Could not open the document.');
-    return data!.signedUrl;
   }
 
   // ---------------------------------------------------------------------------
@@ -993,7 +945,7 @@ class DataStore {
   /** Permanently deletes the account, its listings, files, messages and favourites. */
   async deleteAccount(): Promise<void> {
     const me = this.requireUser();
-    for (const bucket of [PHOTO_BUCKET, DOC_BUCKET]) {
+    for (const bucket of [PHOTO_BUCKET]) {
       try {
         const { data: folders } = await supabase.storage.from(bucket).list(me.id, { limit: 1000 });
         for (const f of folders ?? []) {

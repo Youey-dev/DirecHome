@@ -17,6 +17,7 @@ import {
   Mail
 } from 'lucide-react';
 import { UserProfile } from '../types/listing';
+import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE, SUPABASE_REGION, PRIVACY_VERSION } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { useAuth } from '../context/AuthContext';
 
@@ -83,7 +84,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   };
 
   const handleDeleteAccountData = async () => {
-    // PIPEDA / BC PIPA self-serve erasure: removes the account, listings, photos, documents, messages and favourites
+    // BC PIPA self-serve erasure: removes the account, listings, photos, messages and favourites
     if (isGuestUser(activeUser)) {
       setShowDeleteModal(false);
       alert('Please sign in to delete your account.');
@@ -128,7 +129,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             [PENDING FORMAL REVIEW BY BRITISH COLUMBIA LEGAL COUNSEL]
           </div>
           <p className="text-xs sm:text-sm text-amber-900 leading-relaxed">
-            All legal documents on DirectHome BC are structured for British Columbia real estate jurisprudence, the <em>Real Estate Services Act</em> (RESA), the federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA), and Canada’s Anti-Spam Legislation (CASL). Final revisions remain subject to formal solicitor sign-off prior to commercial closing.
+            These documents are drafts written for British Columbia, including the <em>Real Estate Services Act</em> (RESA), BC's <em>Personal Information Protection Act</em> (PIPA), the federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) where it applies, and Canada’s Anti-Spam Legislation (CASL). They remain subject to final review by a BC lawyer.
           </p>
         </div>
       </div>
@@ -200,7 +201,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       {deletionSuccess && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-sm flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
-          <span>Your account and stored personal data have been completely deleted in compliance with PIPEDA. Redirecting...</span>
+          <span>Your account and stored personal data have been deleted. Redirecting...</span>
         </div>
       )}
 
@@ -215,7 +216,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               Terms of Use & Advertising Agreement
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Effective Version: 2026-v1.0-draft · Applicable Jurisdiction: British Columbia, Canada
+              Effective Version: 2026-v1.1-draft · Applicable Jurisdiction: British Columbia, Canada
             </p>
           </div>
 
@@ -239,7 +240,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li>Is <strong>NOT</strong> a real estate brokerage licensed under the British Columbia <em>Real Estate Services Act</em> (RESA).</li>
               <li>Does <strong>NOT</strong> act as an agent, broker, or legal representative for any buyer, seller, or third party.</li>
               <li>Does <strong>NOT</strong> provide real estate trading services, price valuations, appraisals, marketing advice, or negotiation assistance.</li>
-              <li>Does <strong>NOT</strong> draft legally binding contracts or hold purchase deposits in trust.</li>
+              <li>Does <strong>NOT</strong> provide, draft, review or fill in contracts or contract forms, and does <strong>NOT</strong> hold purchase deposits in trust.</li>
             </ul>
           </section>
 
@@ -247,28 +248,31 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <h2 className="text-base font-bold text-slate-900">2. Cash-Back Offer Terms & Conditions</h2>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2">
               <p>
-                <strong>Seller's Offer, Not a Platform Guarantee:</strong> Any cash-back amount displayed on listing cards, calculators, or detail pages represents a voluntary financial offer made solely by the seller, funded from their listing commission savings. DirectHome BC does not fund, pay, or guarantee cash-back payments.
+                <strong>Seller's Offer, Not a Platform Guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. DirectHome BC does not fund, pay, or guarantee cash-back payments.
               </p>
               <p>
-                <strong>Mandatory Contractual Clause:</strong> For any cash-back offer to take legal effect, <strong>it must be explicitly written into the standard British Columbia Contract of Purchase and Sale</strong> agreed upon by the buyer and seller, and executed on the Statement of Adjustments prepared by their independent conveyancing notary public or lawyer.
+                <strong>Written Into the Contract by Your Lawyer or Notary:</strong> For a cash-back offer to take effect, it must be included in the purchase contract. {CONTRACT_NOTICE}
+              </p>
+              <p className="font-semibold text-slate-900">
+                Lender disclosure: {CASHBACK_LENDER_NOTICE}
               </p>
             </div>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">3. Mandatory Ownership Verification Prior to Publication</h2>
+            <h2 className="text-base font-bold text-slate-900">3. Seller Representations; No Ownership Verification</h2>
             <p>
-              To safeguard marketplace integrity and prevent fraudulent property representations, <strong>a listing cannot go live until ownership verification is formally approved</strong> by DirectHome BC compliance officers. 
+              By submitting a listing, the seller represents and warrants that they are the registered owner of the property, or are legally authorized by all registered owners to advertise it for sale, and that the listing is accurate. <strong>DirectHome BC does not verify property ownership, title, or the seller's authority to sell.</strong>
             </p>
             <p className="text-xs text-slate-600">
-              Sellers must submit a valid, current municipal Property Tax Notice or Land Title and Survey Authority of BC (LTSA) Title Search confirming registered ownership matching the account profile. All submitted documents are kept strictly confidential in an encrypted private vault and are never published to buyers.
+              DirectHome BC reviews listings only for spam, scams and inappropriate content before they can be published; this review is not a check of ownership or title. Buyers are responsible for confirming registered ownership (for example, through an LTSA title search) and should use a BC lawyer or notary before signing any agreement or paying any money. Sellers are solely responsible for their listings and agree to indemnify DirectHome BC for claims arising from inaccurate or unauthorized listings.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">4. Independent Legal Representation Requirement</h2>
             <p>
-              All real estate transactions completed between parties introduced via DirectHome BC must be transacted using standard British Columbia Contract of Purchase and Sale documentation. Each party is strongly advised to engage an independent British Columbia Notary Public or member of the Law Society of British Columbia for conveyancing, title registration, and financial adjustments.
+              {CONTRACT_NOTICE} Each party should engage their own independent British Columbia notary public or lawyer (a member of the Law Society of British Columbia) to prepare the contract and handle conveyancing, title registration, and financial adjustments.
             </p>
           </section>
 
@@ -278,10 +282,17 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               DirectHome BC makes no warranties regarding the accuracy of seller-submitted descriptions, measurements, property conditions, or zoning compliance. Buyers are solely responsible for conducting independent building inspections, property disclosures audits, and title verifications.
             </p>
           </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">6. Fees</h2>
+            <p>
+              DirectHome BC charges no commission. Sellers pay a flat listing fee of $25 CAD per month for each active listing, billed through Stripe, until cancelled. Any savings figures shown on the site are estimates only and use an example commission rate; actual commissions are negotiable and vary by brokerage.
+            </p>
+          </section>
         </article>
       )}
 
-      {/* ---------------- SECTION 2: PRIVACY POLICY (PIPEDA) ---------------- */}
+      {/* ---------------- SECTION 2: PRIVACY POLICY (BC PIPA) ---------------- */}
       {activeTab === 'privacy' && (
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
@@ -289,64 +300,106 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>Status: Pending Lawyer Review</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Privacy Policy & PIPEDA Compliance
+              Privacy Policy
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Federal PIPEDA & BC PIPA Compliance Statement · Version: 2026-v1.0-draft
+              Under British Columbia's <em>Personal Information Protection Act</em> (PIPA) · Version: {PRIVACY_VERSION}
             </p>
           </div>
 
           <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs sm:text-sm text-emerald-950 space-y-1.5">
             <div className="font-bold text-emerald-900 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-700" />
-              <span>Core Privacy Commitment (PIPEDA Standard)</span>
+              <span>Which privacy laws apply</span>
             </div>
             <p>
-              DirectHome BC adheres strictly to the 10 Fair Information Principles of Canada's <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) and British Columbia's <em>Personal Information Protection Act</em> (PIPA).
+              DirectHome BC is based in British Columbia, so our handling of your personal information is governed mainly by BC's <em>Personal Information Protection Act</em> (PIPA). Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) also applies when personal information is transferred across provincial or national borders, including to the service providers described below.
             </p>
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">1. Principle of Minimal Data Collection</h2>
-            <p>
-              We collect strictly the minimum personal data required to operate a direct advertising marketplace and verify legal homeownership:
-            </p>
+            <h2 className="text-base font-bold text-slate-900">1. What we collect</h2>
+            <p>We collect only what is needed to run the marketplace:</p>
             <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
-              <li><strong>Contact Information:</strong> Name, email address, and phone number (to coordinate buyer-seller viewing appointments).</li>
-              <li><strong>Listing Data:</strong> Property address, square footage, photos, asking price, and property features.</li>
-              <li><strong>Private Ownership Documents:</strong> Municipal Property Tax notices or Land Title searches solely for compliance auditing. <strong>These files are NEVER shared with buyers or third parties.</strong></li>
+              <li><strong>Account:</strong> your name, email address, phone number (optional), password (stored only in encrypted, hashed form by our sign-in provider), and the date and version of the Terms you accepted.</li>
+              <li><strong>Listings (sellers):</strong> the property address, property details, photos, description, asking price and any cash-back offer. The exact street address is kept private and is only shown to a buyer after you confirm their viewing.</li>
+              <li><strong>Viewing requests:</strong> the requesting buyer's name, email, phone number, preferred date and time, and any note.</li>
+              <li><strong>Messages</strong> sent between buyers and sellers on the site.</li>
+              <li><strong>Saved homes, reports</strong> you file about listings, and the <strong>notifications</strong> we show you.</li>
+              <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by DirectHome BC.</strong></li>
+              <li><strong>Technical information:</strong> our hosting and sign-in providers automatically log technical data such as IP address, browser type and sign-in times, for security and to keep the site working.</li>
+              <li><strong>On your device:</strong> your browser stores your sign-in session, an unfinished listing draft, and your cookie and email preferences. We do not use advertising or analytics trackers.</li>
+            </ul>
+            <p className="text-xs text-slate-600">
+              We do <strong>not</strong> collect ownership documents, property tax notices, land title searches, government ID, or payment card numbers.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">2. How we use it</h2>
+            <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+              <li>To create and secure your account and show your listings, messages, viewings and notifications.</li>
+              <li>To review listings for spam, scams and inappropriate content, and to handle reports.</li>
+              <li>To bill sellers the monthly listing fee and keep the required financial records.</li>
+              <li>To send account emails you need, such as sign-up confirmation and password resets.</li>
             </ul>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">2. No Commercial Sale of Personal Data</h2>
+            <h2 className="text-base font-bold text-slate-900">3. Who can see it, and who we share it with</h2>
+            <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+              <li><strong>Other users:</strong> anyone can see a published listing (without its exact address) and the seller's name shown on it. A seller sees the contact details a buyer includes in a viewing request. Message contents are visible only to the two people in the conversation and, when needed to handle a report, to our administrators.</li>
+              <li><strong>Supabase</strong> stores our database, files and sign-in system (account data, listings, photos, messages).</li>
+              <li><strong>Stripe</strong> processes listing-fee payments.</li>
+              <li><strong>Netlify</strong> hosts the website.</li>
+              <li><strong>The Government of British Columbia's address service</strong> (geocoder.api.gov.bc.ca) receives the address you type when creating a listing, to place it on the map.</li>
+              <li><strong>OpenStreetMap</strong> map servers deliver the map images and receive your IP address when a map loads.</li>
+            </ul>
             <p>
-              DirectHome BC does <strong>NOT</strong> sell, rent, license, or monetize your personal information to third-party mortgage brokers, real estate brokerages, marketing agencies, or data brokers.
+              We do <strong>not</strong> sell, rent or trade your personal information to mortgage brokers, real estate brokerages, marketing agencies, data brokers or anyone else.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">3. Approximate Location & Security Measures</h2>
+            <h2 className="text-base font-bold text-slate-900">4. Where your data is stored</h2>
             <p>
-              To protect the privacy of homeowners and their families, listing map coordinates display only an approximate neighborhood perimeter. Exact civic addresses and suite numbers remain locked until the homeowner confirms an appointment request.
+              Account data, listings, photos and messages are stored with <strong>Supabase</strong> (data region: <strong>{SUPABASE_REGION}</strong>). Payments are processed by <strong>Stripe</strong>, and the website is hosted by <strong>Netlify</strong>.
+            </p>
+            <p>
+              <strong>This data may be stored or processed outside Canada, including in the United States, and may be subject to the laws of those countries</strong>, which may allow governments, courts or law enforcement there to access it.
             </p>
           </section>
 
-          {/* Self-Serve PIPEDA Data & Account Erasure Module */}
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">5. How long we keep it</h2>
+            <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+              <li>We keep your account data, listings and messages until you delete your account.</li>
+              <li>When you delete your account, your data is erased within 30 days (this allows time for it to clear from backups), except for records we must keep for tax or legal reasons, such as billing and payment records.</li>
+            </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">6. Approximate location & security</h2>
+            <p>
+              To protect homeowners and their families, the map shows only an approximate location. The exact address and unit number stay hidden until the homeowner confirms a viewing. Access to data is restricted by account, and connections to the site are encrypted.
+            </p>
+          </section>
+
+          {/* Self-serve access & deletion */}
           <section className="pt-4 border-t border-slate-200 space-y-4">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <UserX className="w-5 h-5 text-rose-600" />
-              <span>4. Your Right to Data Portability & Complete Deletion</span>
+              <span>7. Your right to access, correct and delete your data</span>
             </h2>
             <p className="text-xs sm:text-sm">
-              Under PIPEDA Principle 9 (Individual Access) and Principle 5 (Limiting Retention), you hold the right to request all data we store about you and to permanently erase your account, uploaded property tax documents, and conversation history at any time.
+              Under PIPA you can ask to see the personal information we hold about you and ask us to correct it. You can also download a copy below, or permanently delete your account, listings, photos and conversations at any time.
             </p>
 
             {/* Data Export Box */}
             <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="font-bold text-slate-900 text-sm">Download PIPEDA Data Export</div>
+                  <div className="font-bold text-slate-900 text-sm">Download your data</div>
                   <div className="text-xs text-slate-600 mt-0.5">
                     Export all your listings, viewing requests, messages, and profile records in machine-readable JSON.
                   </div>
@@ -387,15 +440,15 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 </button>
               </div>
               <p className="text-[11px] text-rose-800 leading-relaxed">
-                Triggering deletion permanently removes your profile, saved homes, conversation logs, and draft listings from DirectHome BC storage immediately.
+                Deleting your account removes your profile, listings, photos, saved homes and conversations from the live site immediately. Remaining copies (such as backups) are erased within 30 days, except records we must keep for tax or legal reasons. Cancel any active listing subscription first.
               </p>
             </div>
           </section>
 
           <section className="space-y-2 pt-2">
-            <h2 className="text-base font-bold text-slate-900">5. Privacy Officer Contact</h2>
+            <h2 className="text-base font-bold text-slate-900">8. Contact our privacy officer</h2>
             <p className="text-xs text-slate-600">
-              For privacy inquiries, audit questions, or formal PIPEDA compliance requests, contact our designated Chief Privacy Officer at: <code>privacy@directhome.ca</code>.
+              For privacy questions, access or correction requests, or complaints, contact our privacy officer at <code>privacy@directhome.ca</code>. If you are not satisfied with our response, you can contact the Office of the Information and Privacy Commissioner for British Columbia.
             </p>
           </section>
         </article>
@@ -412,7 +465,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               Community & Listing Rules
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Standards for sellers and buyers in British Columbia · Version: 2026-v1.0-draft
+              Standards for sellers and buyers in British Columbia · Version: 2026-v1.1-draft
             </p>
           </div>
 
@@ -450,39 +503,43 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               How Buyer Cash-Back Works in British Columbia
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Legal, Financial & Conveyancing Mechanics · Version: 2026-v1.0-draft
+              General information only — not legal or financial advice · Version: 2026-v1.1-draft
             </p>
           </div>
 
           <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs sm:text-sm text-emerald-950 space-y-1.5">
             <div className="font-bold text-emerald-900 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-emerald-700" />
-              <span>Core Principle: Seller Saving = Buyer Benefit</span>
+              <span>The Basics</span>
             </div>
             <p>
-              In British Columbia, typical listing brokerages charge 7% on the first $100,000 and 2.5% on the balance. By listing directly on DirectHome BC with $0 listing commission, the seller saves tens of thousands in commission. The seller elects to share a portion of these savings with the buyer as an attractive closing incentive.
+              DirectHome BC charges no commission — sellers pay a flat $25/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
             </p>
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">How It Is Executed at Closing</h2>
+            <h2 className="text-base font-bold text-slate-900">How It Works at Closing</h2>
             <ol className="list-decimal pl-5 space-y-2 text-xs sm:text-sm">
               <li>
-                <strong>Written into the Purchase Contract:</strong> The agreed cash-back credit is drafted as a specific clause in the standard BC Contract of Purchase and Sale signed by both parties.
+                <strong>Agreed in writing:</strong> If the buyer and seller agree to a cash-back, it must be included in the purchase contract. {CONTRACT_NOTICE}
               </li>
               <li>
-                <strong>Credited on the Statement of Adjustments:</strong> The conveyancer (BC Notary Public or lawyer) registers the credit as a line item on the Statement of Adjustments, directly reducing the buyer's required cash at completion.
-              </li>
-              <li>
-                <strong>Full Lender Transparency:</strong> The credit is fully documented in the legal contract of purchase, ensuring total transparency with the buyer's mortgage lender and insurer.
+                <strong>Handled by the lawyers or notaries:</strong> How the credit is shown and applied at completion is decided by the buyer's and seller's own lawyers or notaries.
               </li>
             </ol>
           </section>
 
           <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">Mortgage Lender & Insurer Disclosure</h2>
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs sm:text-sm text-amber-950 font-medium">
+              {CASHBACK_LENDER_NOTICE}
+            </div>
+          </section>
+
+          <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">Legal Boundary Notice</h2>
             <p className="text-xs text-slate-600">
-              DirectHome BC is not a party to the contract of purchase and sale, does not hold deposit trust monies, and does not guarantee payments. The cash-back is a direct contractual commitment made between the seller and buyer.
+              DirectHome BC is not a party to the purchase contract, does not provide, draft or review contracts, does not hold deposit trust monies, and does not fund, pay or guarantee cash-back payments. Any cash-back is a commitment made directly between the seller and buyer.
             </p>
           </section>
         </article>
@@ -509,7 +566,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>Strict Zero-Spam Policy (CASL Standard)</span>
             </div>
             <p>
-              DirectHome BC only sends transactional emails necessary for servicing your viewing requests, buyer messages, and verification audit notifications. <strong>We never send marketing or promotional emails without your explicit, voluntary opt-in consent.</strong>
+              DirectHome BC only sends transactional emails necessary for servicing your viewing requests, buyer messages, and listing review notifications. <strong>We never send marketing or promotional emails without your explicit, voluntary opt-in consent.</strong>
             </p>
           </div>
 
@@ -521,7 +578,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <div>
                 <div className="font-semibold text-slate-900 text-sm">Essential Transactional Alerts (Required)</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Viewing confirmations, seller approvals, direct message replies, and title verification status updates.
+                  Viewing confirmations, seller approvals, direct message replies, and listing review status updates.
                 </div>
               </div>
               <input
@@ -554,7 +611,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <div>
                 <div className="font-semibold text-slate-900 text-sm">Weekly Market Digest & Newly Listed Homes</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  A once-per-week summary of verified homes matching your saved searches.
+                  A once-per-week summary of homes matching your saved searches.
                 </div>
               </div>
               <input
@@ -587,7 +644,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         </article>
       )}
 
-      {/* Confirmation Modal for PIPEDA Deletion */}
+      {/* Confirmation modal for account deletion */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -598,7 +655,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <div className="text-center space-y-1">
               <h3 className="text-lg font-bold text-slate-900">Permanently Delete Account & Data?</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                In compliance with PIPEDA, this will irreversibly erase your account profile, saved homes, messaging history, and any uploaded tax/title documents.
+                This will permanently erase your account profile, saved homes, messages, listings and photos. Cancel any active listing subscription first so you are not billed again.
               </p>
             </div>
 
@@ -616,7 +673,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 disabled={deleting}
                 className="flex-1 py-2.5 bg-rose-700 hover:bg-rose-800 disabled:opacity-60 text-white rounded-xl text-xs font-semibold min-h-[44px]"
               >
-                {deleting ? 'Deleting…' : 'Confirm PIPEDA Deletion'}
+                {deleting ? 'Deleting…' : 'Delete my account'}
               </button>
             </div>
           </div>

@@ -51,7 +51,15 @@ Deno.serve(async (req) => {
       client_reference_id: listing.id,
       allow_promotion_codes: true,
       metadata: { listing_id: listing.id, user_id: u.user.id },
-      subscription_data: { metadata: { listing_id: listing.id, user_id: u.user.id } },
+      // Each listing is its OWN subscription. Label it so the owner can tell them apart
+      // on the checkout page, receipts and in "Manage billing".
+      subscription_data: {
+        description: `DirectHome listing: ${String(listing.headline ?? "").slice(0, 200)}`,
+        metadata: { listing_id: listing.id, user_id: u.user.id },
+      },
+      custom_text: {
+        submit: { message: `New $25/month subscription for "${String(listing.headline ?? "your home").slice(0, 150)}". Your other listings are billed separately.` },
+      },
       success_url: `${site}/dashboard?billing=success`,
       cancel_url: `${site}/dashboard?billing=cancelled`,
     });

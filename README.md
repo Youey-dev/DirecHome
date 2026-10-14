@@ -1,7 +1,7 @@
 # DirectHome BC — Canadian Direct Home Marketplace (MVP)
 
 > **Canada's peer-to-peer home marketplace for the Fraser Valley & Lower Mainland, BC.**
-> Homeowners list their homes directly with zero listing commission. Buyers tour and purchase directly from the verified owner, receiving closing cash-back credits funded from the commission savings.
+> Homeowners list their homes directly with zero listing commission. Buyers tour and purchase directly from the owner, receiving closing cash-back credits funded from the commission savings.
 
 ---
 
@@ -19,9 +19,9 @@
 3. **Live BC Commission & Cash-Back Calculator:**
    - Interactive simulator comparing standard BC tiered commission (7% on first $100k + 2.5% on balance + 5% GST).
    - Demonstrates net seller cash kept vs. buyer closing cash-back credit.
-4. **Trust & Private Ownership Verification:**
-   - Sellers upload Property Tax notices or Land Title searches to a private Supabase storage bucket.
-   - Admin compliance queue for reviewing title documents and approving listings.
+4. **Listing Review & Trust:**
+   - Every listing gets a quick admin content review (spam, scams, inappropriate content) before the owner can activate it.
+   - Ownership is NOT verified; sellers declare they own the home or are authorized to sell it.
    - Approximate neighborhood privacy radius until the homeowner approves a viewing.
 5. **Direct In-App Messaging & Viewing Scheduler:**
    - Anti-spam rate limiting (max 5 new conversations/hour).
@@ -89,7 +89,7 @@ npm run build
 
 The following capabilities are deliberately excluded from this MVP:
 - **Payments / Subscriptions:** Every listing is currently 100% free for the launch. The data model (`subscriptionTier`, `monthlyFeeCAD`, `billingCycle`, `paymentStatus`) is already structured so a monthly fee can be enabled later without database migrations.
-- **MLS Integration:** No MLS syndication, DDF, or IDX feeds; strictly a verified direct-to-consumer marketplace.
+- **MLS Integration:** No MLS syndication, DDF, or IDX feeds; strictly a direct-to-consumer marketplace.
 - **Offers & Contract Tools:** No digital contract drafting or negotiation tools. Buyers and sellers execute standard BC Contracts of Purchase and Sale through their independent conveyancers.
 - **Mortgage Tools:** No mortgage rate comparison, affordability calculators, or lender referrals.
 - **Reviews & Ratings:** No subjective ratings or agent review widgets.

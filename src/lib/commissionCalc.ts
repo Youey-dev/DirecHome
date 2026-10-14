@@ -1,7 +1,7 @@
 /**
  * Commission and Cash-back Calculation Utilities for BC Real Estate
  * 
- * Standard British Columbia Commission Benchmark:
+ * EXAMPLE commission rate used for estimates (not a standard or required rate):
  * - 7% on the first $100,000 of purchase price
  * - 2.5% on the remaining balance over $100,000
  * - Applicable 5% GST on real estate brokerage services
@@ -9,6 +9,9 @@
  * Note: Commissions in Canada are not set by law and are negotiable.
  * Figures are realistic estimates for illustrative comparison only.
  */
+
+/** DirectHome charges no commission; the listing fee is a flat monthly amount per active listing. */
+export const LISTING_FEE_CAD_PER_MONTH = 25;
 
 export interface CommissionBreakdown {
   price: number;
@@ -38,7 +41,7 @@ export function calculateBCCommission(
       netSellerSavingsWithCashback: 0,
       netSellerSavingsZeroCashback: 0,
       buyerBenefit: 0,
-      assumptions: 'Based on standard BC tiered rate (7% on first $100k + 2.5% on balance + 5% GST).'
+      assumptions: 'Estimate using an example commission rate (7% on first $100k + 2.5% on balance + 5% GST). Commissions are negotiable.'
     };
   }
 
@@ -76,7 +79,7 @@ export function calculateBCCommission(
     netSellerSavingsWithCashback: netSavings,
     netSellerSavingsZeroCashback: totalCommissionWithGst,
     buyerBenefit: offeredCashback,
-    assumptions: 'Assumes standard BC formula of 7% on first $100k + 2.5% on balance + 5% GST. Commissions are negotiable and vary by brokerage.'
+    assumptions: 'Estimate using an example commission rate (7% on first $100k + 2.5% on balance + 5% GST). Commissions are negotiable and vary by brokerage.'
   };
 }
 

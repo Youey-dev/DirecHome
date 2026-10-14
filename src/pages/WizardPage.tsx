@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
+import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, TERMS_VERSION } from '../lib/db';
 import { geocodeBCAddress } from '../lib/geocode';
 import { BC_CITY_INFO } from '../data/cities';
@@ -41,20 +42,10 @@ const STEPS = [
   { id: 2, title: 'Details & Price', subtitle: 'Size, rooms, and asking price' },
   { id: 3, title: 'Photos', subtitle: 'Upload clear photos (resized on device)' },
   { id: 4, title: 'Description', subtitle: 'What makes your home special?' },
-  { id: 5, title: 'Cash-Back Offer', subtitle: 'Pass commission savings to buyers' },
-  { id: 6, title: 'Ownership Proof', subtitle: 'Private land title or tax notice' },
-  { id: 7, title: 'Review & Submit', subtitle: 'Confirm and launch your listing' }
+  { id: 5, title: 'Cash-Back Offer', subtitle: 'Optional credit to your buyer' },
+  { id: 6, title: 'Review & Submit', subtitle: 'Confirm and send your listing for review' }
 ];
 
-type DocType = 'property_tax_notice' | 'land_title_search' | 'bc_assessment' | 'other';
-const DOC_LABELS: Record<DocType, string> = {
-  property_tax_notice: 'BC Property Tax Notice (municipal tax bill)',
-  land_title_search: 'Land Title Search (LTSA)',
-  bc_assessment: 'BC Assessment notice',
-  other: 'Other proof of ownership',
-};
-const DOC_MAX_BYTES = 10 * 1024 * 1024;
-const DOC_TYPES_OK = ['application/pdf', 'image/jpeg', 'image/png'];
 
 export const WizardPage: React.FC<WizardPageProps> = ({
   activeUser,
@@ -74,7 +65,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const [geoKey, setGeoKey] = useState('');
   // One id for this listing for the whole session, so a retry never creates a duplicate
   const listingIdRef = useRef<string>(typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : '');
-  const [existingDoc, setExistingDoc] = useState<{ fileName: string; status: 'pending' | 'verified' | 'rejected' } | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Form State
@@ -114,9 +104,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const [cashbackType, setCashbackType] = useState<'fixed' | 'percentage'>('fixed');
   const [cashbackAmount, setCashbackAmount] = useState(10000);
 
-  // Step 6 Ownership verification
-  const [verificationFile, setVerificationFile] = useState<{ file: File; docType: DocType } | null>(null);
-  const [docType, setDocType] = useState<DocType>('property_tax_notice');
 
   // Restore an unfinished draft (or a listing opened with "Edit") saved on this device
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -161,9 +148,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (typeof draft.offersCashback === 'boolean') setOffersCashback(draft.offersCashback);
     if (draft.cashbackType) setCashbackType(draft.cashbackType);
     if (draft.cashbackAmount) setCashbackAmount(draft.cashbackAmount);
-    if (draft.verificationDoc?.fileName) {
-      setExistingDoc({ fileName: draft.verificationDoc.fileName, status: draft.verificationDoc.status });
-    }
     // Only photos that are already uploaded come back; new photos are not stored on the device
     if (Array.isArray(draft.photos)) {
       setPhotos(draft.photos.filter((p: PhotoItem) => typeof p.url === 'string' && p.url.startsWith('http')));
@@ -203,8 +187,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         photos: photos.filter((p) => p.url.startsWith('http')),
         offersCashback,
         cashbackType,
-        cashbackAmount,
-        verificationDoc: existingDoc ?? undefined
+        cashbackAmount
       });
       setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }, 600);
@@ -214,7 +197,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     streetAddress, unitNumber, city, postalCode, neighborhood, propertyType, lat, lng,
     price, bedrooms, bathrooms, sqft, lotSqft, lotAcres, yearBuilt, parkingSpaces, strataFee, propertyTaxesAnnual,
     headline, description, neighborhoodHighlights, upgradesInput, inclusionsInput, photos,
-    offersCashback, cashbackType, cashbackAmount, existingDoc, editingId, isSubmittedSuccess
+    offersCashback, cashbackType, cashbackAmount, editingId, isSubmittedSuccess
   ]);
 
   // Live Commission calculations
@@ -357,34 +340,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       }
     }
 
-    if (currentStep === 6) {
-      const hasUsableExisting = !!existingDoc && existingDoc.status !== 'rejected';
-      if (!verificationFile && !hasUsableExisting) {
-        setValidationError('Please upload your BC Property Tax Notice or Land Title search so we can verify ownership.');
-        return;
-      }
-    }
-
-    if (currentStep < 7) {
+    if (currentStep < 6) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
-
-  const handleDocumentPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    if (!DOC_TYPES_OK.includes(file.type)) {
-      setValidationError('Please upload a PDF, JPG, or PNG file.');
-      return;
-    }
-    if (file.size > DOC_MAX_BYTES) {
-      setValidationError('That file is larger than 10 MB. Please upload a smaller file or a lower-resolution scan.');
-      return;
-    }
-    setValidationError(null);
-    setVerificationFile({ file, docType });
   };
 
   const handleBack = () => {
@@ -397,7 +356,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     }
   };
 
-  // Final submit: saves everything to the database and sends the listing to the verification queue
+  // Final submit: saves everything to the database and sends the listing to the review queue
   const handleFinalSubmit = async () => {
     if (submitting) return;
     if (!termsAccepted) {
@@ -443,7 +402,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         recentUpgrades: upgradesList,
         inclusions: inclusionsList,
         photos,
-        verificationFile: verificationFile ? { file: verificationFile.file, docType: verificationFile.docType } : null,
       });
       if (!editingId) db.clearDraft(); // keep any unfinished new-listing draft when saving an edit
       setSubmittedSummary({
@@ -476,7 +434,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             Your Listing is in Review!
           </h2>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg mx-auto">
-            We’ve received your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>. Our team reviews your ownership document before the listing is published to the marketplace. You can follow its status in your dashboard.
+            We’ve received your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>. Our team will give it a quick review (usually within 1 business day). Once approved, tap "Activate listing" in your dashboard to publish it.
           </p>
         </div>
 
@@ -1015,10 +973,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200/80 space-y-2">
               <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
                 <Gift className="w-4 h-4 text-emerald-700" />
-                <span>The DirectHome Cash-Back Superpower</span>
+                <span>Optional: Offer a Buyer Cash-Back</span>
               </div>
               <p className="text-xs text-emerald-950/90 leading-relaxed">
-                MLS listings pay 2.5% to 5% in commissions. On your {formatCAD(price)} home, that would be <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. By listing yourself, you can pass e.g. $10,000 to $20,000 as a cash-back credit to your buyer, and still keep the rest!
+                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. DirectHome charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer.
               </p>
             </div>
 
@@ -1026,7 +984,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
               <div>
                 <div className="text-sm font-bold text-slate-900">Offer Buyer Cash-Back at Completion?</div>
-                <div className="text-xs text-slate-500">Credited on the lawyer's Statement of Adjustments</div>
+                <div className="text-xs text-slate-500">Your voluntary offer, written into the purchase contract by the parties' lawyers or notaries</div>
               </div>
               <input
                 type="checkbox"
@@ -1065,116 +1023,27 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                     </div>
                   </div>
                   <div className="p-3 bg-emerald-100/60 rounded-xl border border-emerald-200">
-                    <div className="text-emerald-800 font-medium">You Still Keep:</div>
+                    <div className="text-emerald-800 font-medium">You Could Still Keep (estimate):</div>
                     <div className="text-base font-bold text-emerald-900 mt-0.5 tabular-nums">
-                      {formatCAD(commissionBreakdown.netSellerSavingsWithCashback)} net savings
+                      {formatCAD(commissionBreakdown.netSellerSavingsWithCashback)}
                     </div>
+                    <div className="text-[10px] text-emerald-800/80">before $25/month listing fees</div>
                   </div>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 leading-relaxed space-y-1">
-                  <div className="font-semibold text-slate-800">Legal Term Requirement:</div>
-                  <p>
-                    This cash-back is your voluntary offer as the seller, not a platform guarantee. It must be explicitly written into the standard BC Contract of Purchase and Sale and will be credited to the buyer on the Statement of Adjustments at closing by the conveyancers.
-                  </p>
+                  <div className="font-semibold text-slate-800">Important:</div>
+                  <p>{CASHBACK_SELLER_OFFER_NOTICE}</p>
+                  <p>{CONTRACT_NOTICE}</p>
+                  <p className="font-medium text-slate-800">{CASHBACK_LENDER_NOTICE}</p>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* ---------------- STEP 6: Ownership Verification ---------------- */}
+        {/* ---------------- STEP 6: Review & Submit ---------------- */}
         {currentStep === 6 && (
-          <div className="space-y-6">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-2">
-              <div className="flex items-center gap-2 font-bold text-slate-900">
-                <Lock className="w-4 h-4 text-emerald-700" />
-                <span>100% Private Ownership Audit</span>
-              </div>
-              <p>
-                To protect BC homebuyers from fraudulent or fake listings, DirectHome requires verified proof that you own this property before your listing goes live.
-              </p>
-              <p className="text-emerald-800 font-medium">
-                🔒 Stored in an encrypted PRIVATE storage bucket. This document is NEVER visible to buyers or the public.
-              </p>
-            </div>
-
-            {/* Document upload box */}
-            <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center bg-slate-50/50 space-y-3">
-              <ShieldCheck className="w-10 h-10 text-emerald-700 mx-auto" />
-              <div>
-                <div className="text-sm font-bold text-slate-900">
-                  Upload BC Property Tax Notice or Land Title Search
-                </div>
-                <div className="text-xs text-slate-500 mt-0.5">
-                  PDF, JPG, or PNG (from municipal annual tax bill or LTSA)
-                </div>
-              </div>
-
-              <div className="max-w-sm mx-auto text-left">
-                <label htmlFor="wizard-doc-type" className="block text-xs font-semibold text-slate-700 mb-1">
-                  Document type
-                </label>
-                <select
-                  id="wizard-doc-type"
-                  value={docType}
-                  onChange={(e) => {
-                    const t = e.target.value as DocType;
-                    setDocType(t);
-                    if (verificationFile) setVerificationFile({ ...verificationFile, docType: t });
-                  }}
-                  className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-sm"
-                >
-                  {(Object.keys(DOC_LABELS) as DocType[]).map((k) => (
-                    <option key={k} value={k}>{DOC_LABELS[k]}</option>
-                  ))}
-                </select>
-              </div>
-
-              {verificationFile ? (
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 inline-flex items-center gap-3 text-xs text-left shadow-sm">
-                  <FileText className="w-5 h-5 text-emerald-700 shrink-0" />
-                  <div>
-                    <div className="font-semibold text-slate-900 break-all">{verificationFile.file.name}</div>
-                    <div className="text-[10px] text-slate-400">
-                      {(verificationFile.file.size / (1024 * 1024)).toFixed(1)} MB · uploads when you submit
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setVerificationFile(null)}
-                    aria-label="Remove document"
-                    className="p-1 hover:text-rose-600 text-slate-400 ml-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {existingDoc && (
-                    <div className="text-xs text-slate-600">
-                      Document on file: <strong>{existingDoc.fileName}</strong> ({existingDoc.status}).
-                      {existingDoc.status === 'rejected' && ' Please upload a new document.'}
-                    </div>
-                  )}
-                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold cursor-pointer hover:bg-slate-800">
-                    <Upload className="w-4 h-4" />
-                    <span>{existingDoc ? 'Upload a new document' : 'Choose file'}</span>
-                    <input
-                      type="file"
-                      accept="application/pdf,image/jpeg,image/png"
-                      onChange={handleDocumentPick}
-                      className="sr-only"
-                    />
-                  </label>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ---------------- STEP 7: Review & Submit ---------------- */}
-        {currentStep === 7 && (
           <div className="space-y-6">
             <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200">
@@ -1218,7 +1087,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span>DirectHome BC Legal Declaration & Representation</span>
               </div>
               <p className="text-slate-600">
-                You declare that you are the registered legal owner of this property, that all representations and inclusions are accurate, and that you understand DirectHome BC is strictly an advertising marketplace, not a licensed real estate brokerage.
+                You confirm that you are the owner of this property or are legally authorized by the owner to advertise it for sale, that all information and photos are accurate, and that you are solely responsible for this listing. DirectHome BC does not verify property ownership, is an advertising marketplace only, and is not a licensed real estate brokerage.
               </p>
 
               {/* Mandatory Acceptance Checkbox */}
@@ -1259,7 +1128,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <span>{currentStep === 1 ? 'Cancel' : 'Back'}</span>
           </button>
 
-          {currentStep < 7 ? (
+          {currentStep < 6 ? (
             <button
               type="button"
               onClick={handleNext}
@@ -1277,7 +1146,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               className="disabled:opacity-60 px-8 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-sm rounded-xl transition-all shadow-md min-h-[48px] flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-5 h-5" />
-              <span>{submitting ? 'Uploading… please keep this page open' : 'Submit Listing for Verification'}</span>
+              <span>{submitting ? 'Uploading… please keep this page open' : 'Submit Listing for Review'}</span>
             </button>
           )}
         </div>

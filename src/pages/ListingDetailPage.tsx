@@ -6,6 +6,7 @@ import { ViewingModal } from '../components/ViewingModal';
 import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
 import { formatCAD } from '../lib/commissionCalc';
+import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { 
   Heart, 
@@ -128,11 +129,6 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               <span className="font-semibold text-emerald-800">{listing.propertyType}</span>
               <span aria-hidden="true">·</span>
               <span>Built in {listing.yearBuilt}</span>
-              <span aria-hidden="true">·</span>
-              <span className="flex items-center gap-1 text-slate-700">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Ownership document verified</span>
-              </span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -174,16 +170,15 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <span>Seller's Cash-Back Offer: {formatCAD(listing.cashbackAmount)}</span>
               </div>
               <p className="text-xs sm:text-sm text-emerald-950/90 leading-relaxed">
-                The homeowner is offering to credit <strong>{formatCAD(listing.cashbackAmount)}</strong> to the buyer at completion, funded from their listing commission savings. 
+                The homeowner is offering a <strong>{formatCAD(listing.cashbackAmount)}</strong> credit to the buyer at completion. This is the seller's own voluntary offer. 
               </p>
               <div className="p-3 bg-white/80 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-1">
                 <div className="font-semibold text-emerald-900 flex items-center gap-1.5">
                   <FileCheck className="w-4 h-4 text-emerald-700" />
                   <span>Important Terms: Seller's Offer (Not a Guarantee)</span>
                 </div>
-                <p className="text-[11px] leading-relaxed text-slate-700">
-                  This cash-back is an offer by the seller, not a platform guarantee. To take effect, this term <strong>must be formally documented in the standard BC Contract of Purchase and Sale</strong> and will be credited on the Statement of Adjustments by your conveyancing lawyer or notary at closing.
-                </p>
+                <p className="text-[11px] leading-relaxed text-slate-700">{CASHBACK_SELLER_OFFER_NOTICE} To apply, it must be included in the purchase contract. {CONTRACT_NOTICE}</p>
+                <p className="text-[11px] leading-relaxed text-slate-900 font-medium">{CASHBACK_LENDER_NOTICE}</p>
               </div>
             </div>
           )}
@@ -345,7 +340,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <div className="text-sm font-bold text-slate-900">{listing.sellerName}</div>
                 <div className="text-xs text-emerald-800 font-medium flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Verified Homeowner</span>
+                  <span>Listed by owner</span>
                 </div>
                 <div className="text-[11px] text-slate-400 mt-0.5">Typically replies in under 1 hour</div>
               </div>

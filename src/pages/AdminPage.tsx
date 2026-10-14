@@ -54,7 +54,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
   };
 
   const handleApprove = (id: string) => {
-    void run(() => db.approveListing(id), '✓ Ownership document approved. The listing is now live.');
+    void run(() => db.approveListing(id), '✓ Listing approved. The owner can now activate it to publish.');
   };
 
   const handleConfirmReject = async (e: React.FormEvent) => {
@@ -78,18 +78,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
     }, action === 'resolved' ? 'Report upheld: the listing was paused.' : 'Report dismissed.');
   };
 
-  const handleViewDocument = async (filePath?: string) => {
-    if (!filePath) return showNotice('⚠️ No document file is attached to this listing.');
-    try {
-      const url = await db.getDocumentUrl(filePath);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (err: any) {
-      showNotice(`⚠️ ${err.message || 'Could not open the document.'}`);
-    }
-  };
-
   const pendingListings = listings.filter((l) => l.status === 'in_review');
-  const allVerified = listings.filter((l) => l.status === 'live');
+  const allApproved = listings.filter((l) => l.status === 'live');
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 pb-20 space-y-6">
@@ -110,16 +100,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
             <span>DirectHome BC Compliance Portal</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
-            Verification Queue & Trust Moderation
+            Listing Review & Moderation
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Restricted compliance view for auditing BC Land Title and Municipal Property Tax notices.
+            Quick content review before a listing can be activated. DirectHome does not verify property ownership.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-xs bg-emerald-100 text-emerald-900 font-bold px-3 py-1.5 rounded-lg border border-emerald-200">
-            {pendingListings.length} Pending Verifications
+            {pendingListings.length} Awaiting Review
           </span>
           <span className="text-xs bg-rose-100 text-rose-900 font-bold px-3 py-1.5 rounded-lg border border-rose-200">
             {reports.filter((r) => r.status === 'pending').length} Active Reports
@@ -135,7 +125,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
             activeTab === 'verification' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          Ownership Verification Queue ({pendingListings.length})
+          Review Queue ({pendingListings.length})
         </button>
 
         <button
@@ -148,15 +138,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
         </button>
       </div>
 
-      {/* Verification Queue Tab */}
+      {/* Review Queue Tab */}
       {activeTab === 'verification' && (
         <div className="space-y-4">
           {pendingListings.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-3">
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-              <h3 className="text-lg font-bold text-slate-900">Verification Queue is Empty</h3>
+              <h3 className="text-lg font-bold text-slate-900">Review Queue is Empty</h3>
               <p className="text-xs text-slate-500">
-                There are no listings waiting for ownership verification.
+                There are no listings waiting for review.
               </p>
             </div>
           ) : (
@@ -169,7 +159,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded">
-                        Pending Verification
+                        Awaiting Review
                       </span>
                       <span className="text-xs text-slate-400">
                         Submitted {new Date(listing.createdAt).toLocaleDateString()}
@@ -197,29 +187,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                   </div>
                 </div>
 
-                {/* Private Document Audit Section */}
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-lg bg-emerald-100 text-emerald-800 shrink-0">
-                      <Lock className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>Private document: {listing.verificationDoc?.fileName ?? 'No document attached'}</span>
-                      </div>
-                      <div className="text-[11px] text-slate-500">
-                        File type: {listing.verificationDoc?.documentType ?? '—'} · Private storage (admins and the owner only)
-                      </div>
-                    </div>
+                {/* Quick review checklist */}
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+                  <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                    <span>Quick review checklist</span>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleViewDocument(listing.verificationDoc?.filePath)}
-                    className="px-4 py-2 text-xs font-semibold text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-300 rounded-xl min-h-[44px] cursor-pointer"
-                  >
-                    View document
-                  </button>
+                  <ul className="list-disc pl-5 space-y-0.5">
+                    <li>Photos show a real home and nothing offensive or copied from another site</li>
+                    <li>Description has no phone numbers, emails or links trying to move buyers off the site</li>
+                    <li>Price, size and location look plausible (no obvious scam or placeholder)</li>
+                    <li>Nothing discriminatory or otherwise against the Terms of Use</li>
+                  </ul>
                 </div>
 
                 {/* Admin Actions */}
@@ -243,7 +222,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                     className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-sm min-h-[44px] flex items-center gap-1.5 cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Approve & Publish Live</span>
+                    <span>Approve</span>
                   </button>
                 </div>
               </div>
@@ -323,7 +302,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <h3 className="text-lg font-bold text-slate-900">Provide Rejection Reason</h3>
             <p className="text-xs text-slate-500">
-              This constructive feedback will be shown to the seller on their dashboard so they can upload correct ownership documents.
+              This constructive feedback will be shown to the seller on their dashboard so they can fix the listing and resubmit.
             </p>
 
             <form onSubmit={handleConfirmReject} className="space-y-4">

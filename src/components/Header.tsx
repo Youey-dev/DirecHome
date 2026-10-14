@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
               DirectHome<span className="text-emerald-700">BC</span>
             </span>
             <span className="text-[10px] text-slate-400 block -mt-1 font-medium hidden sm:block">
-              Zero Seller Commission
+              No commission · $25/mo listing
             </span>
           </div>
         </button>
@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
               currentTab === 'calculator' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
-            Savings Calculator
+            Cash-Back Estimator
           </button>
 
           <button
@@ -243,7 +243,7 @@ export const Header: React.FC<HeaderProps> = ({
                         className="w-full px-2 py-2 text-left rounded-lg hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium"
                       >
                         <ShieldCheck className="w-4 h-4 text-slate-400" />
-                        <span>Verification queue (admin)</span>
+                        <span>Review queue (admin)</span>
                       </button>
                     </div>
                   )}
@@ -341,7 +341,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Calculator className="w-5 h-5 text-slate-400" />
-            <span>Commission & Cash-Back Calculator</span>
+            <span>Commission & Cash-Back Estimator</span>
           </button>
 
           <button
@@ -388,7 +388,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="w-full py-3 bg-emerald-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 min-h-[48px]"
             >
               <PlusCircle className="w-5 h-5" />
-              <span>{hasDraft ? 'Resume Your Listing' : 'List Your Home for Free'}</span>
+              <span>{hasDraft ? 'Resume Your Listing' : 'List Your Home'}</span>
             </button>
           </div>
         </div>

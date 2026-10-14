@@ -28,18 +28,6 @@ export interface PhotoItem {
   fileSize?: number;
 }
 
-export interface VerificationDocument {
-  id: string;
-  fileName: string;
-  fileSize: string;
-  uploadedAt: string;
-  documentType: 'property_tax_notice' | 'land_title_search' | 'bc_assessment' | 'other';
-  status: 'pending' | 'verified' | 'rejected';
-  rejectionReason?: string;
-  /** Path inside the private storage bucket (never a public URL). */
-  filePath?: string;
-}
-
 export interface ViewingRequest {
   id: string;
   listingId: string;
@@ -147,8 +135,8 @@ export interface Listing {
   inclusions?: string[];
 
   // Verification
-  verificationDoc?: VerificationDocument;
-  verificationNotes?: string;
+  /** Reason given by the review team when a listing is sent back (status 'rejected'). */
+  reviewNotes?: string;
 
   // Analytics
   viewsCount: number;

@@ -20,7 +20,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
           </div>
           <div className="text-xs text-slate-400 flex items-center gap-2 shrink-0">
             <FileCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>PIPEDA Compliant · Independent BC Conveyancing</span>
+            <span>Privacy under BC PIPA · Contracts by your own lawyer or notary</span>
           </div>
         </div>
       </div>
@@ -36,7 +36,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               <span>DirectHome BC</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Empowering British Columbians to sell their own homes without listing commissions, while giving buyers direct closing cash-back.
+              Helping British Columbians sell their own homes with no commission — a flat $25/month per active listing. Sellers may choose to offer buyers a closing cash-back.
             </p>
             <div className="pt-2 text-xs text-slate-400">
               Launch Region: <strong className="text-slate-200">Fraser Valley & Lower Mainland, BC</strong>
@@ -59,7 +59,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               </li>
               <li>
                 <button onClick={() => onNavigate('calculator')} className="hover:text-white transition-colors cursor-pointer">
-                  Commission Savings Calculator
+                  Commission & Cash-Back Estimator
                 </button>
               </li>
               <li>
@@ -76,11 +76,6 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
             <p className="text-xs text-slate-400 leading-relaxed">
               Langley · Surrey · Abbotsford · Burnaby · Vancouver · Coquitlam · Chilliwack · Richmond · White Rock · Maple Ridge · Delta · Mission
             </p>
-            <div className="pt-2">
-              <span className="text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 rounded px-2 py-0.5 inline-block">
-                Verified BC Land Title & Tax Roll Records
-              </span>
-            </div>
           </div>
 
           {/* Col 4 */}
@@ -89,7 +84,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
             <ul className="space-y-1.5 text-xs text-slate-400">
               <li className="flex items-start gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Mandatory ownership verification prior to going live</span>
+                <span>Every listing reviewed before publishing (ownership is not verified)</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -97,7 +92,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               </li>
               <li className="flex items-start gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Standard BC Contract of Purchase & Sale templates provided</span>
+                <span>Your own lawyer or notary prepares the purchase contract; DirectHome does not provide contracts</span>
               </li>
             </ul>
           </div>
