@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Listing, PropertyType } from '../types/listing';
+import { Listing, PropertyType, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { MapLibreMap } from '../components/LazyMap';
 import { BC_CITIES } from '../data/cities';
@@ -48,7 +48,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   // Filter listings
   const filteredListings = useMemo(() => {
     return listings
-      .filter((l) => l.status === 'live')
+      .filter((l) => isListingLive(l))
       .filter((l) => {
         // Search query
         if (searchQuery.trim()) {

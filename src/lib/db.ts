@@ -529,6 +529,9 @@ class DataStore {
       billingCycle: row.billing_cycle,
       monthlyFeeCAD: num(row.monthly_fee_cad),
       paymentStatus: row.payment_status,
+      pastDueSince: row.past_due_since ?? undefined,
+      cancelAtPeriodEnd: !!row.cancel_at_period_end,
+      nextBillingAt: row.next_billing_at ?? undefined,
     };
   }
 
@@ -728,9 +731,36 @@ class DataStore {
     await this.refresh();
   }
 
+  /** Sends the owner to Stripe Checkout to activate a listing ($25 CAD / month). */
+  async startCheckout(listingId: string): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase.functions.invoke('create-checkout', { body: { listingId } });
+    if (error || !data?.url) {
+      let msg = data?.error as string | undefined;
+      try { msg = msg ?? (await (error as any)?.context?.json())?.error; } catch { /* ignore */ }
+      throw new Error(msg || 'We could not start checkout. Please try again.');
+    }
+    window.location.assign(data.url);
+  }
+
+  /** Opens Stripe's billing portal (update card, invoices, cancel). */
+  async openBillingPortal(): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase.functions.invoke('create-portal', { body: {} });
+    if (error || !data?.url) {
+      let msg = data?.error as string | undefined;
+      try { msg = msg ?? (await (error as any)?.context?.json())?.error; } catch { /* ignore */ }
+      throw new Error(msg || 'We could not open billing. Please try again.');
+    }
+    window.location.assign(data.url);
+  }
+
   async deleteListing(id: string): Promise<void> {
     this.requireUser();
     const listing = this.getListingById(id);
+    if (listing && ['active', 'past_due'].includes(listing.paymentStatus ?? '') && !listing.cancelAtPeriodEnd) {
+      throw new Error('Cancel your subscription first (tap "Manage billing") so you are not charged again, then delete the listing.');
+    }
     const { data, error } = await supabase.from('listings').delete().eq('id', id).select('id');
     if (error) fail(error);
     if (!data?.length) throw new Error('You do not have permission to delete this listing.');

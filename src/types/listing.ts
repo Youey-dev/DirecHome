@@ -159,7 +159,10 @@ export interface Listing {
   subscriptionTier?: 'free_launch' | 'standard_monthly' | 'featured_monthly';
   billingCycle?: 'free_launch' | 'monthly' | 'annual';
   monthlyFeeCAD?: number; // Always $0 during MVP
-  paymentStatus?: 'complimentary_launch' | 'active' | 'past_due' | 'canceled';
+  paymentStatus?: 'unpaid' | 'complimentary_launch' | 'active' | 'past_due' | 'canceled';
+  pastDueSince?: string;
+  cancelAtPeriodEnd?: boolean;
+  nextBillingAt?: string;
   // Terms & Privacy Acceptance (Audit Log)
   termsAcceptedAt?: string;
   termsVersion?: string; // e.g. "2026-v1.0-draft"
@@ -254,3 +257,12 @@ export interface AppNotification {
   createdAt: string;
   read: boolean;
 }
+
+/** True when buyers can see this listing: approved AND paid (a failed payment gets a 1-day grace period). */
+export const isListingLive = (l: Pick<Listing, 'status' | 'paymentStatus' | 'pastDueSince'>): boolean => {
+  if (l.status !== 'live') return false;
+  const p = l.paymentStatus ?? 'unpaid';
+  if (p === 'active' || p === 'complimentary_launch') return true;
+  if (p === 'past_due' && l.pastDueSince) return Date.now() - new Date(l.pastDueSince).getTime() < 24 * 60 * 60 * 1000;
+  return false;
+};

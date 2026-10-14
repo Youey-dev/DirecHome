@@ -1,5 +1,5 @@
 import React from 'react';
-import { Listing } from '../types/listing';
+import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { SavingsCalculator } from '../components/SavingsCalculator';
 import { 
@@ -32,7 +32,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectListing,
   onNavigate
 }) => {
-  const liveListings = listings.filter((l) => l.status === 'live');
+  const liveListings = listings.filter((l) => isListingLive(l));
 
   return (
     <div className="space-y-16 sm:space-y-24">

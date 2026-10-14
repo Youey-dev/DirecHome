@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import type { AppNotification, Listing } from './types/listing';
+import { isListingLive } from './types/listing';
 import { db, isGuestUser } from './lib/db';
 import { isSupabaseConfigured } from './lib/supabase';
 import { Header } from './components/Header';
@@ -245,7 +246,7 @@ function MainApp() {
         <Suspense fallback={<Loading />}>
           {currentTab === 'landing' && (
             <LandingPage
-              listings={listings.filter((l) => l.status === 'live')}
+              listings={listings.filter((l) => isListingLive(l))}
               savedIds={savedIds}
               onToggleFavorite={handleToggleFavorite}
               onSelectListing={handleSelectListing}
@@ -256,7 +257,7 @@ function MainApp() {
           {currentTab === 'browse' &&
             (dataReady ? (
               <BrowsePage
-                listings={listings.filter((l) => l.status === 'live')}
+                listings={listings.filter((l) => isListingLive(l))}
                 savedIds={savedIds}
                 onToggleFavorite={handleToggleFavorite}
                 onSelectListing={handleSelectListing}
@@ -325,7 +326,7 @@ function MainApp() {
           {currentTab === 'saved' &&
             (signedIn ? (
               <SavedPage
-                listings={listings.filter((l) => l.status === 'live')}
+                listings={listings.filter((l) => isListingLive(l))}
                 savedIds={savedIds}
                 onToggleFavorite={handleToggleFavorite}
                 onSelectListing={handleSelectListing}

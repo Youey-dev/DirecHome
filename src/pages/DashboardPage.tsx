@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfile } from '../types/listing';
+import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfile, isListingLive } from '../types/listing';
 import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { 
@@ -19,7 +19,8 @@ import {
   ShieldCheck, 
   ExternalLink,
   Send,
-  AlertCircle
+  AlertCircle,
+  CreditCard
 } from 'lucide-react';
 
 export interface DashboardIntent {
@@ -64,6 +65,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return unsub;
   }, [activeUser.id, activeUser.role]);
 
+  // Returning from Stripe Checkout
+  useEffect(() => {
+    const flag = new URLSearchParams(window.location.search).get('billing');
+    if (!flag) return;
+    window.history.replaceState({}, '', window.location.pathname);
+    if (flag === 'success') {
+      showToast('✅ Payment received. Your listing will go live in a moment.');
+      const t1 = setTimeout(() => void db.refresh(), 3000);
+      const t2 = setTimeout(() => void db.refresh(), 8000);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+    showToast('Checkout cancelled. You have not been charged.');
+  }, []);
+
   // RLS Enforced: Sellers see their own listings in the portal; admins see all
   const myListings = listings.filter((l) => l.userId === activeUser.id);
   const myListingIds = new Set(myListings.map((l) => l.id));
@@ -103,7 +118,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   };
 
+  const handleActivate = (id: string) => {
+    void run(() => db.startCheckout(id), 'Opening secure checkout…');
+  };
+
+  const handleBilling = () => {
+    void run(() => db.openBillingPortal(), 'Opening billing…');
+  };
+
+  const fmtDate = (iso?: string) =>
+    iso ? new Date(iso).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+
   const handleMarkSold = (id: string) => {
+    const l = listings.find((x) => x.id === id);
+    if (l && ['active', 'past_due'].includes(l.paymentStatus ?? '') && !l.cancelAtPeriodEnd) {
+      showToast('⚠️ Cancel your subscription first (tap "Manage billing") so you are not charged again, then mark it sold.');
+      return;
+    }
     void run(() => db.updateListingStatus(id, 'sold'), '🎉 Congratulations on selling your home! Marked as Sold.');
   };
 
@@ -392,7 +423,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       <div className="flex items-center justify-between gap-2">
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                            listing.status === 'live'
+                            listing.status === 'live' && !isListingLive(listing)
+                              ? 'bg-amber-100 text-amber-900'
+                              : listing.status === 'live'
                               ? 'bg-emerald-100 text-emerald-900'
                               : listing.status === 'in_review'
                               ? 'bg-amber-100 text-amber-900'
@@ -401,7 +434,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                               : 'bg-slate-100 text-slate-700'
                           }`}
                         >
-                          {listing.status === 'in_review' ? 'In Review (Verification)' : listing.status}
+                          {listing.status === 'in_review'
+                            ? 'In Review (Verification)'
+                            : listing.status === 'live' && !isListingLive(listing)
+                            ? 'Approved · not published'
+                            : listing.status}
                         </span>
 
                         <span className="text-xs text-slate-400 tabular-nums">
@@ -422,6 +459,45 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       </div>
                     </div>
                   </div>
+
+                  {/* Billing */}
+                  {(listing.status === 'live' || listing.status === 'paused') && listing.paymentStatus !== 'complimentary_launch' && (
+                    <div className={`px-5 py-3 border-t text-xs flex items-center justify-between gap-3 flex-wrap ${
+                      listing.paymentStatus === 'past_due' ? 'bg-red-50 border-red-100' : 'bg-white border-slate-100'
+                    }`}>
+                      <div className="text-slate-700">
+                        {(listing.paymentStatus === 'unpaid' || listing.paymentStatus === 'canceled' || !listing.paymentStatus) && (
+                          <span>Approved. Activate your listing to publish it to buyers: <strong>$25 CAD / month</strong>, cancel any time.</span>
+                        )}
+                        {listing.paymentStatus === 'active' && !listing.cancelAtPeriodEnd && (
+                          <span>Subscription active{listing.nextBillingAt ? `, renews ${fmtDate(listing.nextBillingAt)}` : ''}.</span>
+                        )}
+                        {listing.paymentStatus === 'active' && listing.cancelAtPeriodEnd && (
+                          <span>Cancelled. Your listing stays live until <strong>{fmtDate(listing.nextBillingAt)}</strong>, then comes down.</span>
+                        )}
+                        {listing.paymentStatus === 'past_due' && (
+                          <span className="text-red-800 font-medium">Payment failed. Update your card now or your listing will be hidden from buyers within 24 hours.</span>
+                        )}
+                      </div>
+                      {(listing.paymentStatus === 'unpaid' || listing.paymentStatus === 'canceled' || !listing.paymentStatus) ? (
+                        <button
+                          onClick={() => handleActivate(listing.id)}
+                          className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer min-h-[44px]"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Activate listing</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleBilling}
+                          className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-medium rounded-lg border border-slate-200 flex items-center gap-1.5 cursor-pointer min-h-[44px]"
+                        >
+                          <CreditCard className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Manage billing</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Actions Toolbar */}
                   <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap text-xs">
