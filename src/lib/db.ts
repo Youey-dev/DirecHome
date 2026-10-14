@@ -10,9 +10,11 @@
  * (002_security_hardening.sql). Even if someone edits this code in their browser,
  * the database still refuses anything they are not allowed to do.
  */
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET, DOC_BUCKET } from './supabase';
 import { stripHtml } from './security';
 import type {
+  AppNotification,
   Listing,
   ListingReport,
   ListingStatus,
@@ -112,6 +114,12 @@ class DataStore {
   private viewings: ViewingRequest[] = [];
   private threads: ConversationThread[] = [];
   private reports: ListingReport[] = [];
+  private notifications: AppNotification[] = [];
+  private announced = new Set<string>();
+  private notificationsPrimed = false;
+  private notifSignature = '';
+  private incomingListeners = new Set<(n: AppNotification) => void>();
+  private channel: RealtimeChannel | null = null;
   private listeners = new Set<() => void>();
   private refreshing: Promise<void> | null = null;
   private refreshQueued = false;
@@ -125,9 +133,9 @@ class DataStore {
         if (document.visibilityState === 'visible') void this.refresh();
       });
       window.addEventListener('online', () => void this.refresh());
-      setInterval(() => {
-        if (document.visibilityState === 'visible' && !isGuestUser(this.user)) void this.refresh();
-      }, 60_000);
+      // Lightweight check every 30 seconds as a safety net behind the live updates:
+      // it only does a full reload when something new has arrived.
+      setInterval(() => void this.pollNotifications(), 30_000);
     }
   }
 
@@ -169,6 +177,56 @@ class DataStore {
   getReports(): ListingReport[] {
     return this.reports;
   }
+  getNotifications(): AppNotification[] {
+    return this.notifications;
+  }
+  getUnreadNotificationCount(): number {
+    return this.notifications.filter((n) => !n.read).length;
+  }
+  getUnreadMessageCount(): number {
+    return this.threads.reduce((sum, t) => sum + t.unreadCount, 0);
+  }
+
+  /** Called whenever a brand-new unread notification arrives (used for pop-up banners). */
+  onIncomingNotification(listener: (n: AppNotification) => void): () => void {
+    this.incomingListeners.add(listener);
+    return () => {
+      this.incomingListeners.delete(listener);
+    };
+  }
+
+  private async pollNotifications() {
+    if (isGuestUser(this.user) || document.visibilityState !== 'visible') return;
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('id, created_at, read_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error || !data) return;
+    const signature = data.map((n) => `${n.id}:${n.created_at}:${n.read_at ? 1 : 0}`).join('|');
+    if (signature !== this.notifSignature) await this.refresh();
+  }
+
+  private startRealtime() {
+    this.stopRealtime();
+    if (isGuestUser(this.user)) return;
+    const id = this.user.id;
+    this.channel = supabase
+      .channel(`notifications:${id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${id}` },
+        () => void this.refresh()
+      )
+      .subscribe();
+  }
+
+  private stopRealtime() {
+    if (this.channel) {
+      void supabase.removeChannel(this.channel);
+      this.channel = null;
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Who is signed in (set by AuthContext)
@@ -183,7 +241,12 @@ class DataStore {
     this.viewings = [];
     this.threads = [];
     this.reports = [];
+    this.notifications = [];
+    this.announced = new Set<string>();
+    this.notificationsPrimed = false;
+    this.notifSignature = '';
     this.loaded = false;
+    this.startRealtime();
     this.notify();
     void this.refresh();
   }
@@ -237,9 +300,10 @@ class DataStore {
     let convoRows: Row[] = [];
     let favRows: Row[] = [];
     let reportRows: Row[] = [];
+    let notificationRows: Row[] = [];
 
     if (signedIn) {
-      const [p, v, vr, c, f, r] = await Promise.all([
+      const [p, v, vr, c, f, r, nt] = await Promise.all([
         supabase.from('listing_private_details').select('*'),
         supabase.from('verifications').select('*').order('created_at', { ascending: false }),
         supabase.from('viewing_requests').select('*').order('created_at', { ascending: false }),
@@ -248,14 +312,16 @@ class DataStore {
         me.role === 'admin'
           ? supabase.from('reports').select('*').order('created_at', { ascending: false })
           : Promise.resolve({ data: [] as Row[], error: null }),
+        supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50),
       ]);
-      for (const res of [p, v, vr, c, f, r]) if (res.error) throw res.error;
+      for (const res of [p, v, vr, c, f, r, nt]) if (res.error) throw res.error;
       privates = p.data ?? [];
       verifs = v.data ?? [];
       viewingRows = vr.data ?? [];
       convoRows = c.data ?? [];
       favRows = f.data ?? [];
       reportRows = (r.data as Row[]) ?? [];
+      notificationRows = nt.data ?? [];
     }
 
     // Names of people we are allowed to see (self, chat counterparts, and for admins listing owners)
@@ -294,6 +360,8 @@ class DataStore {
       return {
         id: v.id,
         listingId: v.listing_id,
+        buyerId: v.buyer_id,
+        listingTitle: l?.headline ?? 'Home listing',
         listingAddress: l ? this.addressLine(l) : 'Home listing',
         buyerName: v.buyer_name,
         buyerEmail: v.buyer_email,
@@ -309,6 +377,7 @@ class DataStore {
     const threads: ConversationThread[] = convoRows.map((c) => {
       const l = byId.get(c.listing_id);
       const buyer = people.get(c.buyer_id);
+      const seller = people.get(c.seller_id);
       const msgs: Row[] = (c.messages ?? []).slice().sort((a: Row, b: Row) => a.created_at.localeCompare(b.created_at));
       return {
         id: c.id,
@@ -319,6 +388,7 @@ class DataStore {
         buyerName: buyer?.full_name ?? 'Buyer',
         buyerEmail: buyer?.email ?? '',
         sellerId: c.seller_id,
+        sellerName: seller?.full_name ?? 'Homeowner',
         messages: msgs.map((m) => {
           const isBuyer = m.sender_id === c.buyer_id;
           const sender = people.get(m.sender_id);
@@ -352,6 +422,26 @@ class DataStore {
     this.threads = threads;
     this.reports = reports;
     this.savedIds = favRows.map((f) => f.listing_id);
+    this.notifications = notificationRows.map((n) => ({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      body: n.body ?? '',
+      listingId: n.listing_id ?? undefined,
+      conversationId: n.conversation_id ?? undefined,
+      viewingId: n.viewing_id ?? undefined,
+      createdAt: n.created_at,
+      read: !!n.read_at,
+    }));
+    this.notifSignature = notificationRows.map((n) => `${n.id}:${n.created_at}:${n.read_at ? 1 : 0}`).join('|');
+    // Announce notifications that arrived since the last load (not the ones that were already there at sign-in)
+    for (const n of this.notifications) {
+      const key = `${n.id}:${n.createdAt}`;
+      if (n.read || this.announced.has(key)) continue;
+      this.announced.add(key);
+      if (this.notificationsPrimed) this.incomingListeners.forEach((l) => l(n));
+    }
+    this.notificationsPrimed = true;
     this.loaded = true;
     this.loadError = null;
     this.notify();
@@ -468,9 +558,6 @@ class DataStore {
   // ---------------------------------------------------------------------------
   async saveListing(input: ListingSubmission): Promise<string> {
     const me = this.requireUser();
-    if (me.role !== 'seller' && me.role !== 'admin') {
-      throw new Error('A homeowner (seller) account is required to publish a listing.');
-    }
 
     const id = input.id ?? newId();
     const existing = input.id ? this.getListingById(id) : undefined;
@@ -785,7 +872,38 @@ class DataStore {
     if (!thread || thread.unreadCount === 0) return;
     await supabase.rpc('mark_conversation_read', { _conversation_id: conversationId });
     thread.unreadCount = 0;
+    this.notifications.forEach((n) => {
+      if (n.conversationId === conversationId) n.read = true;
+    });
     this.notify();
+  }
+
+  async markNotificationRead(id: string): Promise<void> {
+    const n = this.notifications.find((x) => x.id === id);
+    if (!n || n.read) return;
+    n.read = true;
+    this.notify();
+    await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id);
+  }
+
+  async markAllNotificationsRead(): Promise<void> {
+    if (!this.notifications.some((n) => !n.read)) return;
+    this.notifications.forEach((n) => (n.read = true));
+    this.notify();
+    await supabase.from('notifications').update({ read_at: new Date().toISOString() }).is('read_at', null);
+  }
+
+  /** Marks notifications of the given kinds as read (e.g. when the person opens the Viewings tab). */
+  async markNotificationsReadByType(types: string[]): Promise<void> {
+    const pending = this.notifications.filter((n) => !n.read && types.includes(n.type));
+    if (!pending.length) return;
+    pending.forEach((n) => (n.read = true));
+    this.notify();
+    await supabase
+      .from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .in('type', types)
+      .is('read_at', null);
   }
 
   async submitReport(input: {
@@ -837,6 +955,7 @@ class DataStore {
       listings: this.listings.filter((l) => l.userId === me.id),
       viewingRequests: this.viewings,
       conversations: this.threads,
+      notifications: this.notifications,
       savedListingIds: this.savedIds,
     };
   }

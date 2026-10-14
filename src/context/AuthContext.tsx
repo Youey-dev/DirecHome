@@ -1,7 +1,7 @@
 /**
  * Authentication for DirectHome BC (Supabase Auth).
  *
- * IMPORTANT: a person's role (buyer / seller / admin) is read from the database
+ * IMPORTANT: a person's role (member / admin) is read from the database
  * table public.users — never from anything the browser or the signup form supplies.
  * Admin access can only be granted by the site owner inside the Supabase dashboard.
  */
@@ -32,7 +32,6 @@ interface AuthContextType {
   signUp: (
     email: string,
     fullName: string,
-    role: 'buyer' | 'seller',
     phone: string | undefined,
     password: string,
     captchaToken?: string
@@ -40,7 +39,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string, captchaToken?: string) => Promise<AuthResult>;
   updatePassword: (newPassword: string) => Promise<AuthResult>;
-  becomeSeller: () => Promise<AuthResult>;
   clearError: () => void;
   dismissRecovery: () => void;
 }
@@ -157,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp: AuthContextType['signUp'] = async (email, fullName, role, phone, password, captchaToken) => {
+  const signUp: AuthContextType['signUp'] = async (email, fullName, phone, password, captchaToken) => {
     setLoading(true);
     setError(null);
     try {
@@ -172,11 +170,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           emailRedirectTo: window.location.origin,
           captchaToken,
-          // The database trigger only ever accepts "buyer" or "seller" here — never admin.
+          // Everyone signs up as the same kind of member. Admin access can only be granted by the
+          // site owner inside the Supabase dashboard — the database ignores anything sent here.
           data: {
             full_name: cleanName,
             phone: phone ? stripHtml(phone).slice(0, 30) : '',
-            role,
             terms_version: TERMS_VERSION,
           },
         },
@@ -229,15 +227,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
-  const becomeSeller: AuthContextType['becomeSeller'] = async () => {
-    if (user.isGuest) return { success: false, error: 'Please sign in first.' };
-    if (user.role === 'seller' || user.role === 'admin') return { success: true };
-    const { error: err } = await supabase.from('users').update({ role: 'seller' }).eq('id', user.id);
-    if (err) return { success: false, error: err.message };
-    applyUser({ ...user, role: 'seller' });
-    return { success: true };
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -253,7 +242,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
         resetPassword,
         updatePassword,
-        becomeSeller,
         clearError: () => setError(null),
         dismissRecovery: () => setRecoveryMode(false),
       }}

@@ -1,57 +1,59 @@
-# DirectHome BC — Before-launch test (about 30 minutes, no coding)
+# DirectHome BC — Before-launch test (about 40 minutes, no coding)
 
-Do this on your live (or Vercel preview) site **after** the three database scripts have been run in Supabase
-(`20261010_initial_schema.sql`, `20261011_security_hardening.sql`, `20261012_app_support.sql`).
+Run this on your live site **after** all five database scripts have been run in Supabase, in this order:
+`20261010_initial_schema`, `20261011_security_hardening`, `20261012_app_support`,
+`20261013_table_permissions`, `20261014_one_account_and_notifications`.
 
-You need **three email addresses** you can open (Gmail "+" tricks work, e.g. `you+seller@gmail.com`,
-`you+buyer@gmail.com`) and your admin account. Use a private/incognito window for each person so the
-sessions don't mix.
+You need **three email addresses** you can open (Gmail "+" tricks work: `you+anna@gmail.com`, `you+ben@gmail.com`)
+plus your admin account. Use a separate private/incognito window for each person so the sessions don't mix.
+In this guide **Anna** owns a home and **Ben** is interested in buying it — but both are the same kind of account.
 
-Tick each box. If anything fails, write down what you clicked and what you saw (or a screenshot) and send it to Claude.
+Tick each box. If anything fails, note what you clicked and send a screenshot (or the red text from the browser Console).
 
-## A. Accounts
-- [ ] **Sign up as a homeowner** (`you+seller@…`). You should see "Check your email". Open the email, click the link, then sign in.
-- [ ] **Sign up as a buyer** (`you+buyer@…`). Same steps.
-- [ ] Try signing up again with the same email → it says the account already exists.
-- [ ] Sign in with a wrong password → a friendly "not correct" message.
-- [ ] **Forgot password** → email arrives → link lets you choose a new password → you can sign in with it.
-- [ ] Signed out, open `/dashboard` and `/admin` → you are asked to sign in / told it's restricted.
-- [ ] Signed in as the buyer, open `/admin` → "Restricted area".
+## A. Accounts (one account type for everyone)
+- [ ] Sign up as **Anna**. There is **no** buyer/seller choice. You see "Check your email". Click the link, then sign in.
+- [ ] Sign up as **Ben** the same way.
+- [ ] Signing up again with the same email says the account already exists.
+- [ ] Wrong password gives a friendly message. **Forgot password** emails a link that lets you choose a new one.
+- [ ] Signed out, open `/dashboard` → asked to sign in. Open `/admin` while signed in as Ben → "Restricted area".
+- [ ] In the header there is **no** "Demo account" switcher, and the menu says "Member account".
 
-## B. Listing a home (as the homeowner)
-- [ ] Click **List Your Home**. The form starts **empty** (no sample address, price or photos).
-- [ ] Fill in all 7 steps with a test home. Add at least 2 real photos. Upload a real PDF or photo as the ownership document.
-- [ ] Press **Submit** → "Your Listing is in Review".
-- [ ] In **Dashboard** the listing shows as *In review*, with your photos.
-- [ ] While signed in as the buyer (other window), the listing is **not** visible in Browse yet.
-- [ ] Try **Edit** on the listing, change the price, submit again. You should NOT get a second copy of the listing.
+## B. Anna lists a home
+- [ ] **List Your Home** opens the form (no switching or extra step). It starts **empty**.
+- [ ] Fill in all 7 steps, add 2+ real photos, upload a real PDF/photo as the ownership document, **Submit**.
+- [ ] Dashboard → **My Homes** shows it as *In review*.
+- [ ] Ben cannot see it in Browse yet.
 
-## C. Approving (as admin)
-- [ ] Sign in as admin → profile menu → **Verification queue**.
-- [ ] Your test listing is there. Click **View document** → your uploaded file opens.
-- [ ] Click **Approve**. The listing goes live.
-- [ ] (Optional) Make a second test listing and **Reject** it with a reason. The homeowner sees the reason on the dashboard.
+## C. Admin approves
+- [ ] The admin's **bell** shows a notification "New listing awaiting verification".
+- [ ] Click it → the Verification queue opens. **View document** opens Anna's file. Click **Approve**.
+- [ ] Anna's bell shows "Your listing is live" (refresh if it takes more than ~30 seconds).
+- [ ] (Optional) Reject a second test listing with a reason → Anna's bell shows "Your listing needs changes" with the reason.
 
-## D. Buyer experience
-- [ ] Signed out: Browse shows the approved listing. The page shows the **neighbourhood and an approximate map area, NOT the street address**.
-- [ ] Signed out, click **Message** or **Request viewing** → asked to sign in.
-- [ ] As the buyer: **Message the homeowner** → message sent. (No automatic fake reply should appear.)
-- [ ] As the homeowner: **Dashboard → Messages** shows the message. Reply. The buyer sees the reply (may take up to a minute, or refresh).
-- [ ] As the buyer: **Request viewing**.
-- [ ] As the homeowner: **Dashboard → Viewings** → **Confirm**.
-- [ ] As the buyer: refresh the listing page → the **exact street address now appears**.
-- [ ] Another buyer account that has NOT had a viewing confirmed still cannot see the street address.
-- [ ] Save (heart) a listing as the buyer → it appears under **Saved** and stays after refreshing.
-- [ ] **Report** the listing as the buyer → shows in the admin **Reports** list.
+## D. Messages
+- [ ] Signed out, the listing page shows the neighbourhood and approximate map, **not** the street address. The map loads (no blank map).
+- [ ] As **Ben**: open the listing → **Message Homeowner** → the window opens (no blank page) → send a message.
+- [ ] **Anna sees a red number on the bell, on "My Dashboard" in the header, and on the Messages tab.** The browser tab title shows `(1)`.
+- [ ] Anna clicks the notification → the dashboard opens on that conversation. Reply.
+- [ ] **Ben's bell now shows Anna's reply.** Ben opens it → the conversation opens and the number clears.
+- [ ] Ben sends 3 quick messages in a row → Anna sees ONE notification, not three.
+- [ ] Anna opens her **own** listing page: she sees "This is your listing" instead of message/viewing buttons.
 
-## E. Privacy tools (use a throwaway account)
-- [ ] **Privacy page → Download my data** → a file downloads.
-- [ ] **Privacy page → Delete my account** → you're signed out, and signing in again fails.
-- [ ] In Supabase → Table Editor → `users`, the deleted person is gone.
+## E. Viewings
+- [ ] Ben: **Request a Private Viewing** (pick a date).
+- [ ] Anna's bell + dashboard show "New viewing request". **Dashboard → Viewings → Requests for your homes**.
+- [ ] Anna **Confirms**. **Ben's bell shows "Your viewing was confirmed"**; Dashboard → Viewings → *Viewings you asked for* shows **Confirmed ✓** and the exact address now appears on the listing page.
+- [ ] Ben requests a second viewing; Anna **Declines**. **Ben's bell shows "Your viewing request was declined"** and his list shows *Declined / cancelled*.
+- [ ] Ben requests a third and **cancels it** from his dashboard. Anna's bell shows "Viewing request cancelled".
+- [ ] A different account that has no confirmed viewing still cannot see the street address.
 
-## F. Things that must NOT work (security)
-- [ ] There is no "Demo account" switcher anywhere in the header.
-- [ ] A buyer cannot approve their own viewing request or a listing (there is no button for it).
+## F. Other
+- [ ] Heart a listing as Ben → appears under **Saved**, stays after a refresh.
+- [ ] **Report** a listing as Ben → the admin's bell shows "A listing was reported" and it's in the admin Reports list.
+- [ ] **Privacy page → Download my data** works. **Delete my account** (throwaway account only) signs you out and the account is gone.
+- [ ] Notifications are private: in Supabase → Table Editor → `notifications`, you see rows, but on the website each person only sees their own.
 - [ ] In Supabase → Table Editor → `users`, only **your** account has role `admin`.
 
-When everything is ticked, you are ready for a small private beta with real homeowners.
+## What is NOT covered yet
+Notifications appear on the site (bell, dashboard, pop-up banner, browser-tab count). People are **not emailed** yet when
+something happens — that needs the email sender (Resend) set up first. See `LAUNCH_CHECKLIST.md`.

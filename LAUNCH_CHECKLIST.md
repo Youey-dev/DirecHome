@@ -7,7 +7,9 @@ Last updated 2026-10-12. `[x]` = done, `[ ]` = still to do.
 ## 1. Database (Supabase)
 - [x] Project created, initial schema run (`20261010_initial_schema.sql`)
 - [x] Security hardening run (`20261011_security_hardening.sql`): admin roles come from the database, exact addresses are private, sellers cannot self-approve, server-side rate limits, storage buckets and rules
-- [ ] App support run (`20261012_app_support.sql`): records Terms acceptance, adds "delete my account"
+- [x] App support run (`20261012_app_support.sql`): records Terms acceptance, adds "delete my account"
+- [x] Table permissions run (`20261013_table_permissions.sql`)
+- [ ] One account type + notifications run (`20261014_one_account_and_notifications.sql`)
 - [x] Email confirmation ON, password minimum 10+ characters
 - [x] Admin account created (only one admin; check with `select email, role from public.users;`)
 - [ ] Turn on 2-factor authentication on your own Supabase login
@@ -37,8 +39,8 @@ Last updated 2026-10-12. `[x]` = done, `[ ]` = still to do.
 - [ ] Consider whether you want a minimum seller age or ID check beyond the ownership document
 
 ## 5. Known gaps (the site works without these, but plan for them)
-- [ ] **Email notifications** — homeowners are not emailed when a viewing request or message arrives; they see it in their dashboard. Build with a Supabase Edge Function + Resend
-- [ ] **Buyer inbox** — buyers see messages and viewing status on each listing page, not in one place
+- [ ] **Email notifications** — in-site notifications are built (bell, dashboard badges, pop-up banner, tab count), but people are NOT emailed when a message or viewing update arrives. Build with a Supabase Edge Function + Resend once your email domain is set up. Until then, tell early users to check the site
+- [x] ~~Buyer inbox~~ — done: everyone has one dashboard with their homes, messages and viewings
 - [ ] **Re-review on edits** — editing a *live* listing (e.g. the address) does not send it back for review
 - [ ] **Shareable link previews / SEO** — listing pages use the same title and preview image; needs server-side rendering or an edge function
 - [ ] **Security policy header (CSP)** — currently a permissive policy in `index.html`; tighten once the final set of services is known

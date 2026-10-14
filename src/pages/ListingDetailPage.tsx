@@ -31,7 +31,7 @@ interface ListingDetailPageProps {
   isFavorited: boolean;
   onToggleFavorite: (e: React.MouseEvent, id: string) => void;
   onBack: () => void;
-  onOpenAuth?: (mode?: 'signin' | 'signup', role?: 'buyer' | 'seller') => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
 }
 
 export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
@@ -58,17 +58,17 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
   }, [listing.id]);
 
   const handleOpenMessage = () => {
-    if (isGuestUser(activeUser)) onOpenAuth?.('signin', 'buyer');
+    if (isGuestUser(activeUser)) onOpenAuth?.('signin');
     else setMessageModalOpen(true);
   };
 
   const handleOpenViewing = () => {
-    if (isGuestUser(activeUser)) onOpenAuth?.('signin', 'buyer');
+    if (isGuestUser(activeUser)) onOpenAuth?.('signin');
     else setViewingModalOpen(true);
   };
 
   const handleOpenReport = () => {
-    if (isGuestUser(activeUser)) onOpenAuth?.('signin', 'buyer');
+    if (isGuestUser(activeUser)) onOpenAuth?.('signin');
     else setReportModalOpen(true);
   };
 
@@ -365,6 +365,12 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             </div>
 
             {/* Actions */}
+            {isOwner ? (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-950 space-y-1.5">
+                <div className="font-bold text-sm">This is your listing</div>
+                <p>Buyer messages and viewing requests for this home appear in your dashboard.</p>
+              </div>
+            ) : (
             <div className="space-y-3">
               <button
                 onClick={handleOpenViewing}
@@ -382,6 +388,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <span>Message Homeowner</span>
               </button>
             </div>
+            )}
 
             {/* Verbatim Statutory Brokerage Notice */}
             <div className="bg-slate-50 p-4 rounded-xl text-xs text-slate-600 leading-relaxed border border-slate-200/80 space-y-1.5">
@@ -406,6 +413,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           </div>
         </div>
 
+        {!isOwner && (
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleOpenMessage}
@@ -423,6 +431,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <span>Request Viewing</span>
           </button>
         </div>
+        )}
       </div>
 
       {/* Modals */}

@@ -1,5 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import * as maplibregl from 'maplibre-gl';
+// MapLibre 6 looks for its background worker next to its own file, which breaks once the app is bundled.
+// Importing it with ?url makes the build ship the file and tells MapLibre exactly where it is.
+import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
+
 import { Listing } from '../types/listing';
 import { formatCAD } from '../lib/commissionCalc';
 
@@ -11,6 +15,8 @@ export interface MapLibreMapProps {
   singleListing?: Listing;
   heightClass?: string;
 }
+
+maplibregl.setWorkerUrl(mapWorkerUrl);
 
 // Optional: a hosted map-tile provider (recommended for launch). Example: https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=YOUR_KEY
 const customTileUrl = String(import.meta.env.VITE_MAP_TILE_URL ?? '').trim();

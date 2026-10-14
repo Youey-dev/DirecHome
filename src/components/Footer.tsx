@@ -64,7 +64,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               </li>
               <li>
                 <button onClick={() => onNavigate('dashboard')} className="hover:text-white transition-colors cursor-pointer">
-                  Seller Portal & Messages
+                  My Dashboard & Messages
                 </button>
               </li>
             </ul>

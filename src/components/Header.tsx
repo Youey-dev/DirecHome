@@ -15,8 +15,9 @@ import {
   User,
   MessageSquare
 } from 'lucide-react';
-import { UserProfile } from '../types/listing';
+import { AppNotification, UserProfile } from '../types/listing';
 import { useAuth } from '../context/AuthContext';
+import { NotificationBell } from './NotificationBell';
 
 interface HeaderProps {
   currentTab: string;
@@ -24,7 +25,10 @@ interface HeaderProps {
   activeUser: UserProfile;
   savedCount: number;
   hasDraft: boolean;
-  onOpenAuth: (mode?: 'signin' | 'signup', role?: 'buyer' | 'seller') => void;
+  onOpenAuth: (mode?: 'signin' | 'signup') => void;
+  onOpenNotification: (n: AppNotification) => void;
+  /** Number of things waiting for the person in their dashboard (unread messages, viewing updates). */
+  dashboardBadge?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,7 +37,9 @@ export const Header: React.FC<HeaderProps> = ({
   activeUser,
   savedCount,
   hasDraft,
-  onOpenAuth
+  onOpenAuth,
+  onOpenNotification,
+  dashboardBadge = 0
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -111,7 +117,14 @@ export const Header: React.FC<HeaderProps> = ({
               currentTab === 'dashboard' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
-            {activeUser.role === 'seller' ? 'Seller Portal' : 'My Portal'}
+            <span className="inline-flex items-center gap-1.5">
+              My Dashboard
+              {dashboardBadge > 0 && (
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold inline-flex items-center justify-center">
+                  {dashboardBadge > 9 ? '9+' : dashboardBadge}
+                </span>
+              )}
+            </span>
           </button>
 
           <button
@@ -143,14 +156,16 @@ export const Header: React.FC<HeaderProps> = ({
                 Sign In
               </button>
               <button
-                onClick={() => onOpenAuth('signup', 'buyer')}
+                onClick={() => onOpenAuth('signup')}
                 className="px-3.5 py-1.5 text-xs font-bold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer min-h-[38px]"
               >
                 Create Account
               </button>
             </div>
           ) : (
-            /* Logged-In User Profile Menu */
+            /* Logged-In: notification bell + profile menu */
+            <>
+            <NotificationBell onOpenNotification={onOpenNotification} />
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -165,7 +180,7 @@ export const Header: React.FC<HeaderProps> = ({
                     {activeUser.name}
                   </div>
                   <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                    {activeUser.role}
+                    {activeUser.role === 'admin' ? 'Admin' : 'Member'}
                   </div>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -182,7 +197,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="text-slate-500 text-[11px] truncate">{activeUser.email}</div>
                     <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                       <ShieldCheck className="w-3 h-3" />
-                      <span>{activeUser.role === 'seller' ? 'Homeowner account' : activeUser.role === 'admin' ? 'Administrator' : 'Buyer account'}</span>
+                      <span>{activeUser.role === 'admin' ? 'Administrator' : 'Member account'}</span>
                     </div>
                   </div>
 
@@ -196,7 +211,7 @@ export const Header: React.FC<HeaderProps> = ({
                       className="w-full px-4 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium"
                     >
                       <LayoutDashboard className="w-4 h-4 text-slate-400" />
-                      <span>{activeUser.role === 'seller' ? 'Seller Portal & My Listings' : 'My Inquiries & Appointments'}</span>
+                      <span>My Dashboard — homes, messages & viewings</span>
                     </button>
 
                     <button
@@ -246,13 +261,14 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
             </div>
+            </>
           )}
 
           {/* Primary CTA Button: List Your Home */}
           <button
             onClick={() => {
               if (isGuest) {
-                onOpenAuth('signup', 'seller');
+                onOpenAuth('signup');
               } else {
                 handleNav('wizard');
               }
@@ -304,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
                 Sign In
               </button>
               <button
-                onClick={() => { setMobileMenuOpen(false); onOpenAuth('signup', 'buyer'); }}
+                onClick={() => { setMobileMenuOpen(false); onOpenAuth('signup'); }}
                 className="py-2.5 px-3 text-center bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 min-h-[44px]"
               >
                 Create Account
@@ -341,7 +357,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <LayoutDashboard className="w-5 h-5 text-slate-400" />
-            <span>{activeUser.role === 'seller' ? 'Seller Portal' : 'My Inquiries & Messages'}</span>
+            <span className="inline-flex items-center gap-2">My Dashboard{dashboardBadge > 0 && <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold inline-flex items-center justify-center">{dashboardBadge > 9 ? '9+' : dashboardBadge}</span>}</span>
           </button>
 
           <button
@@ -364,7 +380,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => {
                 setMobileMenuOpen(false);
                 if (isGuest) {
-                  onOpenAuth('signup', 'seller');
+                  onOpenAuth('signup');
                 } else {
                   handleNav('wizard');
                 }

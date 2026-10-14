@@ -43,6 +43,9 @@ export interface VerificationDocument {
 export interface ViewingRequest {
   id: string;
   listingId: string;
+  /** The person who asked to view the home. */
+  buyerId: string;
+  listingTitle: string;
   listingAddress: string;
   buyerName: string;
   buyerEmail: string;
@@ -72,6 +75,7 @@ export interface ConversationThread {
   buyerName: string;
   buyerEmail: string;
   sellerId: string;
+  sellerName: string;
   messages: Message[];
   updatedAt: string;
   unreadCount: number;
@@ -225,4 +229,28 @@ export interface Report {
   createdAt: string;
   resolvedAt?: string;
   resolvedBy?: string;
+}
+
+/** A notification created automatically by the database (new message, viewing update, listing review...). */
+export interface AppNotification {
+  id: string;
+  type:
+    | 'new_message'
+    | 'viewing_requested'
+    | 'viewing_confirmed'
+    | 'viewing_declined'
+    | 'viewing_cancelled'
+    | 'viewing_rescheduled'
+    | 'listing_live'
+    | 'listing_rejected'
+    | 'listing_in_review'
+    | 'new_report'
+    | string;
+  title: string;
+  body: string;
+  listingId?: string;
+  conversationId?: string;
+  viewingId?: string;
+  createdAt: string;
+  read: boolean;
 }

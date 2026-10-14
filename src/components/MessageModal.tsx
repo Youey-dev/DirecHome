@@ -35,14 +35,15 @@ export const MessageModal: React.FC<MessageModalProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [threads]);
 
-  if (!isOpen) return null;
-
   const currentThread = threads.find((t) => t.listingId === listing.id && t.buyerId === activeUser.id);
 
   // Mark the homeowner's replies as read once the buyer opens the conversation
   useEffect(() => {
     if (isOpen && currentThread && currentThread.unreadCount > 0) void db.markThreadRead(currentThread.id);
   }, [isOpen, currentThread?.id, currentThread?.unreadCount]);
+
+  // IMPORTANT: every hook must run before this line, otherwise React crashes when the window opens
+  if (!isOpen) return null;
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();

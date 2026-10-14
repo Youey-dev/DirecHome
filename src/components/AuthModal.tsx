@@ -19,17 +19,15 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: 'signin' | 'signup';
-  initialRole?: 'buyer' | 'seller';
   title?: string;
   subtitle?: string;
-  onSuccess?: (role: 'buyer' | 'seller' | 'admin' | 'guest') => void;
+  onSuccess?: () => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   initialMode = 'signin',
-  initialRole = 'buyer',
   title,
   subtitle,
   onSuccess
@@ -38,7 +36,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>(initialMode);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaKey, setCaptchaKey] = useState(0);
-  const [role, setRole] = useState<'buyer' | 'seller'>(initialRole);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -50,12 +47,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
-      setRole(initialRole);
       setLocalError(null);
       setSuccessMsg(null);
       clearError();
     }
-  }, [isOpen, initialMode, initialRole]);
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
@@ -85,21 +81,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setSuccessMsg('Signed in successfully!');
         setTimeout(() => {
           onClose();
-          onSuccess?.(role);
+          onSuccess?.();
         }, 600);
       } else {
         resetCaptcha();
       }
     } else if (mode === 'signup') {
-      const res = await signUp(email, fullName, role, phone, password, token);
+      const res = await signUp(email, fullName, phone, password, token);
       if (res.success) {
         if (res.needsEmailConfirmation) {
           setSuccessMsg('Check your email');
         } else {
-          setSuccessMsg(`Welcome to DirectHome BC! Your ${role} account is ready.`);
+          setSuccessMsg('Welcome to DirectHome BC! Your account is ready.');
           setTimeout(() => {
             onClose();
-            onSuccess?.(role);
+            onSuccess?.();
           }, 800);
         }
       } else {
@@ -208,42 +204,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </p>
               )}
               
-              {/* Account role toggle for Sign Up */}
+              {/* One account for everything */}
               {mode === 'signup' && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Account Type:
-                    </span>
-                    <span className="text-[10px] text-slate-500">Free forever</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setRole('buyer')}
-                      className={`p-2.5 rounded-xl border text-xs font-semibold transition-all min-h-[44px] cursor-pointer flex flex-col items-center justify-center text-center ${
-                        role === 'buyer'
-                          ? 'border-emerald-700 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-700'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="font-bold">Buyer / Inquirer</span>
-                      <span className="text-[10px] font-normal text-slate-500 mt-0.5">Message sellers & book viewings</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRole('seller')}
-                      className={`p-2.5 rounded-xl border text-xs font-semibold transition-all min-h-[44px] cursor-pointer flex flex-col items-center justify-center text-center ${
-                        role === 'seller'
-                          ? 'border-emerald-700 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-700'
-                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="font-bold">Homeowner / Seller</span>
-                      <span className="text-[10px] font-normal text-slate-500 mt-0.5">List home & save commissions</span>
-                    </button>
-                  </div>
-                </div>
+                <p className="text-xs text-slate-600 bg-emerald-50 border border-emerald-100 rounded-xl p-3 leading-relaxed">
+                  One free account lets you browse homes, message owners, book viewings <strong>and</strong> list your own home.
+                </p>
               )}
 
               {/* Full Name for Sign Up */}
@@ -291,7 +256,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label htmlFor="auth-phone" className="text-xs font-semibold text-slate-700">
-                      Phone Number {role === 'seller' ? '(Recommended for buyers)' : '(Optional)'}
+                      Phone Number (Optional)
                     </label>
                     <span className="text-[10px] text-slate-400">BC Local</span>
                   </div>

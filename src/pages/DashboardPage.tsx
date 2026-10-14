@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Listing, ViewingRequest, ConversationThread, UserProfile } from '../types/listing';
+import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfile } from '../types/listing';
 import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { 
@@ -22,16 +22,25 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+export interface DashboardIntent {
+  tab: 'listings' | 'viewings' | 'messages';
+  threadId?: string;
+  nonce: number;
+}
+
 interface DashboardPageProps {
   activeUser: UserProfile;
   onNavigate: (tab: string, listingId?: string) => void;
   onEditListing: (listing: Listing) => void;
+  /** Lets a notification open the right tab (and conversation) when clicked. */
+  intent?: DashboardIntent | null;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   activeUser,
   onNavigate,
-  onEditListing
+  onEditListing,
+  intent
 }) => {
   const [activeTab, setActiveTab] = useState<'listings' | 'viewings' | 'messages'>('listings');
   const [listings, setListings] = useState<Listing[]>([]);
@@ -40,12 +49,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useEffect(() => {
     const load = () => {
       setListings(db.getListings());
       setViewings(db.getViewingRequests());
-      setThreads(db.getThreads().filter((t) => t.sellerId === activeUser.id));
+      setThreads(db.getThreads());
+      setNotifications(db.getNotifications());
     };
     load();
     void db.refresh();
@@ -56,7 +67,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // RLS Enforced: Sellers see their own listings in the portal; admins see all
   const myListings = listings.filter((l) => l.userId === activeUser.id);
   const myListingIds = new Set(myListings.map((l) => l.id));
-  const myViewings = viewings.filter((v) => myListingIds.has(v.listingId));
+  // Requests other people made for MY homes
+  const myViewings = viewings.filter((v) => myListingIds.has(v.listingId) && v.buyerId !== activeUser.id);
+  // Viewings I asked for on OTHER people's homes
+  const myRequests = viewings.filter((v) => v.buyerId === activeUser.id);
+
+  const otherName = (t: ConversationThread) => (t.buyerId === activeUser.id ? t.sellerName : t.buyerName);
+
+  const VIEWING_UPDATE_TYPES = ['viewing_confirmed', 'viewing_declined', 'viewing_cancelled', 'viewing_rescheduled'];
+  const unreadViewingUpdates = notifications.filter((n) => !n.read && VIEWING_UPDATE_TYPES.includes(n.type)).length;
+  const unreadMessages = threads.reduce((sum, t) => sum + t.unreadCount, 0);
+  const unreadListingNews = notifications.filter((n) => !n.read && (n.type === 'listing_live' || n.type === 'listing_rejected')).length;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -115,6 +136,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     if (activeTab === 'messages' && t && t.unreadCount > 0) void db.markThreadRead(t.id);
   }, [activeTab, selectedThreadId, threads]);
 
+  // A clicked notification opens the right tab / conversation
+  useEffect(() => {
+    if (!intent) return;
+    setActiveTab(intent.tab);
+    if (intent.threadId) setSelectedThreadId(intent.threadId);
+  }, [intent?.nonce]);
+
+  // Opening a tab marks its notifications as seen
+  useEffect(() => {
+    if (activeTab === 'viewings') {
+      void db.markNotificationsReadByType(['viewing_requested', ...VIEWING_UPDATE_TYPES]);
+    } else if (activeTab === 'listings') {
+      void db.markNotificationsReadByType(['listing_live', 'listing_rejected']);
+    }
+  }, [activeTab, notifications.length]);
+
   const activeThread = threads.find((t) => t.id === selectedThreadId) || threads[0];
 
   // Aggregate Metrics
@@ -138,10 +175,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
             <Building2 className="w-3.5 h-3.5" />
-            <span>Direct Homeowner Control Center</span>
+            <span>Your homes, messages & viewings</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 tracking-tight">
-            Seller Dashboard
+            My Dashboard
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
             Logged in as <strong>{activeUser.name}</strong> ({activeUser.email})
@@ -167,6 +204,50 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </button>
         </div>
       </div>
+
+      {/* What needs attention */}
+      {(unreadMessages > 0 || pendingViewings > 0 || unreadViewingUpdates > 0 || unreadListingNews > 0) && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-emerald-950">
+            <AlertCircle className="w-4 h-4 text-emerald-700" />
+            <span>Needs your attention</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {unreadMessages > 0 && (
+              <button
+                onClick={() => setActiveTab('messages')}
+                className="px-3 py-2 rounded-xl bg-white border border-emerald-200 text-xs font-semibold text-emerald-900 hover:bg-emerald-100 min-h-[40px] cursor-pointer"
+              >
+                💬 {unreadMessages} unread {unreadMessages === 1 ? 'message' : 'messages'}
+              </button>
+            )}
+            {pendingViewings > 0 && (
+              <button
+                onClick={() => setActiveTab('viewings')}
+                className="px-3 py-2 rounded-xl bg-white border border-emerald-200 text-xs font-semibold text-emerald-900 hover:bg-emerald-100 min-h-[40px] cursor-pointer"
+              >
+                📅 {pendingViewings} viewing {pendingViewings === 1 ? 'request needs' : 'requests need'} your answer
+              </button>
+            )}
+            {unreadViewingUpdates > 0 && (
+              <button
+                onClick={() => setActiveTab('viewings')}
+                className="px-3 py-2 rounded-xl bg-white border border-emerald-200 text-xs font-semibold text-emerald-900 hover:bg-emerald-100 min-h-[40px] cursor-pointer"
+              >
+                ✅ {unreadViewingUpdates} update{unreadViewingUpdates === 1 ? '' : 's'} on your viewing requests
+              </button>
+            )}
+            {unreadListingNews > 0 && (
+              <button
+                onClick={() => setActiveTab('listings')}
+                className="px-3 py-2 rounded-xl bg-white border border-emerald-200 text-xs font-semibold text-emerald-900 hover:bg-emerald-100 min-h-[40px] cursor-pointer"
+              >
+                🏠 News about your listing
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Top Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -207,13 +288,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs">
-            <span>Buyer Messages</span>
+            <span>Conversations</span>
             <MessageSquare className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">
             {threads.length}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Active conversation threads</div>
+          <div className="text-[11px] text-slate-400 mt-1">{unreadMessages} unread</div>
         </div>
       </div>
 
@@ -227,7 +308,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          My Listings ({myListings.length})
+          <span className="flex items-center gap-1.5">
+            My Homes ({myListings.length})
+            {unreadListingNews > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadListingNews}
+              </span>
+            )}
+          </span>
         </button>
 
         <button
@@ -238,9 +326,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          <span>Viewing Requests ({myViewings.length})</span>
-          {pendingViewings > 0 && (
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Viewings ({myViewings.length + myRequests.length})</span>
+          {pendingViewings + unreadViewingUpdates > 0 && (
+            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center">
+              {pendingViewings + unreadViewingUpdates}
+            </span>
           )}
         </button>
 
@@ -252,7 +342,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          Buyer Messages ({threads.length})
+          <span className="flex items-center gap-1.5">
+            Messages ({threads.length})
+            {unreadMessages > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadMessages}
+              </span>
+            )}
+          </span>
         </button>
       </div>
 
@@ -396,16 +493,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       {/* TAB 2: Viewing Requests */}
       {activeTab === 'viewings' && (
         <div className="space-y-4">
-          {myViewings.length === 0 ? (
+          {myViewings.length === 0 && myRequests.length === 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-3">
               <Calendar className="w-10 h-10 text-slate-400 mx-auto" />
-              <h3 className="text-lg font-bold text-slate-900">No viewing requests yet</h3>
+              <h3 className="text-lg font-bold text-slate-900">No viewings yet</h3>
               <p className="text-xs text-slate-500">
-                When interested buyers request a walk-through, their appointment requests will appear here.
+                Requests from buyers for your homes will appear here, and so will the viewings you ask for on other homes.
               </p>
             </div>
-          ) : (
+          )}
+
+          {myViewings.length > 0 && (
             <div className="space-y-3">
+              <h2 className="text-sm font-bold text-slate-900">Requests for your homes</h2>
               {myViewings.map((viewing) => (
                 <div
                   key={viewing.id}
@@ -475,6 +575,68 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               ))}
             </div>
           )}
+
+          {myRequests.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-sm font-bold text-slate-900">Viewings you asked for</h2>
+              {myRequests.map((v) => {
+                const chip =
+                  v.status === 'confirmed'
+                    ? { text: 'Confirmed ✓', cls: 'bg-emerald-100 text-emerald-900' }
+                    : v.status === 'declined'
+                    ? { text: 'Declined / cancelled', cls: 'bg-rose-100 text-rose-900' }
+                    : v.status === 'rescheduled'
+                    ? { text: 'Updated by homeowner', cls: 'bg-sky-100 text-sky-900' }
+                    : v.status === 'completed'
+                    ? { text: 'Completed', cls: 'bg-slate-200 text-slate-800' }
+                    : { text: 'Waiting for homeowner', cls: 'bg-amber-100 text-amber-900' };
+                return (
+                  <div key={v.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900">{v.listingTitle}</div>
+                        <div className="text-xs text-slate-500">{v.listingAddress}</div>
+                      </div>
+                      <span className={`self-start text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${chip.cls}`}>
+                        {chip.text}
+                      </span>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl text-sm font-bold text-slate-900">
+                      {v.preferredDate} ({v.preferredTimeSlot.toUpperCase()})
+                    </div>
+                    {v.status === 'confirmed' && (
+                      <p className="text-xs text-emerald-900 bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+                        The homeowner confirmed this viewing. The exact address is shown above and on the listing page.
+                      </p>
+                    )}
+                    {v.status === 'declined' && (
+                      <p className="text-xs text-rose-900 bg-rose-50 border border-rose-100 rounded-xl p-3">
+                        This request was declined or cancelled. You can request another time or send a message from the listing page.
+                      </p>
+                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => onNavigate('detail', v.listingId)}
+                        className="px-3 py-2 text-xs font-semibold text-emerald-800 hover:underline min-h-[40px] cursor-pointer"
+                      >
+                        View listing
+                      </button>
+                      {(v.status === 'pending' || v.status === 'confirmed') && (
+                        <button
+                          onClick={() => {
+                            if (confirm('Cancel this viewing request?')) handleViewingStatus(v.id, 'declined');
+                          }}
+                          className="px-3 py-2 text-xs font-semibold text-rose-700 border border-rose-200 hover:bg-rose-50 rounded-xl min-h-[40px] cursor-pointer"
+                        >
+                          Cancel request
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -485,7 +647,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div className="md:col-span-4 border-r border-slate-200 overflow-y-auto max-h-[600px] divide-y divide-slate-100">
             {threads.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400">
-                No active buyer conversations yet.
+                No conversations yet. Messages you send or receive about a home will appear here.
               </div>
             ) : (
               threads.map((thread) => (
@@ -497,8 +659,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   }`}
                 >
                   <div className="flex justify-between items-baseline mb-1">
-                    <span className="font-bold text-sm text-slate-900 truncate">
-                      {thread.buyerName}
+                    <span className="font-bold text-sm text-slate-900 truncate flex items-center gap-1.5">
+                      {thread.unreadCount > 0 && <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" aria-label="Unread" />}
+                      {otherName(thread)}
                     </span>
                     <span className="text-[10px] text-slate-400">
                       {new Date(thread.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
@@ -522,8 +685,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 {/* Thread Header */}
                 <div className="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-sm text-slate-900">{activeThread.buyerName}</div>
-                    <div className="text-xs text-slate-500">{activeThread.buyerEmail}</div>
+                    <div className="font-bold text-sm text-slate-900">{otherName(activeThread)}</div>
+                    <div className="text-xs text-slate-500">
+                      About: {activeThread.listingTitle}
+                      {activeThread.buyerId !== activeUser.id && activeThread.buyerEmail ? ` · ${activeThread.buyerEmail}` : ''}
+                    </div>
                   </div>
                   <button
                     onClick={() => onNavigate('detail', activeThread.listingId)}
@@ -536,7 +702,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 {/* Messages Body */}
                 <div className="flex-1 p-4 overflow-y-auto space-y-3">
                   {activeThread.messages.map((msg) => {
-                    const isSellerMe = msg.senderRole === 'seller';
+                    const isSellerMe = msg.senderId === activeUser.id;
                     return (
                       <div
                         key={msg.id}
@@ -566,7 +732,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 >
                   <input
                     type="text"
-                    placeholder={`Reply to ${activeThread.buyerName}...`}
+                    placeholder={`Reply to ${otherName(activeThread)}...`}
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     className="flex-1 px-4 py-2.5 bg-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:bg-white"

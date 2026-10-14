@@ -182,3 +182,11 @@ The system is implemented across 9 core entities matching production Supabase Po
 - Rate limits for messages, viewings and reports are enforced by the database.
 - Simulated behaviour was removed: fake auto-replies, pre-attached ownership documents, fake verification details, simulated emails, and the placeholder bot check.
 - Real page addresses (`/browse`, `/listing/<id>`, …) replace in-memory navigation.
+
+## Update 2026-10-13 — one account type, notifications, map fix
+
+- **One kind of account.** Everyone can browse, save, message, request viewings and list homes. The sign-up form no longer asks buyer vs seller; the database treats every new sign-up as a member. Only the site owner can create an admin.
+- **Notifications are created by the database** (triggers), not by the website, so none can be skipped: new message, viewing requested / confirmed / declined / cancelled, listing live / needs changes, and for admins a listing awaiting review or a report. Repeated unread messages in one conversation collapse into one notification.
+- **Where people see them:** bell in the header, red badges on "My Dashboard" and its tabs, a "Needs your attention" panel, a pop-up banner when something arrives, and an unread count in the browser tab. Live updates use Supabase Realtime with a 30-second check as a fallback.
+- **Not yet:** email notifications (needs Resend).
+- **Bug fixes:** the message window crashed because a hook ran after an early return; the map failed because its background worker file was not shipped with the build.

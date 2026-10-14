@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import type { Listing } from './types/listing';
+import type { AppNotification, Listing } from './types/listing';
 import { db, isGuestUser } from './lib/db';
 import { isSupabaseConfigured } from './lib/supabase';
 import { Header } from './components/Header';
@@ -19,6 +19,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // Heavier pages load only when visited (keeps the first page load fast)
 const WizardPage = lazy(() => import('./pages/WizardPage').then((m) => ({ default: m.WizardPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+type DashboardIntent = { tab: 'listings' | 'viewings' | 'messages'; threadId?: string; nonce: number };
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
 
@@ -94,7 +95,7 @@ const Gate: React.FC<{ title: string; text: string; action?: { label: string; on
 );
 
 function MainApp() {
-  const { user: activeUser, initializing, recoveryMode, becomeSeller } = useAuth();
+  const { user: activeUser, initializing, recoveryMode } = useAuth();
 
   const initial = parsePath(window.location.pathname);
   const [currentTab, setCurrentTab] = useState<string>(initial.tab);
@@ -107,7 +108,9 @@ function MainApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
-  const [authModalRole, setAuthModalRole] = useState<'buyer' | 'seller'>('buyer');
+  const [dashboardIntent, setDashboardIntent] = useState<DashboardIntent | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [dashboardBadge, setDashboardBadge] = useState(0);
 
   // Keep the screen in sync with the database cache
   useEffect(() => {
@@ -117,6 +120,15 @@ function MainApp() {
       setHasDraft(!!db.getDraft());
       setDataReady(db.isLoaded());
       setLoadError(db.getLoadError());
+      setUnreadCount(db.getUnreadNotificationCount());
+      const me = db.getListings().filter((l) => l.userId === activeUser.id).map((l) => l.id);
+      const pendingForMe = db
+        .getViewingRequests()
+        .filter((v) => me.includes(v.listingId) && v.buyerId !== activeUser.id && v.status === 'pending').length;
+      const updates = db
+        .getNotifications()
+        .filter((n) => !n.read && ['viewing_confirmed', 'viewing_declined', 'viewing_cancelled', 'viewing_rescheduled', 'listing_live', 'listing_rejected'].includes(n.type)).length;
+      setDashboardBadge(db.getUnreadMessageCount() + pendingForMe + updates);
     };
     sync();
     return db.subscribe(sync);
@@ -134,13 +146,19 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    document.title = TAB_TITLES[currentTab] ?? TAB_TITLES.landing;
-  }, [currentTab]);
+    const base = TAB_TITLES[currentTab] ?? TAB_TITLES.landing;
+    document.title = unreadCount > 0 ? `(${unreadCount}) ${base}` : base;
+  }, [currentTab, unreadCount]);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
     setTimeout(() => setToast(null), 4500);
   }, []);
+
+  // Pop-up banner when something new arrives while the site is open
+  useEffect(() => {
+    return db.onIncomingNotification((n) => showToast(`🔔 ${n.title}`));
+  }, [showToast]);
 
   const handleNavigate = useCallback((tab: string, listingId?: string) => {
     const nextListing = tab === 'detail' ? listingId ?? null : null;
@@ -151,16 +169,34 @@ function MainApp() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin', role: 'buyer' | 'seller' = 'buyer') => {
+  const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin') => {
     setAuthModalMode(mode);
-    setAuthModalRole(role);
     setAuthModalOpen(true);
+  };
+
+  // Clicking a notification takes the person straight to the right place
+  const handleOpenNotification = (n: AppNotification) => {
+    const nonce = Date.now();
+    if (n.type === 'new_message') {
+      setDashboardIntent({ tab: 'messages', threadId: n.conversationId, nonce });
+      handleNavigate('dashboard');
+    } else if (n.type.startsWith('viewing_')) {
+      setDashboardIntent({ tab: 'viewings', nonce });
+      handleNavigate('dashboard');
+    } else if (n.type === 'listing_live' || n.type === 'listing_rejected') {
+      setDashboardIntent({ tab: 'listings', nonce });
+      handleNavigate('dashboard');
+    } else if (n.type === 'listing_in_review' || n.type === 'new_report') {
+      handleNavigate('admin');
+    } else {
+      handleNavigate('dashboard');
+    }
   };
 
   const handleToggleFavorite = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (isGuestUser(activeUser)) {
-      handleOpenAuth('signup', 'buyer');
+      handleOpenAuth('signup');
       return;
     }
     try {
@@ -182,7 +218,7 @@ function MainApp() {
     <Gate
       title="Please sign in to continue"
       text="You need a free account to see this page."
-      action={{ label: 'Sign in', onClick: () => handleOpenAuth('signin', 'buyer') }}
+      action={{ label: 'Sign in', onClick: () => handleOpenAuth('signin') }}
     />
   );
 
@@ -195,6 +231,8 @@ function MainApp() {
         savedCount={savedIds.length}
         hasDraft={hasDraft}
         onOpenAuth={handleOpenAuth}
+        onOpenNotification={handleOpenNotification}
+        dashboardBadge={dashboardBadge}
       />
 
       {loadError && (
@@ -251,20 +289,8 @@ function MainApp() {
             (!signedIn ? (
               <Gate
                 title="Sign in to list your home"
-                text="Create a free homeowner account to start your listing."
-                action={{ label: 'Create homeowner account', onClick: () => handleOpenAuth('signup', 'seller') }}
-              />
-            ) : activeUser.role === 'buyer' ? (
-              <Gate
-                title="Switch to a homeowner account"
-                text="Your account is currently a buyer account. You can switch to a homeowner account to list a home — you will still be able to browse and save homes."
-                action={{
-                  label: 'Switch to homeowner account',
-                  onClick: async () => {
-                    const res = await becomeSeller();
-                    if (!res.success) showToast(res.error || 'Could not switch your account.');
-                  },
-                }}
+                text="Create a free account to start your listing. The same account lets you browse, message owners and book viewings."
+                action={{ label: 'Create free account', onClick: () => handleOpenAuth('signup') }}
               />
             ) : (
               <WizardPage
@@ -275,22 +301,11 @@ function MainApp() {
             ))}
 
           {currentTab === 'dashboard' &&
-            (signedIn && activeUser.role === 'buyer' ? (
-              <Gate
-                title="The dashboard is for homeowners"
-                text="Your account is a buyer account. To follow a home you asked about, open its listing page — your messages and viewing status appear there. To list a home, switch to a homeowner account."
-                action={{
-                  label: 'Switch to homeowner account',
-                  onClick: async () => {
-                    const res = await becomeSeller();
-                    if (!res.success) showToast(res.error || 'Could not switch your account.');
-                  },
-                }}
-              />
-            ) : signedIn ? (
+            (signedIn ? (
               <DashboardPage
                 activeUser={activeUser}
                 onNavigate={handleNavigate}
+                intent={dashboardIntent}
                 onEditListing={(listing) => {
                   db.saveDraft(listing as unknown as Record<string, any>);
                   handleNavigate('wizard');
@@ -350,10 +365,6 @@ function MainApp() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         initialMode={authModalMode}
-        initialRole={authModalRole}
-        onSuccess={(role) => {
-          if (role === 'seller') handleNavigate('dashboard');
-        }}
       />
 
       {recoveryMode && <PasswordRecoveryModal />}

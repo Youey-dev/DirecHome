@@ -31,7 +31,7 @@ interface WizardPageProps {
   activeUser: UserProfile;
   onListingCreated: () => void;
   onCancel: () => void;
-  onOpenAuth?: (mode?: 'signin' | 'signup', role?: 'buyer' | 'seller') => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
 }
 
 const STEPS = [
@@ -390,12 +390,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   // Final submit: saves everything to the database and sends the listing to the verification queue
   const handleFinalSubmit = async () => {
     if (submitting) return;
-    if (activeUser.role !== 'seller' && activeUser.role !== 'admin') {
-      setValidationError('A homeowner account is required to publish a listing.');
-      if (onOpenAuth) onOpenAuth('signup', 'seller');
-      return;
-    }
-
     if (!termsAccepted) {
       setValidationError('Please accept the DirectHome Terms of Use and Privacy Policy to submit your listing.');
       return;
@@ -544,37 +538,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {STEPS[currentStep - 1].subtitle}
           </p>
         </div>
-
-        {/* Homeowner Account Notice Banner */}
-        {activeUser.role !== 'seller' && activeUser.role !== 'admin' && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs sm:text-sm text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0" />
-              <div>
-                <span className="font-bold">Homeowner Account Notice: </span>
-                <span>You are currently drafting as {activeUser.name} ({activeUser.role}). To publish this listing under your verified ownership, please sign in or create a seller account.</span>
-              </div>
-            </div>
-            {onOpenAuth && (
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth('signin', 'seller')}
-                  className="px-3 py-1.5 bg-white border border-amber-300 font-semibold rounded-lg hover:bg-amber-100/50 cursor-pointer text-xs"
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth('signup', 'seller')}
-                  className="px-3 py-1.5 bg-amber-800 text-white font-bold rounded-lg hover:bg-amber-900 cursor-pointer text-xs"
-                >
-                  Create Seller Account
-                </button>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Actionable Error Banner if validation fails */}
         {validationError && (
