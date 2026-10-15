@@ -130,6 +130,11 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
                 <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Direct & instant in-app messaging</td>
               </tr>
               <tr>
+                <td className="py-3 px-4 font-semibold text-slate-900">For-Sale Sign</td>
+                <td className="py-3 px-4 text-slate-500">The brokerage’s sign, with the agent’s name and number</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Free printable lawn and window signs with a QR code to your listing</td>
+              </tr>
+              <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Listing Screening</td>
                 <td className="py-3 px-4 text-slate-500">MLS agent check</td>
                 <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Every listing reviewed before publishing</td>
