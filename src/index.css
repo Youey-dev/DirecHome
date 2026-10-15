@@ -93,3 +93,30 @@ body {
   color: #5E6E64 !important;
   font-size: 16px !important;
 }
+
+/* Feature sheet: when its preview is open, printing shows only the sheet, one Letter page */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.4in;
+  }
+  body.om-printing > #root,
+  body.om-printing .om-print-toolbar {
+    display: none !important;
+  }
+  body.om-printing .om-print-sheet {
+    position: static !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+  body.om-printing .om-sheet-page {
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+  body.om-printing,
+  body.om-printing .om-sheet-page {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
