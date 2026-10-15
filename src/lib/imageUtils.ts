@@ -29,7 +29,7 @@ export async function validateImageFile(file: File): Promise<ImageValidationResu
   if (!file.type.startsWith('image/')) {
     return {
       valid: false,
-      reason: 'This file is not an image. Please upload a JPG, PNG, HEIC, or WebP photo.'
+      reason: 'This file is not an image. Please upload a JPG, PNG or WebP photo.'
     };
   }
 
@@ -85,7 +85,7 @@ export async function validateImageFile(file: File): Promise<ImageValidationResu
       URL.revokeObjectURL(objectUrl);
       resolve({
         valid: false,
-        reason: 'Could not read this photo file. It may be corrupt or in an unsupported format.'
+        reason: 'Could not read this photo. If it came from an iPhone (HEIC), choose it again from Photos so it\'s shared as a JPEG, or set Camera > Formats to "Most Compatible". JPG, PNG and WebP work everywhere.'
       });
     };
 
