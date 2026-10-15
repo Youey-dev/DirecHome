@@ -37,8 +37,9 @@ Deno.serve(async (req) => {
     const { listingId } = await req.json().catch(() => ({}));
     if (typeof listingId !== "string") return json({ error: "Missing listing." }, 400);
 
-    // RLS: only the owner (or admin) can read a non-public listing
-    const { data: listing } = await asUser
+    // Read with the server key (billing columns are private), then check the person owns it
+    const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: listing } = await admin
       .from("listings").select("id,user_id,status,payment_status,headline").eq("id", listingId).maybeSingle();
     if (!listing || listing.user_id !== u.user.id) return json({ error: "Listing not found." }, 404);
     if (!["live", "paused"].includes(listing.status)) {
@@ -48,7 +49,6 @@ Deno.serve(async (req) => {
       return json({ error: "This listing already has an active subscription." }, 400);
     }
 
-    const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { httpClient: Stripe.createFetchHttpClient() });
 
     // The payment may have gone through a moment ago, before the webhook updated the listing

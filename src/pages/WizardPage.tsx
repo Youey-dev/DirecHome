@@ -60,7 +60,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [uploadingProgress, setUploadingProgress] = useState<Record<string, number>>({});
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
-  const [submittedSummary, setSubmittedSummary] = useState<{ streetAddress: string; city: string; price: number; offersCashback: boolean; cashbackAmount: number; photoCount: number } | null>(null);
+  const [submittedSummary, setSubmittedSummary] = useState<{ streetAddress: string; city: string; price: number; offersCashback: boolean; cashbackAmount: number; photoCount: number; outcome: 'new' | 'rereview' | 'updated' } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [locating, setLocating] = useState(false);
   const [geoKey, setGeoKey] = useState('');
@@ -427,7 +427,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     setSubmitting(true);
     setValidationError(null);
     try {
-      await db.saveListing({
+      const submission = {
         id: listingIdRef.current || undefined,
         streetAddress: stripHtml(streetAddress),
         unitNumber: unitNumber ? stripHtml(unitNumber) : undefined,
@@ -458,7 +458,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         recentUpgrades: upgradesList,
         inclusions: inclusionsList,
         photos,
-      });
+      };
+      const wasApproved = !!editingId && ['live', 'paused'].includes(db.getListingById(editingId)?.status ?? '');
+      const needsReview = db.editNeedsReview(submission);
+      await db.saveListing(submission);
       if (!editingId) db.clearDraft(); // keep any unfinished new-listing draft when saving an edit
       setSubmittedSummary({
         streetAddress: stripHtml(streetAddress),
@@ -467,6 +470,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         offersCashback,
         cashbackAmount: finalCashback,
         photoCount: photos.length,
+        outcome: !wasApproved ? 'new' : needsReview ? 'rereview' : 'updated',
       });
       setIsSubmittedSuccess(true);
     } catch (err: any) {
@@ -487,10 +491,20 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
         <div className="space-y-2">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            Your Listing is in Review!
+            {submittedSummary.outcome === 'updated'
+              ? 'Your changes are live'
+              : submittedSummary.outcome === 'rereview'
+                ? 'Your changes are in review'
+                : 'Your Listing is in Review!'}
           </h2>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg mx-auto">
-            We’ve received your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>. Our team will give it a quick review (usually within 1 business day). Once approved, tap "Activate listing" in your dashboard to publish it.
+            {submittedSummary.outcome === 'updated' ? (
+              <>Your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong> has been updated.</>
+            ) : submittedSummary.outcome === 'rereview' ? (
+              <>You changed the words, photos or address of <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>, so our team will give it a quick review (usually within 1 business day). It’s hidden from buyers until then. Your subscription isn’t affected.</>
+            ) : (
+              <>We’ve received your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>. Our team will give it a quick review (usually within 1 business day). Once approved, tap "Activate listing" in your dashboard to publish it.</>
+            )}
           </p>
         </div>
 
@@ -1193,6 +1207,12 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
             )}
 
+            {editListing && ['live', 'paused'].includes(editListing.status) && (
+              <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs text-amber-950 leading-relaxed">
+                <strong>Editing an approved listing.</strong> Changes to the headline, description, photos or address send it back for a quick review, and it’s hidden from buyers until it’s approved (usually within 1 business day). Changes to the price and home details (rooms, size, fees, cash-back) go live right away.
+              </div>
+            )}
+
             {/* Legal Confirmation & Mandatory Terms Acceptance */}
             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-3 leading-relaxed">
               <div className="font-bold text-slate-900 flex items-center gap-2">
@@ -1259,7 +1279,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               className="disabled:opacity-60 px-8 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-sm rounded-xl transition-all shadow-md min-h-[48px] flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-5 h-5" />
-              <span>{submitting ? 'Uploading… please keep this page open' : 'Submit Listing for Review'}</span>
+              <span>{submitting ? 'Uploading… please keep this page open' : editListing && ['live', 'paused'].includes(editListing.status) ? 'Save Changes' : 'Submit Listing for Review'}</span>
             </button>
           )}
         </div>

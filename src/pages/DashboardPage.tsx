@@ -542,6 +542,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     </div>
                   )}
 
+                  {/* Paid listing waiting for review (after edits) or sent back for changes */}
+                  {['in_review', 'rejected', 'draft'].includes(listing.status) && ['active', 'past_due'].includes(listing.paymentStatus ?? '') && (
+                    <div className="px-5 py-3 border-t border-slate-100 bg-white text-xs flex items-center justify-between gap-3 flex-wrap">
+                      <div className="text-slate-700">
+                        {listing.cancelAtPeriodEnd
+                          ? <span>Subscription cancelled. It ends on <strong>{fmtDate(listing.nextBillingAt)}</strong>.</span>
+                          : <span>Your subscription is still active. The listing is hidden from buyers until it’s approved.</span>}
+                      </div>
+                      <button
+                        onClick={handleBilling}
+                        className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-medium rounded-lg border border-slate-200 flex items-center gap-1.5 cursor-pointer min-h-[44px]"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Manage billing</span>
+                      </button>
+                    </div>
+                  )}
+
                   {/* Printable for-sale signs (live listings only) */}
                   {isListingLive(listing) && (
                     <div className="px-5 py-4 border-t border-slate-100 bg-white text-xs space-y-2.5">
@@ -851,7 +869,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <div className="font-bold text-sm text-slate-900">{otherName(activeThread)}</div>
                     <div className="text-xs text-slate-500">
                       About: {activeThread.listingTitle}
-                      {activeThread.buyerId !== activeUser.id && activeThread.buyerEmail ? ` · ${activeThread.buyerEmail}` : ''}
                     </div>
                   </div>
                   <button

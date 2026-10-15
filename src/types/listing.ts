@@ -236,6 +236,7 @@ export interface AppNotification {
     | 'listing_live'
     | 'listing_rejected'
     | 'listing_in_review'
+    | 'listing_rereview'
     | 'new_report'
     | string;
   title: string;

@@ -13,6 +13,7 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
 import { stripHtml } from './security';
+import { editNeedsReview } from './reviewRules';
 import type {
   AppNotification,
   Listing,
@@ -99,6 +100,26 @@ const pathFromPublicUrl = (url: string): string | null => {
   if (i < 0) return null;
   return decodeURIComponent(url.slice(i + marker.length).split('?')[0]);
 };
+
+/**
+ * Listing columns anyone may read. Billing and review-note fields are private: owners and admins
+ * get them from my_listing_private_fields() (migration 011).
+ */
+const LISTING_COLUMNS = [
+  'id', 'user_id', 'status', 'city', 'province', 'neighborhood', 'postal_fsa', 'lat', 'lng',
+  'property_type', 'price', 'bedrooms', 'bathrooms', 'sqft', 'lot_sqft', 'lot_acres', 'year_built',
+  'parking_spaces', 'strata_fee', 'property_taxes_annual',
+  'offers_cashback', 'cashback_type', 'cashback_amount', 'estimated_commission_saved',
+  'headline', 'description', 'neighborhood_highlights', 'recent_upgrades', 'inclusions',
+  'views_count', 'saves_count', 'inquiries_count', 'created_at', 'updated_at',
+].join(',');
+
+const OWNER_FIELDS =
+  'id,payment_status,past_due_since,cancel_at_period_end,next_billing_at,subscription_tier,billing_cycle,monthly_fee_cad,review_notes';
+
+/** True when a database function isn't there yet (the site was published before its migration ran). */
+const isMissingFunction = (error: { code?: string } | null | undefined) =>
+  !!error && (error.code === 'PGRST202' || error.code === '42883');
 
 const chunk = <T>(items: T[], size: number): T[][] => {
   const out: T[][] = [];
@@ -288,7 +309,7 @@ class DataStore {
 
     const listingRes = await supabase
       .from('listings')
-      .select('*, listing_photos(*)')
+      .select(`${LISTING_COLUMNS}, listing_photos(*)`)
       .order('created_at', { ascending: false })
       .limit(500);
     if (listingRes.error) throw listingRes.error;
@@ -300,9 +321,10 @@ class DataStore {
     let favRows: Row[] = [];
     let reportRows: Row[] = [];
     let notificationRows: Row[] = [];
+    let ownerFieldRows: Row[] = [];
 
     if (signedIn) {
-      const [p, vr, c, f, r, nt] = await Promise.all([
+      const [p, vr, c, f, r, nt, of] = await Promise.all([
         supabase.from('listing_private_details').select('*'),
         supabase.from('viewing_requests').select('*').order('created_at', { ascending: false }),
         supabase.from('conversations').select('*, messages(*)').order('last_message_at', { ascending: false }),
@@ -311,17 +333,28 @@ class DataStore {
           ? supabase.from('reports').select('*').order('created_at', { ascending: false })
           : Promise.resolve({ data: [] as Row[], error: null }),
         supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50),
+        // Billing status and review notes: own listings only (admins: all)
+        supabase.rpc('my_listing_private_fields'),
       ]);
       for (const res of [p, vr, c, f, r, nt]) if (res.error) throw res.error;
+      let ownerFields: { data: unknown; error: { code?: string; message?: string } | null } = of;
+      if (isMissingFunction(of.error)) {
+        // Before migration 011 these columns are still readable directly
+        const q = supabase.from('listings').select(OWNER_FIELDS);
+        ownerFields = me.role === 'admin' ? await q : await q.eq('user_id', me.id);
+      }
+      if (ownerFields.error) throw ownerFields.error;
       privates = p.data ?? [];
       viewingRows = vr.data ?? [];
       convoRows = c.data ?? [];
       favRows = f.data ?? [];
       reportRows = (r.data as Row[]) ?? [];
       notificationRows = nt.data ?? [];
+      ownerFieldRows = (ownerFields.data as Row[]) ?? [];
     }
 
-    // Names of people we are allowed to see (self, chat counterparts, and for admins listing owners)
+    // Names of people we deal with. Only admins get email and phone; everyone else gets the
+    // display name of the people they share a conversation or a viewing with (people_names).
     const userIds = new Set<string>();
     if (signedIn) {
       userIds.add(me.id);
@@ -330,23 +363,36 @@ class DataStore {
         userIds.add(c.seller_id);
       });
       viewingRows.forEach((v) => userIds.add(v.buyer_id));
+      const listingOwner = new Map(listingRows.map((l) => [l.id, l.user_id as string]));
+      viewingRows.forEach((v) => {
+        const owner = listingOwner.get(v.listing_id);
+        if (owner) userIds.add(owner);
+      });
       listingRows.forEach((l) => {
         if (me.role === 'admin' || l.user_id === me.id) userIds.add(l.user_id);
       });
     }
     const people = new Map<string, Row>();
     for (const ids of chunk([...userIds], 80)) {
-      const { data, error } = await supabase.from('users').select('id, full_name, email, phone').in('id', ids);
+      let { data, error } =
+        me.role === 'admin'
+          ? await supabase.from('users').select('id, full_name, email, phone').in('id', ids)
+          : await supabase.rpc('people_names', { _ids: ids });
+      if (isMissingFunction(error)) {
+        // Before migration 011: names only, read directly
+        ({ data, error } = await supabase.from('users').select('id, full_name').in('id', ids));
+      }
       if (error) throw error;
-      (data ?? []).forEach((u) => people.set(u.id, u));
+      ((data as Row[]) ?? []).forEach((u) => people.set(u.id, u));
     }
 
     if (version !== this.userVersion) return; // someone signed in/out while we were loading
 
     const privateById = new Map<string, Row>(privates.map((p) => [p.listing_id, p]));
+    const ownerFieldsById = new Map<string, Row>(ownerFieldRows.map((o) => [o.id, o]));
 
     const listings = listingRows.map((row) =>
-      this.mapListing(row, privateById.get(row.id), people.get(row.user_id))
+      this.mapListing({ ...row, ...(ownerFieldsById.get(row.id) ?? {}) }, privateById.get(row.id), people.get(row.user_id))
     );
     const byId = new Map(listings.map((l) => [l.id, l]));
 
@@ -623,6 +669,11 @@ class DataStore {
     await this.recordTerms();
     await this.refresh();
     return id;
+  }
+
+  /** True when saving these changes will send an approved listing back for review (see reviewRules). */
+  editNeedsReview(input: ListingSubmission): boolean {
+    return editNeedsReview(input, input.id ? this.getListingById(input.id) : undefined);
   }
 
   private async syncPhotos(listingId: string, ownerId: string, current: PhotoItem[], wanted: PhotoItem[]) {
