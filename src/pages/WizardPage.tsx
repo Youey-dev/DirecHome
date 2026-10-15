@@ -124,8 +124,12 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (draft.streetAddress) setStreetAddress(draft.streetAddress);
     if (draft.unitNumber) setUnitNumber(draft.unitNumber);
     if (draft.city) setCity(draft.city);
-    if (draft.province && !CLOSED_PROVINCES.includes(draft.province)) setProvince(draft.province);
-    else if (draft.city) setProvince('BC'); // drafts saved before Canada-wide listings were BC-only
+    if (draft.province) {
+      // A draft for a province that isn't open yet (Quebec) starts with no province chosen
+      if (!CLOSED_PROVINCES.includes(draft.province)) setProvince(draft.province);
+    } else if (draft.city) {
+      setProvince('BC'); // drafts saved before Canada-wide listings were BC-only
+    }
     if (draft.postalCode) setPostalCode(draft.postalCode);
     if (draft.neighborhood) setNeighborhood(draft.neighborhood);
     if (draft.propertyType) setPropertyType(draft.propertyType);
