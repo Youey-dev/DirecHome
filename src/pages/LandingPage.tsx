@@ -337,6 +337,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
+      {/* Free for-sale sign */}
+      <section className="bg-white border-y border-slate-200">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-20 sm:py-24 flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
+          <div className="flex-1 flex flex-col gap-5 min-w-0">
+            <h2 className="font-display font-bold text-[44px] sm:text-[52px] leading-none text-slate-900 max-w-[14em]">
+              A free for-sale sign comes with every listing
+            </h2>
+            <p className="text-[17px] leading-relaxed text-slate-700 max-w-[32em]">
+              A sign tells everyone who walks or drives past that your home is for sale. Once your listing is live, download your sign from your dashboard and put it on the lawn.
+            </p>
+            <ul className="flex flex-col gap-3.5">
+              <li className="flex gap-3.5 items-start text-[17px] leading-normal text-slate-900">
+                <CheckIcon />
+                <span><b>A QR code to your listing.</b> Passers-by scan it to see your photos and price and book a viewing.</span>
+              </li>
+              <li className="flex gap-3.5 items-start text-[17px] leading-normal text-slate-900">
+                <CheckIcon />
+                <span><b>Lawn and window versions.</b> Print the 18 × 24 in lawn sign at any print shop, or the window sign at home.</span>
+              </li>
+              <li className="flex gap-3.5 items-start text-[17px] leading-normal text-slate-900">
+                <CheckIcon />
+                <span><b>No phone number on it.</b> Buyers reach you through OwnersMarket, and your exact address stays private until you confirm a viewing.</span>
+              </li>
+            </ul>
+            <p className="text-sm text-slate-600">Free to download. You pay only for printing.</p>
+          </div>
+          <div className="flex-1 w-full min-w-0 relative pb-16 sm:pb-20 pr-6 sm:pr-16">
+            <img
+              src="/sign-preview-lawn.webp"
+              alt="The OwnersMarket lawn sign: For sale by owner, with a QR code to scan for photos, price and to book a viewing"
+              width={1200}
+              height={900}
+              loading="lazy"
+              className="w-full h-auto rounded-md shadow-lg ring-1 ring-slate-200"
+            />
+            <img
+              src="/sign-preview-window.webp"
+              alt="The OwnersMarket window sign"
+              width={560}
+              height={725}
+              loading="lazy"
+              className="absolute right-0 bottom-0 w-[34%] h-auto rounded-md shadow-xl ring-1 ring-slate-200"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Who it's for */}
       <section className="bg-fern">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-20 flex flex-col gap-8">
