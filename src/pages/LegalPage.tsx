@@ -219,7 +219,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">1. What DirectHome is</h2>
             <p>
-              DirectHome is an online advertising service. Property owners anywhere in Canada pay a flat fee to advertise their own homes for sale, and buyers can browse those ads and contact owners directly. DirectHome Canada ("DirectHome", "we", "us") is operated from British Columbia. DirectHome:
+              DirectHome is an online advertising service. Property owners in every Canadian province and territory except Quebec pay a flat fee to advertise their own homes for sale, and buyers can browse those ads and contact owners directly. DirectHome Canada ("DirectHome", "we", "us") is operated from British Columbia. DirectHome:
             </p>
             <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
               <li>Is <strong>NOT</strong> a real estate brokerage and is not licensed or registered to provide real estate services in any province or territory, including under British Columbia's <em>Real Estate Services Act</em>, Alberta's <em>Real Estate Act</em>, Ontario's <em>Trust in Real Estate Services Act, 2002</em>, or Quebec's <em>Real Estate Brokerage Act</em>.</li>
@@ -259,7 +259,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">4. Independent Legal Representation Requirement</h2>
             <p>
-              {CONTRACT_NOTICE} Each party should hire their own independent lawyer, or a notary in provinces where notaries handle real estate transactions (such as British Columbia and Quebec), to prepare the contract and handle the closing, title transfer and money adjustments. In Quebec, home sales are generally completed before a Quebec notary.
+              {CONTRACT_NOTICE} Each party should hire their own independent lawyer, or a notary in provinces where notaries handle real estate transactions (such as British Columbia), to prepare the contract and handle the closing, title transfer and money adjustments.
             </p>
           </section>
 
@@ -278,7 +278,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">7. Governing law</h2>
+            <h2 className="text-base font-bold text-slate-900">7. Where DirectHome is available</h2>
+            <p>
+              DirectHome does not currently accept listings for properties in Quebec. We plan to open in Quebec once our site and terms are available in French. Any Quebec listing submitted in the meantime will be declined.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">8. Governing law</h2>
             <p>
               These Terms are governed by the laws of the Province of British Columbia and the federal laws of Canada that apply there. Any dispute about these Terms will be heard in the courts of British Columbia, unless the law of your province or territory gives you the right to bring it where you live. Nothing in these Terms limits any rights you have under the consumer protection laws of your province or territory, including Quebec's <em>Consumer Protection Act</em>.
             </p>
@@ -461,7 +468,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">1. Accurate Representation Standard</h2>
             <p>
-              All property descriptions, square footage, inclusions and photos must be accurate and truthful. Sellers must not hide or misrepresent known problems with the property, and must give buyers any disclosure the law of their province or territory requires. These duties vary across Canada. In most provinces, sellers must disclose known hidden defects that make a home dangerous or unfit to live in, and some provinces use standard disclosure forms (such as British Columbia's Property Condition Disclosure Statement). In Quebec, sales are subject to the seller's legal warranty of quality under the <em>Civil Code of Québec</em>. Sellers should ask their lawyer or notary what they are required to disclose.
+              All property descriptions, square footage, inclusions and photos must be accurate and truthful. Sellers must not hide or misrepresent known problems with the property, and must give buyers any disclosure the law of their province or territory requires. These duties vary across Canada. In most provinces, sellers must disclose known hidden defects that make a home dangerous or unfit to live in, and some provinces use standard disclosure forms (such as British Columbia's Property Condition Disclosure Statement). Sellers should ask their lawyer or notary what they are required to disclose.
             </p>
           </section>
 

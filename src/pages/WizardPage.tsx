@@ -3,7 +3,7 @@ import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing'
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, TERMS_VERSION } from '../lib/db';
 import { geocodeAddress } from '../lib/geocode';
-import { PROVINCES, citiesInProvince, provinceName } from '../data/cities';
+import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
 import { calculateBCCommission, formatCAD } from '../lib/commissionCalc';
 import { 
@@ -124,7 +124,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (draft.streetAddress) setStreetAddress(draft.streetAddress);
     if (draft.unitNumber) setUnitNumber(draft.unitNumber);
     if (draft.city) setCity(draft.city);
-    if (draft.province) setProvince(draft.province);
+    if (draft.province && !CLOSED_PROVINCES.includes(draft.province)) setProvince(draft.province);
     else if (draft.city) setProvince('BC'); // drafts saved before Canada-wide listings were BC-only
     if (draft.postalCode) setPostalCode(draft.postalCode);
     if (draft.neighborhood) setNeighborhood(draft.neighborhood);
@@ -297,6 +297,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       }
       if (!province) {
         setValidationError('Please choose your province or territory.');
+        return;
+      }
+      if (CLOSED_PROVINCES.includes(province as any) || postalInClosedProvince(postalCode)) {
+        setValidationError(QUEBEC_COMING_SOON);
         return;
       }
       if (!validateCanadianPostalCode(postalCode).valid) {
@@ -602,10 +606,11 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
                 >
                   <option value="">Choose…</option>
-                  {PROVINCES.map((p) => (
+                  {OPEN_PROVINCES.map((p) => (
                     <option key={p.code} value={p.code}>{p.name}</option>
                   ))}
                 </select>
+                <p className="mt-1 text-xs text-slate-500">{QUEBEC_COMING_SOON}</p>
               </div>
 
               <div>

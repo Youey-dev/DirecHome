@@ -36,6 +36,22 @@ export const PROVINCES: ProvinceInfo[] = [
 
 export const ALL_PROVINCES = 'All of Canada';
 
+/**
+ * Provinces where DirectHome currently accepts listings. Quebec is excluded
+ * until the site and terms are available in French (Charter of the French
+ * Language) and a Law 25 privacy assessment is done.
+ */
+export const CLOSED_PROVINCES: ProvinceCode[] = ['QC'];
+export const OPEN_PROVINCES: ProvinceInfo[] = PROVINCES.filter((p) => !CLOSED_PROVINCES.includes(p.code));
+export const QUEBEC_COMING_SOON =
+  'Listings in Québec are coming soon. DirectHome will open in Québec once our site and terms are available in French.';
+
+/** True when a postal code belongs to a province where listings aren't open yet. */
+export function postalInClosedProvince(postal: string): boolean {
+  const first = postal.trim().toUpperCase()[0];
+  return PROVINCES.some((p) => CLOSED_PROVINCES.includes(p.code) && p.postalLetters.includes(first));
+}
+
 export function provinceByCode(code: string | undefined | null): ProvinceInfo | undefined {
   return PROVINCES.find((p) => p.code === code);
 }

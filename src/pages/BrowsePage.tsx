@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Listing, PropertyType, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { MapLibreMap } from '../components/LazyMap';
-import { PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
+import { OPEN_PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
 import { 
   Filter, 
   Map as MapIcon, 
@@ -177,7 +177,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
             >
               <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
-              {PROVINCES.map((p) => (
+              {OPEN_PROVINCES.map((p) => (
                 <option key={p.code} value={p.code}>{p.name}</option>
               ))}
             </select>
@@ -413,7 +413,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
               >
                 <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
-                {PROVINCES.map((p) => (
+                {OPEN_PROVINCES.map((p) => (
                   <option key={p.code} value={p.code}>{p.name}</option>
                 ))}
               </select>
