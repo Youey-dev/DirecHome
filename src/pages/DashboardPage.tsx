@@ -154,15 +154,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   const handleMarkSold = (id: string) => {
     const l = listings.find((x) => x.id === id);
-    if (l && ['active', 'past_due'].includes(l.paymentStatus ?? '') && !l.cancelAtPeriodEnd) {
-      showToast('⚠️ Cancel your subscription first (tap "Manage billing") so you are not charged again, then mark it sold.');
-      return;
-    }
-    void run(() => db.updateListingStatus(id, 'sold'), '🎉 Congratulations on selling your home! Marked as sold. Remember to take down your for-sale sign.');
+    const paying = !!l && ['active', 'past_due'].includes(l.paymentStatus ?? '') && !l.cancelAtPeriodEnd;
+    const question = paying
+      ? 'Mark this home as sold? It comes off the site now, and your subscription ends at the close of the month you have paid for. You will not be charged again.'
+      : 'Mark this home as sold? It comes off the site now.';
+    if (!confirm(question)) return;
+    void run(() => db.markListingSold(id), '🎉 Congratulations on selling your home! Marked as sold. Remember to take down your for-sale sign.');
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this listing? This cannot be undone.')) {
+    const l = listings.find((x) => x.id === id);
+    const paying = !!l && ['active', 'past_due'].includes(l.paymentStatus ?? '');
+    const question = paying
+      ? 'Delete this listing? Its subscription stops now and the rest of this month is not refunded. This cannot be undone.'
+      : 'Are you sure you want to delete this listing? This cannot be undone.';
+    if (confirm(question)) {
       void run(() => db.deleteListing(id), 'Listing removed.');
     }
   };

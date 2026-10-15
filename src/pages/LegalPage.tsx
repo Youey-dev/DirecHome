@@ -648,7 +648,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <div className="text-center space-y-1">
               <h3 className="text-lg font-bold text-slate-900">Permanently Delete Account & Data?</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                This will permanently erase your account profile, saved homes, messages, listings and photos. Cancel any active listing subscription first so you are not billed again.
+                This will permanently erase your account profile, saved homes, messages, listings and photos. Any listing subscriptions are cancelled first, so you will not be billed again (the current month is not refunded).
               </p>
             </div>
 

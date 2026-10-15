@@ -25,8 +25,14 @@ Deno.serve(async (req) => {
     if (!u?.user) return json({ error: "Please sign in first." }, 401);
 
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: row } = await admin
-      .from("listing_billing").select("stripe_customer_id").eq("user_id", u.user.id).limit(1).maybeSingle();
+    // One Stripe customer per person (billing_customers); older accounts fall back to their newest one
+    const { data: customer } = await admin
+      .from("billing_customers").select("stripe_customer_id").eq("user_id", u.user.id).maybeSingle();
+    const { data: prior } = customer
+      ? { data: null }
+      : await admin.from("listing_billing").select("stripe_customer_id").eq("user_id", u.user.id)
+          .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    const row = customer ?? prior;
     if (!row) return json({ error: "You do not have any billing to manage yet." }, 404);
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { httpClient: Stripe.createFetchHttpClient() });

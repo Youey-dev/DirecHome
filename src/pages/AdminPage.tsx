@@ -25,6 +25,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
   const [listings, setListings] = useState<Listing[]>([]);
   const [reports, setReports] = useState<ListingReport[]>([]);
   const [rejectModalListing, setRejectModalListing] = useState<Listing | null>(null);
+  // Upholding a report takes the listing down; the admin gives the owner a reason first
+  const [takedown, setTakedown] = useState<{ reportId: string; listingId: string; title: string } | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
@@ -71,11 +73,26 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
     await run(() => db.rejectListing(id, reason), 'Listing rejected. The homeowner can see your reason and resubmit.');
   };
 
-  const handleResolveReport = (reportId: string, action: 'dismissed' | 'resolved', listingId: string) => {
-    void run(async () => {
-      await db.resolveReport(reportId, action);
-      if (action === 'resolved') await db.updateListingStatus(listingId, 'paused');
-    }, action === 'resolved' ? 'Report upheld: the listing was paused.' : 'Report dismissed.');
+  const handleDismissReport = (reportId: string) => {
+    void run(() => db.resolveReport(reportId, 'dismissed'), 'Report dismissed.');
+  };
+
+  const handleConfirmTakedown = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!takedown) return;
+    const reason = rejectionReason.trim();
+    if (reason.length < 5) {
+      showNotice('⚠️ Please enter a reason the homeowner can act on.');
+      return;
+    }
+    const { reportId, listingId } = takedown;
+    setTakedown(null);
+    setRejectionReason('');
+    // Take the listing down first; the report is only closed once that worked
+    await run(async () => {
+      await db.takeDownListing(listingId, reason);
+      await db.resolveReport(reportId, 'resolved');
+    }, 'Listing taken down. The owner sees your reason and must resubmit it for review. Their billing ends at the close of the paid month.');
   };
 
   const pendingListings = listings.filter((l) => l.status === 'in_review');
@@ -277,16 +294,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                 {report.status === 'pending' && (
                   <div className="flex items-center justify-end gap-2 pt-2">
                     <button
-                      onClick={() => handleResolveReport(report.id, 'dismissed', report.listingId)}
+                      onClick={() => handleDismissReport(report.id)}
                       className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl min-h-[44px]"
                     >
                       Dismiss (Unfounded)
                     </button>
                     <button
-                      onClick={() => handleResolveReport(report.id, 'resolved', report.listingId)}
+                      onClick={() => setTakedown({ reportId: report.id, listingId: report.listingId, title: report.listingTitle })}
                       className="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold rounded-xl min-h-[44px]"
                     >
-                      Suspend Listing Pending Review
+                      Take Listing Down
                     </button>
                   </div>
                 )}
@@ -297,15 +314,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
       )}
 
       {/* Reject Reason Modal */}
-      {rejectModalListing && (
+      {(rejectModalListing || takedown) && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Provide Rejection Reason</h3>
+            <h3 className="text-lg font-bold text-slate-900">
+              {takedown ? `Take down "${takedown.title}"` : 'Provide Rejection Reason'}
+            </h3>
             <p className="text-xs text-slate-500">
-              This constructive feedback will be shown to the seller on their dashboard so they can fix the listing and resubmit.
+              {takedown
+                ? 'The listing is hidden right away and sent back to the owner with this reason. They must fix it and resubmit for review. Their subscription ends at the close of the paid month, with no refund.'
+                : 'This constructive feedback will be shown to the seller on their dashboard so they can fix the listing and resubmit.'}
             </p>
 
-            <form onSubmit={handleConfirmReject} className="space-y-4">
+            <form onSubmit={takedown ? handleConfirmTakedown : handleConfirmReject} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Reason Description</label>
                 <textarea
@@ -320,7 +341,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setRejectModalListing(null)}
+                  onClick={() => {
+                    setRejectModalListing(null);
+                    setTakedown(null);
+                  }}
                   className="px-4 py-2 text-xs text-slate-600 hover:text-slate-900"
                 >
                   Cancel
@@ -329,7 +353,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                   type="submit"
                   className="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-xs font-semibold min-h-[44px]"
                 >
-                  Confirm Rejection
+                  {takedown ? 'Take Down' : 'Confirm Rejection'}
                 </button>
               </div>
             </form>

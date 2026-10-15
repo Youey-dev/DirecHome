@@ -716,29 +716,45 @@ class DataStore {
     window.location.assign(data.url);
   }
 
+  /**
+   * Runs a server-side action (edge function) and turns its error into a readable message.
+   * Used for anything that must end a Stripe subscription before changing data.
+   */
+  private async callFunction(name: string, body: Record<string, unknown>, fallback: string): Promise<void> {
+    const { data, error } = await supabase.functions.invoke(name, { body });
+    if (error || !data?.ok) {
+      let msg = data?.error as string | undefined;
+      try { msg = msg ?? (await (error as any)?.context?.json())?.error; } catch { /* ignore */ }
+      throw new Error(msg || fallback);
+    }
+  }
+
+  /** Deletes a listing and its photos. Any subscription for it stops now (no refund). */
   async deleteListing(id: string): Promise<void> {
     this.requireUser();
-    const listing = this.getListingById(id);
-    if (listing && ['active', 'past_due'].includes(listing.paymentStatus ?? '') && !listing.cancelAtPeriodEnd) {
-      throw new Error('Cancel your subscription first (tap "Manage billing") so you are not charged again, then delete the listing.');
-    }
-    const { data, error } = await supabase.from('listings').delete().eq('id', id).select('id');
-    if (error) fail(error);
-    if (!data?.length) throw new Error('You do not have permission to delete this listing.');
-    if (listing) {
-      await this.removeFolder(PHOTO_BUCKET, `${listing.userId}/${id}`);
-    }
+    await this.callFunction('listing-action', { listingId: id, action: 'delete' }, 'We could not delete this listing. Please try again.');
     await this.refresh();
   }
 
-  private async removeFolder(bucket: string, prefix: string) {
-    try {
-      const { data } = await supabase.storage.from(bucket).list(prefix, { limit: 1000 });
-      const paths = (data ?? []).filter((f) => f.id).map((f) => `${prefix}/${f.name}`);
-      if (paths.length) await supabase.storage.from(bucket).remove(paths);
-    } catch (e) {
-      console.warn('Storage cleanup skipped', e);
-    }
+  /** Marks a listing sold. Its subscription ends at the close of the paid month (no refund). */
+  async markListingSold(id: string): Promise<void> {
+    this.requireUser();
+    await this.callFunction('listing-action', { listingId: id, action: 'sold' }, 'We could not mark this listing sold. Please try again.');
+    await this.refresh();
+  }
+
+  /**
+   * Admin take-down: the listing is hidden and sent back to the owner with the reason; they must
+   * edit and resubmit for review. Its subscription ends at the close of the paid month (no refund).
+   */
+  async takeDownListing(id: string, reason: string): Promise<void> {
+    this.requireUser();
+    await this.callFunction(
+      'listing-action',
+      { listingId: id, action: 'takedown', reason: stripHtml(reason).slice(0, 500) },
+      'We could not take this listing down. Please try again.'
+    );
+    await this.refresh();
   }
 
   // ---------------------------------------------------------------------------
@@ -947,23 +963,9 @@ class DataStore {
 
   /** Permanently deletes the account, its listings, files, messages and favourites. */
   async deleteAccount(): Promise<void> {
-    const me = this.requireUser();
-    for (const bucket of [PHOTO_BUCKET]) {
-      try {
-        const { data: folders } = await supabase.storage.from(bucket).list(me.id, { limit: 1000 });
-        for (const f of folders ?? []) {
-          if (f.id) {
-            await supabase.storage.from(bucket).remove([`${me.id}/${f.name}`]);
-          } else {
-            await this.removeFolder(bucket, `${me.id}/${f.name}`);
-          }
-        }
-      } catch (e) {
-        console.warn('Storage cleanup skipped', e);
-      }
-    }
-    const { error } = await supabase.rpc('delete_my_account');
-    if (error) fail(error, 'Your account could not be deleted. Please contact support.');
+    this.requireUser();
+    // Done on the server: cancels any Stripe subscriptions first, then photos, then the account
+    await this.callFunction('delete-account', {}, 'Your account could not be deleted. Please contact support.');
     this.clearAllDrafts();
   }
 

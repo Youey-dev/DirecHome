@@ -156,7 +156,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
         <div className="px-4 py-1.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
           <span className="flex items-center gap-1.5 truncate">
             <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
-            <span>Sending as: <strong className="text-slate-800">{activeUser.name}</strong> ({activeUser.email || 'Verified Account'})</span>
+            <span>Sending as: <strong className="text-slate-800">{activeUser.name}</strong> ({activeUser.email || 'your account'})</span>
           </span>
           <span className="text-[10px] text-slate-400 shrink-0">Direct to Owner</span>
         </div>
