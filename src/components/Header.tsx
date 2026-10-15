@@ -19,6 +19,7 @@ import {
 import { AppNotification, UserProfile } from '../types/listing';
 import { useAuth } from '../context/AuthContext';
 import { NotificationBell } from './NotificationBell';
+import { NavLink } from './NavLink';
 
 interface HeaderProps {
   currentTab: string;
@@ -65,8 +66,9 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-[68px] flex items-center justify-between gap-4 sm:gap-6">
         
         {/* Zone 1: Brand Wordmark */}
-        <button
-          onClick={() => handleNav('landing')}
+        <NavLink
+          to="landing"
+          onNavigate={handleNav}
           className="flex items-center gap-2 cursor-pointer shrink-0 text-left"
           aria-label="OwnersMarket home"
         >
@@ -74,45 +76,49 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="font-display font-bold text-slate-900 text-[26px] leading-none">
             OwnersMarket
           </span>
-        </button>
+        </NavLink>
 
         {/* Zone 2: Navigation Links */}
         <nav className="hidden lg:flex items-center gap-5 text-sm font-medium text-slate-600">
-          <button
-            onClick={() => handleNav('browse')}
+          <NavLink
+            to="browse"
+            onNavigate={handleNav}
             className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
               currentTab === 'browse' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
             Browse homes
-          </button>
+          </NavLink>
 
-          <button
-            onClick={() => handleNav('calculator')}
+          <NavLink
+            to="calculator"
+            onNavigate={handleNav}
             className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
               currentTab === 'calculator' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
             Savings estimator
-          </button>
+          </NavLink>
 
-          <button
-            onClick={() => handleNav('how-it-works')}
+          <NavLink
+            to="how-it-works"
+            onNavigate={handleNav}
             className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
               currentTab === 'how-it-works' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
             How it works
-          </button>
+          </NavLink>
 
-          <button
-            onClick={() => handleNav('guide-selling')}
+          <NavLink
+            to="guide-selling"
+            onNavigate={handleNav}
             className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
               currentTab.startsWith('guide-') ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
             Guides
-          </button>
+          </NavLink>
 
           <button
             onClick={() => handleNav('dashboard')}
@@ -330,45 +336,50 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
 
-          <button
-            onClick={() => handleNav('browse')}
+          <NavLink
+            to="browse"
+            onNavigate={handleNav}
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Compass className="w-5 h-5 text-slate-400" />
             <span>Browse homes</span>
-          </button>
+          </NavLink>
 
-          <button
-            onClick={() => handleNav('calculator')}
+          <NavLink
+            to="calculator"
+            onNavigate={handleNav}
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Calculator className="w-5 h-5 text-slate-400" />
             <span>Savings estimator</span>
-          </button>
+          </NavLink>
 
-          <button
-            onClick={() => handleNav('how-it-works')}
+          <NavLink
+            to="how-it-works"
+            onNavigate={handleNav}
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Building2 className="w-5 h-5 text-slate-400" />
             <span>How OwnersMarket Works</span>
-          </button>
+          </NavLink>
 
-          <button
-            onClick={() => handleNav('guide-selling')}
+          <NavLink
+            to="guide-selling"
+            onNavigate={handleNav}
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <BookOpen className="w-5 h-5 text-slate-400" />
             <span>Seller guide</span>
-          </button>
+          </NavLink>
 
-          <button
-            onClick={() => handleNav('guide-buying')}
+          <NavLink
+            to="guide-buying"
+            onNavigate={handleNav}
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <BookOpen className="w-5 h-5 text-slate-400" />
             <span>Buyer guide</span>
-          </button>
+          </NavLink>
 
           <button
             onClick={() => handleNav('dashboard')}

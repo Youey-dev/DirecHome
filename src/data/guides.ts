@@ -36,7 +36,7 @@ export interface GuideStep {
 }
 
 export interface Guide {
-  tab: 'guide-selling' | 'guide-buying';
+  tab: 'guide-selling' | 'guide-buying' | 'guide-bc';
   eyebrow: string;
   title: string;
   lead: string;
@@ -45,10 +45,11 @@ export interface Guide {
   checklistTitle: string;
   checklist: string[];
   cta: { title: string; text: string; button: string; tab: string };
-  otherGuide: { label: string; tab: string };
+  /** Links to the other guides, shown beside the steps. */
+  related: { label: string; tab: string }[];
 }
 
-export const GUIDES_LAST_UPDATED = 'October 14, 2026';
+export const GUIDES_LAST_UPDATED = 'October 15, 2026';
 
 const LAWYER_LINKS: GuideLink[] = [
   { label: 'Find your province’s law society (Federation of Law Societies of Canada)', url: 'https://flsc.ca/about-us/' },
@@ -65,7 +66,7 @@ const RESCISSION_LINK: GuideLink = {
 export const SELLER_GUIDE: Guide = {
   tab: 'guide-selling',
   eyebrow: 'Seller guide · Canada, outside Québec',
-  title: 'How to sell your home yourself in Canada',
+  title: 'How to sell your house without a realtor in Canada',
   lead:
     'Nine steps from "should I?" to handing over the keys. You do the selling: photos, viewings and talking to buyers. Your lawyer handles the legal side, as with any home sale in Canada. The steps are the same in every province and territory; where a rule differs, we say so.',
   readTime: 'About a 12-minute read',
@@ -321,7 +322,10 @@ export const SELLER_GUIDE: Guide = {
     button: 'List your home',
     tab: 'wizard',
   },
-  otherGuide: { label: 'Buying instead? Read the buyer guide', tab: 'guide-buying' },
+  related: [
+    { label: 'Selling in BC? What\u2019s different in British Columbia', tab: 'guide-bc' },
+    { label: 'Buying a house for sale by owner', tab: 'guide-buying' },
+  ],
 };
 
 // ---------------------------------------------------------------------------
@@ -330,7 +334,7 @@ export const SELLER_GUIDE: Guide = {
 export const BUYER_GUIDE: Guide = {
   tab: 'guide-buying',
   eyebrow: 'Buyer guide · Canada, outside Québec',
-  title: 'How to buy a home sold by owner in Canada',
+  title: 'How to buy a house for sale by owner in Canada',
   lead:
     'Eight steps from pre-approval to moving in. You deal with the owner directly for viewings and questions. Your own lawyer protects you on the agreement, the deposit and the title. The steps are the same in every province and territory; where a rule differs, we say so.',
   readTime: 'About a 10-minute read',
@@ -531,5 +535,203 @@ export const BUYER_GUIDE: Guide = {
     button: 'Browse homes',
     tab: 'browse',
   },
-  otherGuide: { label: 'Selling instead? Read the seller guide', tab: 'guide-selling' },
+  related: [
+    { label: 'Selling a house without a realtor', tab: 'guide-selling' },
+    { label: 'Selling without a realtor in BC', tab: 'guide-bc' },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Selling without a realtor in British Columbia
+// Targets the search "sell house without realtor BC". Covers only what is specific to BC;
+// the general steps live in SELLER_GUIDE, which this guide links to.
+// ---------------------------------------------------------------------------
+export const BC_SELLER_GUIDE: Guide = {
+  tab: 'guide-bc',
+  eyebrow: 'Seller guide · British Columbia',
+  title: 'How to sell your house without a realtor in BC',
+  lead:
+    'Selling your own home in British Columbia works much like anywhere in Canada, with a few BC rules and terms you need to know: who can handle your sale, what you must disclose, strata paperwork, the buyer’s 3-day cancellation right, and BC’s home flipping tax. This guide covers what’s different in BC.',
+  readTime: 'About an 8-minute read',
+  steps: [
+    {
+      id: 'allowed',
+      title: 'You don’t need a realtor to sell your own home in BC',
+      summary: 'Owners can sell their own home. What you do need is someone to handle the legal side.',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'BC doesn’t require you to use a real estate agent to sell a home you own. You can advertise it, show it and talk to buyers yourself. In practice, you still need a lawyer or notary to prepare or review the contract, hold the deposit and register the transfer.',
+        },
+        {
+          kind: 'p',
+          text: 'For the full step-by-step process (photos, viewings, offers and closing), read our general guide to selling without a realtor. The steps below are what’s specific to BC.',
+        },
+      ],
+    },
+    {
+      id: 'lawyer-notary',
+      title: 'Choose a lawyer or a notary',
+      summary: 'In BC, both lawyers and notaries public can handle a home sale.',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'BC is one of the few places in Canada where a notary public can handle a residential sale instead of a lawyer. Either can review the contract of purchase and sale, hold deposits in trust, pay out your mortgage and register the transfer at the Land Title Office.',
+        },
+        {
+          kind: 'lawyer',
+          text: 'Ask for a fixed-fee quote, and whether they have handled private sales without agents. Hire them before you list, so you are ready the day an offer arrives.',
+        },
+      ],
+      links: [
+        { label: 'Find a notary (Society of Notaries Public of BC)', url: 'https://notaries.bc.ca/' },
+        { label: 'Find a lawyer (Law Society of British Columbia)', url: 'https://www.lawsociety.bc.ca/' },
+      ],
+    },
+    {
+      id: 'assessment',
+      title: 'Start your price research with BC Assessment',
+      summary: 'Your assessed value is a free starting point, not a price.',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'BC Assessment publishes an assessed value for every property, free to look up online. It reflects market value on July 1 of the year before, so the market may have moved since. Compare it with recent sales of similar homes nearby and homes listed now. Pricing is your decision; a certified appraiser can give an independent opinion if you want one.',
+        },
+      ],
+      links: [{ label: 'Look up any property’s assessed value (BC Assessment)', url: 'https://www.bcassessment.ca/' }],
+    },
+    {
+      id: 'disclosure',
+      title: 'Know what you must disclose',
+      summary: 'BC sellers must disclose known hidden defects that make a home dangerous or unfit to live in.',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'Under BC law, sellers have a duty to disclose known material latent defects: problems a reasonable inspection would not find that make the home dangerous, unfit to live in, or unfit for the buyer’s known purpose. Examples include basement leaks, structural damage, an old underground oil tank, and electrical or gas work done without permits.',
+        },
+        {
+          kind: 'p',
+          text: 'BC has no required disclosure form. Many sellers fill in a voluntary Property Disclosure Statement, which answers the questions buyers ask anyway.',
+        },
+        {
+          kind: 'lawyer',
+          text: 'Ask your lawyer or notary what you need to disclose about your home, and whether to use a disclosure statement.',
+        },
+      ],
+      links: [
+        {
+          label: 'Material latent defects (BC Financial Services Authority)',
+          url: 'https://www.bcfsa.ca/public-resources/real-estate/selling-home/material-latent-defects',
+        },
+      ],
+    },
+    {
+      id: 'strata',
+      title: 'Selling a strata home? Gather the strata documents',
+      summary: 'Buyers of condos and townhouses will want the strata’s records.',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'an information certificate (Form B) from your strata manager or council',
+            'the bylaws and rules',
+            'recent strata council and general meeting minutes',
+            'financial statements and the budget',
+            'the depreciation report, which looks at upcoming repairs and the contingency reserve fund',
+          ],
+        },
+        {
+          kind: 'p',
+          text: 'Request them early: they can take time to arrive, and buyers usually make their offer subject to reviewing them.',
+        },
+      ],
+    },
+    {
+      id: 'offers',
+      title: 'Offers: the contract of purchase and sale',
+      summary: 'In BC, conditions are called "subjects" and closing is called "completion".',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'A BC offer is a written contract of purchase and sale. It sets out the price, the deposit, the buyer’s subjects (such as financing, inspection and strata documents), and three dates: completion (when the money and title change hands), possession (when the buyer gets the keys) and adjustment (from when the buyer pays property taxes and fees).',
+        },
+        {
+          kind: 'list',
+          items: [
+            'Send every offer to your lawyer or notary before you respond.',
+            'The deposit goes into a lawyer’s or notary’s trust account named in the contract. Never take it yourself.',
+            'Once the buyer removes their subjects in writing, the sale is firm.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'rescission',
+      title: 'The buyer’s 3-day cancellation right',
+      summary: 'BC’s home buyer rescission period applies to private sales too.',
+      blocks: [
+        {
+          kind: 'p',
+          text: 'After you accept an offer, the buyer has 3 business days to cancel without giving a reason. If they cancel, they pay you a fee of 0.25% of the price (for example, $2,000 on an $800,000 home). Neither you nor the buyer can waive it, and it applies whether or not an agent is involved.',
+        },
+        {
+          kind: 'p',
+          text: 'In a private sale, the buyer sends any cancellation notice to you directly, using the contact details in the contract. Make sure your email and mailing address in the contract are correct.',
+        },
+      ],
+      links: [
+        { label: 'Home buyer rescission period (BC Financial Services Authority)', url: 'https://www.bcfsa.ca/public-resources/real-estate/home-buyer-rescission-period' },
+      ],
+    },
+    {
+      id: 'taxes',
+      title: 'Taxes when you sell in BC',
+      summary: 'Most owners selling their own home pay no tax on the sale, but check two rules.',
+      blocks: [
+        {
+          kind: 'list',
+          items: [
+            'BC home flipping tax: if you sell a home you owned for less than 2 years (730 days), part of your profit may be taxed. There is a deduction of up to $20,000 if it was your home for at least a year. You may need to file a return within 90 days of the sale.',
+            'Federal flipping rule: if you owned the home for less than a year (365 days), the profit may be taxed as business income.',
+            'Report the sale on your tax return. The sale of your principal residence has to be reported even when no tax is owed.',
+          ],
+        },
+        {
+          kind: 'p',
+          text: 'Property transfer tax is paid by the buyer, not the seller, when the home is registered in their name.',
+        },
+        {
+          kind: 'lawyer',
+          text: 'If you owned the home for less than 2 years, talk to an accountant before you list.',
+        },
+      ],
+      links: [
+        { label: 'BC home flipping tax (Government of BC)', url: 'https://www2.gov.bc.ca/gov/content/taxes/income-taxes/bc-home-flipping-tax' },
+        {
+          label: 'Reporting the sale of your principal residence (Canada Revenue Agency)',
+          url: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/personal-income/line-12700-capital-gains/principal-residence-other-real-estate.html',
+        },
+        { label: 'Property transfer tax (Government of BC)', url: 'https://www2.gov.bc.ca/gov/content/taxes/property-taxes/property-transfer-tax' },
+      ],
+    },
+  ],
+  checklistTitle: 'BC seller checklist',
+  checklist: [
+    'I have chosen a lawyer or notary',
+    'I have looked up my BC Assessment value and recent sales nearby',
+    'I know what I must disclose about my home',
+    'For a strata home: I have requested the Form B and strata documents',
+    'My contact details in the contract are correct, for the rescission period',
+    'If I owned the home for less than 2 years, I have talked to an accountant',
+  ],
+  cta: {
+    title: 'Selling in the Fraser Valley?',
+    text: 'OwnersMarket is opening first in the Fraser Valley, and we list homes anywhere in BC. Add your photos and the basics in about 15 minutes.',
+    button: 'List your home',
+    tab: 'wizard',
+  },
+  related: [
+    { label: 'The full guide: selling without a realtor', tab: 'guide-selling' },
+    { label: 'Buying a house for sale by owner', tab: 'guide-buying' },
+  ],
 };

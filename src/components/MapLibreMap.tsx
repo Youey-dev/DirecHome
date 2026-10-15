@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as maplibregl from 'maplibre-gl';
+// The map's own stylesheet, matching the installed version. Loaded only on pages with a map.
+import 'maplibre-gl/dist/maplibre-gl.css';
 // MapLibre 6 looks for its background worker next to its own file, which breaks once the app is bundled.
 // Importing it with ?url makes the build ship the file and tells MapLibre exactly where it is.
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';

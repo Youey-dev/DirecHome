@@ -4,6 +4,7 @@ import { ListingCard } from '../components/ListingCard';
 import { OPEN_PROVINCES, ALL_PROVINCES } from '../data/cities';
 import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH, LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import type { BrowseFilters } from './BrowsePage';
+import { NavLink } from '../components/NavLink';
 
 /**
  * Hero photo. Drop a licensed photo into /public (e.g. /hero-home.jpg) and set
@@ -126,6 +127,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Hero */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 flex flex-col lg:flex-row gap-10 lg:gap-12 items-stretch">
         <div className="flex-1 flex flex-col justify-center gap-5 sm:gap-6 min-w-0">
+          <p className="text-sm font-bold text-emerald-700 uppercase tracking-[0.08em]">For sale by owner, across Canada</p>
           <h1 className="font-display font-bold text-slate-900 text-[56px] sm:text-[72px] lg:text-[84px] leading-[0.95] tracking-[-0.5px] text-balance">
             Your home is ready. Let the photos sell it.
           </h1>
@@ -139,12 +141,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             >
               List your home
             </button>
-            <button
-              onClick={() => onNavigate('browse')}
-              className="px-7 py-4 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-[17px] rounded-md border-[1.5px] border-slate-900 cursor-pointer min-h-[52px]"
+            <NavLink
+              to="browse"
+              onNavigate={onNavigate}
+              className="inline-flex items-center justify-center px-7 py-4 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-[17px] rounded-md border-[1.5px] border-slate-900 min-h-[52px]"
             >
               Browse homes for sale
-            </button>
+            </NavLink>
           </div>
           <p className="text-sm text-slate-600">
             Every listing is reviewed before it goes live. OwnersMarket is an advertising site, not a brokerage.
@@ -224,12 +227,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Homes for sale, straight from owners
           </h2>
           {liveListings.length > 0 && (
-            <button
-              onClick={() => onNavigate('browse')}
+            <NavLink
+              to="browse"
+              onNavigate={onNavigate}
               className="ml-auto font-semibold text-base text-emerald-700 hover:text-slate-900 underline-offset-4 hover:underline cursor-pointer"
             >
               See all {liveListings.length} {liveListings.length === 1 ? 'home' : 'homes'}
-            </button>
+            </NavLink>
           )}
         </div>
         {liveListings.length > 0 ? (
@@ -302,12 +306,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <p className="text-[17px] leading-relaxed text-slate-700 max-w-[32em]">
             If you like, you can offer part of what you save to the buyer as cash back at closing. That is your choice, and it is paid by you.
           </p>
-          <button
-            onClick={() => onNavigate('calculator')}
-            className="self-start font-semibold text-base text-emerald-700 hover:text-slate-900 underline underline-offset-4 cursor-pointer min-h-[44px]"
+          <NavLink
+            to="calculator"
+            onNavigate={onNavigate}
+            className="self-start inline-flex items-center font-semibold text-base text-emerald-700 hover:text-slate-900 underline underline-offset-4 min-h-[44px]"
           >
             Estimate it with your own price
-          </button>
+          </NavLink>
         </div>
         <div className="flex-1 w-full min-w-0 bg-slate-900 text-white rounded-[10px] p-7 sm:p-9 flex flex-col gap-5">
           <div className="flex justify-between items-baseline gap-4 border-b border-slate-700 pb-4">
@@ -360,28 +365,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <h2 className="font-display font-bold text-[40px] sm:text-[46px] leading-none text-slate-900 max-w-[18em]">
           Free step-by-step guides
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
               tab: 'guide-selling',
-              title: 'How to sell your home yourself in Canada',
+              title: 'How to sell your house without a realtor in Canada',
               text: 'Nine steps from pricing research and paperwork to safe viewings, offers and handing over the keys.',
             },
             {
+              tab: 'guide-bc',
+              title: 'Selling without a realtor in BC',
+              text: 'What\u2019s different in British Columbia: lawyer or notary, disclosure, strata Form B, the 3-day rescission period and the flipping tax.',
+            },
+            {
               tab: 'guide-buying',
-              title: 'How to buy a home sold by owner in Canada',
+              title: 'How to buy a house for sale by owner in Canada',
               text: 'Eight steps from pre-approval to moving in, including how to check the title and keep your deposit safe.',
             },
           ].map((g) => (
-            <button
+            <NavLink
               key={g.tab}
-              onClick={() => onNavigate(g.tab)}
-              className="text-left rounded-[10px] border border-slate-200 hover:border-emerald-700 bg-white p-6 sm:p-7 flex flex-col gap-2.5 cursor-pointer transition-colors"
+              to={g.tab}
+              onNavigate={onNavigate}
+              className="text-left rounded-[10px] border border-slate-200 hover:border-emerald-700 bg-white p-6 sm:p-7 flex flex-col gap-2.5 transition-colors"
             >
               <span className="font-display font-bold text-[28px] leading-none text-slate-900">{g.title}</span>
               <span className="text-base leading-relaxed text-slate-700">{g.text}</span>
               <span className="mt-1 font-semibold text-base text-emerald-700 underline underline-offset-4">Read the guide</span>
-            </button>
+            </NavLink>
           ))}
         </div>
       </section>

@@ -7,7 +7,7 @@
  * listings get a "not available" preview and are kept out of search.
  * The exact street address is never used here.
  */
-import { DEFAULT_IMAGE, PAGES, SITE_URL, readPublic, type PageMeta } from './lib/site.ts';
+import { DEFAULT_IMAGE, NOT_FOUND, PAGES, PRIVATE_PATHS, SITE_URL, readPublic, structuredData, type PageMeta } from './lib/site.ts';
 
 type ListingRow = {
   headline: string;
@@ -89,6 +89,11 @@ function inject(html: string, meta: PageMeta, canonical: string): string {
     `<meta name="twitter:description" content="${description}" />`,
     `<meta name="twitter:image" content="${image}" />`,
     ...(meta.noindex ? ['<meta name="robots" content="noindex" />'] : []),
+    ...(meta.jsonLd && meta.jsonLd.length
+      ? [
+          `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': meta.jsonLd }).replace(/</g, '\\u003c')}</script>`,
+        ]
+      : []),
   ].join('\n    ');
 
   out = out.replace('</head>', `    <!-- page-meta -->\n    ${extra}\n    <!-- /page-meta -->\n  </head>`);
@@ -103,7 +108,12 @@ export default async (request: Request, context: { next: () => Promise<Response>
   if (!(response.headers.get('content-type') ?? '').includes('text/html')) return response;
 
   const listingMatch = path.match(LISTING_PATH);
-  const meta = listingMatch ? await listingMeta(listingMatch[1]) : PAGES[path];
+  let meta: PageMeta | undefined;
+  if (listingMatch) meta = await listingMeta(listingMatch[1]);
+  else if (PAGES[path]) meta = { ...PAGES[path], jsonLd: structuredData(path, PAGES[path]) };
+  else if (PRIVATE_PATHS.includes(path)) meta = { ...PAGES['/'], noindex: true };
+  // Any other address doesn't exist: say so with a real 404, so search engines don't index it.
+  else meta = NOT_FOUND;
   if (!meta) return response;
 
   const html = await response.text();
@@ -111,7 +121,7 @@ export default async (request: Request, context: { next: () => Promise<Response>
   headers.delete('content-length');
   headers.delete('etag');
   return new Response(inject(html, meta, `${SITE_URL}${path === '/' ? '/' : path}`), {
-    status: response.status,
+    status: meta.status ?? response.status,
     headers,
   });
 };
