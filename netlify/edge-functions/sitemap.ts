@@ -2,7 +2,7 @@
  * /sitemap.xml: the public pages plus every public listing, read live from the database.
  * Submit https://ownersmarket.ca/sitemap.xml in Google Search Console once.
  */
-import { SITE_URL, SITEMAP_PATHS, readPublic } from './lib/site.ts';
+import { SITE_URL, SITEMAP_PATHS, lastReadStatus, readPublic } from './lib/site.ts';
 
 type Row = { id: string; updated_at: string | null };
 
@@ -21,7 +21,7 @@ export default async () => {
     ),
   ];
 
-  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<!-- listings: ${xml(lastReadStatus)}, ${listings.length} public -->\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
   return new Response(body, {
     headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' },
   });

@@ -5,7 +5,20 @@
  * page's HTML before any JavaScript runs. The site is a single-page app, so without these
  * functions every address would share the homepage's title, description and image.
  */
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from './config.ts';
+import { SUPABASE_ANON_KEY as BUILD_KEY, SUPABASE_URL as BUILD_URL } from './config.ts';
+
+// The address and key are written at build time; if the build couldn't see them, fall back to
+// the site's environment variables at run time (when they are available to edge functions).
+const runtimeEnv = (name: string): string => {
+  try {
+    // deno-lint-ignore no-explicit-any
+    return ((globalThis as any).Netlify?.env?.get(name) as string | undefined) ?? '';
+  } catch {
+    return '';
+  }
+};
+const SUPABASE_URL = BUILD_URL || runtimeEnv('VITE_SUPABASE_URL');
+const SUPABASE_ANON_KEY = BUILD_KEY || runtimeEnv('VITE_SUPABASE_ANON_KEY');
 
 export const SITE_URL = 'https://ownersmarket.ca';
 export const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
@@ -57,17 +70,28 @@ export const SITEMAP_PATHS = ['/', '/browse', '/how-it-works', '/calculator', '/
 
 export const hasDatabase = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 30;
 
+/** What happened on the last database read: shown in the sitemap as a comment, to help troubleshooting. */
+export let lastReadStatus = 'not tried';
+
 /** Reads from the database as an anonymous visitor, so only public (live, paid) listings come back. */
 export async function readPublic<T>(pathAndQuery: string): Promise<T | null> {
-  if (!hasDatabase) return null;
+  if (!hasDatabase) {
+    lastReadStatus = 'no database address';
+    return null;
+  }
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
       signal: AbortSignal.timeout(2500),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      lastReadStatus = `database answered ${res.status}`;
+      return null;
+    }
+    lastReadStatus = 'ok';
     return (await res.json()) as T;
-  } catch {
+  } catch (err) {
+    lastReadStatus = `database not reachable (${err instanceof Error ? err.name : 'error'})`;
     return null;
   }
 }
