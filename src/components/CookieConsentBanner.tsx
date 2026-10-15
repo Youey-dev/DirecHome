@@ -53,7 +53,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
           </div>
 
           <p className="text-xs text-slate-300 leading-relaxed">
-            DirectHome uses only essential browser storage to keep you signed in and remember your listing draft and preferences. We do not use analytics or advertising trackers, and we never sell your personal data.
+            OwnersMarket uses only essential browser storage to keep you signed in and remember your listing draft and preferences. We do not use analytics or advertising trackers, and we never sell your personal data.
           </p>
 
           <div className="flex items-center gap-2 pt-1 flex-wrap">

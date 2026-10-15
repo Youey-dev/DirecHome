@@ -1,5 +1,5 @@
 /**
- * Authentication for DirectHome Canada (Supabase Auth).
+ * Authentication for OwnersMarket (Supabase Auth).
  *
  * IMPORTANT: a person's role (member / admin) is read from the database
  * table public.users — never from anything the browser or the signup form supplies.

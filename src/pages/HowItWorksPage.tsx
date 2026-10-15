@@ -29,7 +29,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           <span>Selling directly, done right</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          How DirectHome works
+          How OwnersMarket works
         </h1>
         <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
           The legal, financial, and practical breakdown of selling and buying homes directly in Canada without listing brokerages.
@@ -46,7 +46,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           </div>
           <h3 className="text-lg font-bold text-slate-900">Listing Review First</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            Every listing gets a quick review by our team for spam, scams and inappropriate content before it can be published. Sellers confirm they own the home or are authorized to sell it; DirectHome does not verify ownership, so buyers should confirm title with a lawyer or notary before any deal.
+            Every listing gets a quick review by our team for spam, scams and inappropriate content before it can be published. Sellers confirm they own the home or are authorized to sell it; OwnersMarket does not verify ownership, so buyers should confirm title with a lawyer or notary before any deal.
           </p>
           <div className="pt-2 text-xs text-emerald-800 font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" />
@@ -61,7 +61,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           </div>
           <h3 className="text-lg font-bold text-slate-900">The Buyer Cash-Back Mechanism</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            DirectHome charges no commission — just a flat $25/month per active listing. A seller who would otherwise pay a commission (for example, 7% on the first $100k and 2.5% on the balance, used here only as an example; commissions are negotiable) could save a significant amount, and may choose to offer part of it to the buyer as a cash-back credit at completion.
+            OwnersMarket charges no commission — just a flat $24.99/month per active listing. A seller who would otherwise pay a commission (for example, 7% on the first $100k and 2.5% on the balance, used here only as an example; commissions are negotiable) could save a significant amount, and may choose to offer part of it to the buyer as a cash-back credit at completion.
           </p>
           <div className="pt-2 text-xs text-emerald-800 font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" />
@@ -100,9 +100,9 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         </div>
       </div>
 
-      {/* Brokerage vs DirectHome Table */}
+      {/* Brokerage vs OwnersMarket Table */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">Traditional brokerage vs. DirectHome</h3>
+        <h3 className="text-lg font-bold text-slate-900">Traditional brokerage vs. OwnersMarket</h3>
         
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
@@ -110,14 +110,14 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               <tr className="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider">
                 <th className="py-3 px-4">Feature</th>
                 <th className="py-3 px-4">Traditional Brokerage</th>
-                <th className="py-3 px-4 text-emerald-800 font-bold bg-emerald-50/50 rounded-t-lg">DirectHome</th>
+                <th className="py-3 px-4 text-emerald-800 font-bold bg-emerald-50/50 rounded-t-lg">OwnersMarket</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Listing Commission</td>
                 <td className="py-3 px-4 text-rose-700">Varies by brokerage and is negotiable</td>
-                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">No commission — flat $25/month per active listing</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">No commission — flat $24.99/month per active listing</td>
               </tr>
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Buyer Cash-Back</td>
@@ -137,7 +137,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Contract & Closing</td>
                 <td className="py-3 px-4 text-slate-500">Prepared by the parties' agents and lawyers or notaries</td>
-                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Prepared by your own lawyer or notary (DirectHome provides no contracts)</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">Prepared by your own lawyer or notary (OwnersMarket provides no contracts)</td>
               </tr>
             </tbody>
           </table>
@@ -150,10 +150,10 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         <div className="space-y-3">
           <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
             <h4 className="text-sm font-bold text-slate-900 mb-1">
-              Is DirectHome a licensed real estate brokerage?
+              Is OwnersMarket a licensed real estate brokerage?
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              No. DirectHome is strictly an online advertising marketplace and software platform. We do not represent buyers or sellers, we do not advise on prices or negotiating terms, and we do not hold deposit funds. All transaction contracts and completions occur directly between the parties with their independent legal professionals.
+              No. OwnersMarket is strictly an online advertising marketplace and software platform. We do not represent buyers or sellers, we do not advise on prices or negotiating terms, and we do not hold deposit funds. All transaction contracts and completions occur directly between the parties with their independent legal professionals.
             </p>
           </div>
 

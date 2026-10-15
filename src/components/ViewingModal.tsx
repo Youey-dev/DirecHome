@@ -133,7 +133,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
             {/* Direct-contact reminder */}
             <div className="bg-emerald-50 text-emerald-900 p-3 rounded-xl text-xs flex items-center gap-2 border border-emerald-200/80">
               <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-              <span>DirectHome connects you directly with the homeowner with zero broker pressure.</span>
+              <span>OwnersMarket connects you directly with the homeowner with zero broker pressure.</span>
             </div>
 
             {/* Date selection */}
