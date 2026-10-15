@@ -144,15 +144,15 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="hidden sm:flex items-center gap-2">
               <button
                 onClick={() => onOpenAuth('signin')}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer min-h-[38px]"
+                className="px-3 py-2 text-[15px] font-medium text-slate-900 hover:bg-slate-100 rounded-md transition-colors cursor-pointer min-h-[44px]"
               >
-                Sign In
+                Sign in
               </button>
               <button
                 onClick={() => onOpenAuth('signup')}
-                className="px-3.5 py-1.5 text-xs font-bold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer min-h-[38px]"
+                className="px-4 py-2 text-[15px] font-semibold text-slate-900 bg-white hover:bg-slate-50 border-[1.5px] border-slate-900 rounded-md transition-colors cursor-pointer min-h-[44px]"
               >
-                Create Account
+                Create account
               </button>
             </div>
           ) : (

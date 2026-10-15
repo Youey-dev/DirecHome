@@ -51,21 +51,31 @@ const LawnScene: React.FC = () => (
   </svg>
 );
 
+/** Lawn sign: post and crossbar, with the board and rider hanging in a column so text length never makes them overlap. */
 const YardSign: React.FC = () => (
-  <div className="absolute left-6 sm:left-12 bottom-6 sm:bottom-9 w-[260px] h-[300px] origin-bottom-left scale-[0.85] sm:scale-100" aria-hidden="true">
-    <div className="absolute left-5 top-0 w-3 h-full bg-[#F7F7F2] rounded-sm shadow-sm" />
-    <div className="absolute left-5 top-4 w-[218px] h-3 bg-[#F7F7F2] rounded-sm" />
-    <div className="absolute left-[66px] top-7 w-0.5 h-4 bg-slate-900" />
-    <div className="absolute left-[206px] top-7 w-0.5 h-4 bg-slate-900" />
-    <div className="absolute left-11 top-11 w-[192px] bg-white border-[5px] border-emerald-700 rounded p-3.5 flex flex-col gap-1.5">
-      <span className="font-display font-bold text-[34px] leading-[0.92] text-emerald-700">For sale by owner</span>
-      <span className="text-[12.5px] leading-snug font-semibold text-slate-900">Message me to book a viewing</span>
-      <span className="text-[11px] text-slate-700">DirectHome Canada</span>
-    </div>
-    <div className="absolute left-[64px] top-[182px] w-0.5 h-2.5 bg-slate-900" />
-    <div className="absolute left-[208px] top-[182px] w-0.5 h-2.5 bg-slate-900" />
-    <div className="absolute left-11 top-[192px] w-[192px] bg-sign rounded-sm px-3 py-2 font-display font-bold text-[21px] text-slate-900">
-      Viewings by appointment
+  <div
+    className="absolute left-6 sm:left-12 bottom-0 w-[264px] pb-14 origin-bottom-left scale-[0.82] sm:scale-100"
+    aria-hidden="true"
+  >
+    <div className="absolute left-5 top-0 bottom-0 w-3 bg-[#F7F7F2] rounded-sm shadow-sm" />
+    <div className="absolute left-5 top-4 w-[226px] h-3 bg-[#F7F7F2] rounded-sm" />
+    <div className="relative ml-11 w-[208px] pt-7 flex flex-col">
+      <div className="flex justify-between px-5 h-4">
+        <span className="w-0.5 h-full bg-slate-900" />
+        <span className="w-0.5 h-full bg-slate-900" />
+      </div>
+      <div className="bg-white border-[5px] border-emerald-700 rounded p-3.5 flex flex-col gap-1.5">
+        <span className="font-display font-bold text-[34px] leading-[0.92] text-emerald-700">For sale by owner</span>
+        <span className="text-[13px] leading-snug font-semibold text-slate-900">Message me to book a viewing</span>
+        <span className="text-[11px] text-slate-700">DirectHome Canada</span>
+      </div>
+      <div className="flex justify-between px-5 h-2.5">
+        <span className="w-0.5 h-full bg-slate-900" />
+        <span className="w-0.5 h-full bg-slate-900" />
+      </div>
+      <div className="bg-sign rounded-sm px-3 py-2 font-display font-bold text-[21px] leading-tight text-slate-900">
+        Viewings by appointment
+      </div>
     </div>
   </div>
 );
@@ -109,10 +119,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const fieldClass =
-    'w-full font-normal text-base px-3.5 py-3 border-[1.5px] border-slate-300 rounded-md bg-white text-slate-900 min-h-[48px]';
+    'w-full h-12 font-normal text-base px-3.5 border-[1.5px] border-slate-300 rounded-md bg-white text-slate-900';
 
   return (
-    <div className="bg-mist">
+    <div className="bg-mist -mb-20">
       {/* Hero */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 flex flex-col lg:flex-row gap-10 lg:gap-12 items-stretch">
         <div className="flex-1 flex flex-col justify-center gap-5 sm:gap-6 min-w-0">
