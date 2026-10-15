@@ -26,13 +26,13 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <div className="text-center max-w-2xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-          <span>Direct Real Estate, Done Right in BC</span>
+          <span>Selling directly, done right</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          How DirectHome BC Works
+          How DirectHome works
         </h1>
         <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-          The legal, financial, and practical breakdown of selling and buying homes directly in British Columbia without listing brokerages.
+          The legal, financial, and practical breakdown of selling and buying homes directly in Canada without listing brokerages.
         </p>
       </div>
 
@@ -89,7 +89,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center">
             4
           </div>
-          <h3 className="text-lg font-bold text-slate-900">Closing Through BC Notaries & Lawyers</h3>
+          <h3 className="text-lg font-bold text-slate-900">Closing with your own lawyer or notary</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
             {CONTRACT_NOTICE} Both sides retain their own notary public or real estate lawyer to prepare the contract, transfer funds and register the title.
           </p>
@@ -102,7 +102,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
 
       {/* Brokerage vs DirectHome Table */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">Traditional Brokerage vs. DirectHome BC</h3>
+        <h3 className="text-lg font-bold text-slate-900">Traditional brokerage vs. DirectHome</h3>
         
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
@@ -110,7 +110,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               <tr className="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider">
                 <th className="py-3 px-4">Feature</th>
                 <th className="py-3 px-4">Traditional Brokerage</th>
-                <th className="py-3 px-4 text-emerald-800 font-bold bg-emerald-50/50 rounded-t-lg">DirectHome BC</th>
+                <th className="py-3 px-4 text-emerald-800 font-bold bg-emerald-50/50 rounded-t-lg">DirectHome</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -150,10 +150,10 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         <div className="space-y-3">
           <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
             <h4 className="text-sm font-bold text-slate-900 mb-1">
-              Is DirectHome BC a licensed real estate brokerage?
+              Is DirectHome a licensed real estate brokerage?
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              No. DirectHome BC is strictly an online advertising marketplace and software platform. We do not represent buyers or sellers, we do not advise on prices or negotiating terms, and we do not hold deposit funds. All transaction contracts and completions occur directly between the parties with their independent legal professionals.
+              No. DirectHome is strictly an online advertising marketplace and software platform. We do not represent buyers or sellers, we do not advise on prices or negotiating terms, and we do not hold deposit funds. All transaction contracts and completions occur directly between the parties with their independent legal professionals.
             </p>
           </div>
 

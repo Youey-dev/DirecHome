@@ -33,7 +33,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>BC Commission & Cash-Back Estimator (estimates only)</span>
+            <span>Commission and cash-back estimator (estimates only)</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
             See What You Could Keep — and Offer to Buyers
@@ -43,10 +43,10 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           </p>
         </div>
 
-        {/* Quick presets for Lower Mainland home price benchmarks */}
+        {/* Quick presets for common home prices */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-xs text-slate-400 mr-1">Quick values:</span>
-          {[750000, 1100000, 1500000, 2200000].map((val) => (
+          {[500000, 750000, 1100000, 1500000].map((val) => (
             <button
               key={val}
               type="button"
@@ -198,7 +198,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           <div className="flex items-start gap-2.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
             <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
             <p>
-              <strong>Example commission rate used for this estimate:</strong> 7% on the first $100k + 2.5% on the balance + 5% GST. This is an example only, not a standard or required rate. Commissions in BC are negotiable, vary by brokerage and are not set by law.
+              <strong>Example commission rate used for this estimate:</strong> 7% on the first $100k + 2.5% on the balance + 5% GST. This is an example only, not a standard or required rate. Commissions in Canada are negotiable, vary by brokerage and province, and are not set by law. Provinces with HST pay more tax than this example shows.
             </p>
           </div>
         </div>
@@ -301,7 +301,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
               * All figures are estimates, not quotes. Your actual costs and any commission you would otherwise pay depend on your situation and are negotiable.
             </p>
             <p>
-              * Any cash-back represents the seller's voluntary offer, not a platform guarantee. DirectHome BC does not fund, pay or guarantee it. It must be documented in the purchase contract.
+              * Any cash-back represents the seller's voluntary offer, not a platform guarantee. DirectHome does not fund, pay or guarantee it. It must be documented in the purchase contract.
             </p>
             <p className="font-medium text-slate-800">* {CASHBACK_LENDER_NOTICE}</p>
           </div>

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Listing, PropertyType, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { MapLibreMap } from '../components/LazyMap';
-import { BC_CITIES } from '../data/cities';
+import { PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
 import { 
   Filter, 
   Map as MapIcon, 
@@ -20,23 +20,33 @@ interface BrowsePageProps {
   savedIds: string[];
   onToggleFavorite: (e: React.MouseEvent, id: string) => void;
   onSelectListing: (id: string) => void;
+  /** Filters handed over from the homepage search box. */
+  initialFilters?: BrowseFilters;
+}
+
+export interface BrowseFilters {
+  query?: string;
+  province?: string;
+  propertyType?: string;
+  maxPrice?: number;
 }
 
 export const BrowsePage: React.FC<BrowsePageProps> = ({
   listings,
   savedIds,
   onToggleFavorite,
-  onSelectListing
+  onSelectListing,
+  initialFilters
 }) => {
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
   const [selectedListingId, setSelectedListingId] = useState<string | undefined>(undefined);
   
   // Filter States
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('All Cities');
-  const [propertyType, setPropertyType] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.query ?? '');
+  const [selectedProvince, setSelectedProvince] = useState(initialFilters?.province || ALL_PROVINCES);
+  const [propertyType, setPropertyType] = useState<string>(initialFilters?.propertyType || 'All');
   const [minPrice, setMinPrice] = useState<number | ''>('');
-  const [maxPrice, setMaxPrice] = useState<number | ''>('');
+  const [maxPrice, setMaxPrice] = useState<number | ''>(initialFilters?.maxPrice ?? '');
   const [minBeds, setMinBeds] = useState<number>(0);
   const [minBaths, setMinBaths] = useState<number>(0);
   const [cashbackOnly, setCashbackOnly] = useState<boolean>(false);
@@ -56,13 +66,14 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
           const match = 
             (l.postalFsa ?? '').toLowerCase().includes(q) ||
             l.city.toLowerCase().includes(q) ||
+            provinceName(l.province).toLowerCase().includes(q) ||
             l.neighborhood.toLowerCase().includes(q) ||
             l.headline.toLowerCase().includes(q);
           if (!match) return false;
         }
 
-        // City
-        if (selectedCity !== 'All Cities' && l.city !== selectedCity) {
+        // Province or territory
+        if (selectedProvince !== ALL_PROVINCES && (l.province || 'BC') !== selectedProvince) {
           return false;
         }
 
@@ -97,7 +108,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   }, [
     listings,
     searchQuery,
-    selectedCity,
+    selectedProvince,
     propertyType,
     minPrice,
     maxPrice,
@@ -109,7 +120,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
   const resetFilters = () => {
     setSearchQuery('');
-    setSelectedCity('All Cities');
+    setSelectedProvince(ALL_PROVINCES);
     setPropertyType('All');
     setMinPrice('');
     setMaxPrice('');
@@ -120,7 +131,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   };
 
   const hasActiveFilters = 
-    selectedCity !== 'All Cities' ||
+    selectedProvince !== ALL_PROVINCES ||
     propertyType !== 'All' ||
     minPrice !== '' ||
     maxPrice !== '' ||
@@ -141,7 +152,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search by neighborhood, street, or city (e.g. Willoughby, Langley, Kitsilano)..."
+              placeholder="Search by city, neighbourhood or postal code (e.g. Langley, Ottawa, V2Y)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:bg-white transition-all"
@@ -158,14 +169,16 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
           {/* Quick Dropdowns (Desktop) */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* City Dropdown */}
+            {/* Province Dropdown */}
             <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
+              aria-label="Province or territory"
+              value={selectedProvince}
+              onChange={(e) => setSelectedProvince(e.target.value)}
               className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
             >
-              {BC_CITIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
+              {PROVINCES.map((p) => (
+                <option key={p.code} value={p.code}>{p.name}</option>
               ))}
             </select>
 
@@ -263,7 +276,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             <span className="font-semibold text-slate-800 tabular-nums">
               {filteredListings.length} {filteredListings.length === 1 ? 'home' : 'homes'} available
             </span>
-            <span>in Fraser Valley & Lower Mainland</span>
+            <span>{selectedProvince === ALL_PROVINCES ? 'across Canada' : `in ${provinceName(selectedProvince)}`}</span>
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
@@ -300,7 +313,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
           </div>
           <h3 className="text-lg font-bold text-slate-900">No matching homes found</h3>
           <p className="text-sm text-slate-500">
-            Try broadening your price range, clearing city filters, or searching a different Fraser Valley neighborhood.
+            Try a wider price range, a different province, or another city or neighbourhood.
           </p>
           <button
             onClick={resetFilters}
@@ -390,17 +403,18 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
             {/* City */}
             <div>
-              <label htmlFor="mobile-city-filter" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                City / Region
+              <label htmlFor="mobile-province-filter" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                Province or territory
               </label>
               <select
-                id="mobile-city-filter"
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
+                id="mobile-province-filter"
+                value={selectedProvince}
+                onChange={(e) => setSelectedProvince(e.target.value)}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
               >
-                {BC_CITIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
+                {PROVINCES.map((p) => (
+                  <option key={p.code} value={p.code}>{p.name}</option>
                 ))}
               </select>
             </div>

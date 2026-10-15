@@ -8,7 +8,7 @@ export const CASHBACK_LENDER_NOTICE =
   'Ask your lender and lawyer or notary before accepting a cash-back offer.';
 
 export const CASHBACK_SELLER_OFFER_NOTICE =
-  "Any cash-back is the seller's voluntary offer. DirectHome BC does not fund, pay or guarantee it.";
+  "Any cash-back is the seller's voluntary offer. DirectHome does not fund, pay or guarantee it.";
 
 export const CONTRACT_NOTICE =
   "The buyer's and seller's own lawyer or notary prepares the purchase contract. " +

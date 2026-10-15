@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, TERMS_VERSION } from '../lib/db';
-import { geocodeBCAddress } from '../lib/geocode';
-import { BC_CITY_INFO } from '../data/cities';
+import { geocodeAddress } from '../lib/geocode';
+import { PROVINCES, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
 import { calculateBCCommission, formatCAD } from '../lib/commissionCalc';
 import { 
@@ -27,7 +27,7 @@ import {
   Eye,
   ShieldAlert
 } from 'lucide-react';
-import { sanitizeHtml, stripHtml, validateBCPostalCode } from '../lib/security';
+import { sanitizeHtml, stripHtml, validateCanadianPostalCode } from '../lib/security';
 interface WizardPageProps {
   activeUser: UserProfile;
   onListingCreated: () => void;
@@ -70,7 +70,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   // Form State
   const [streetAddress, setStreetAddress] = useState('');
   const [unitNumber, setUnitNumber] = useState('');
-  const [city, setCity] = useState('Langley');
+  const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [propertyType, setPropertyType] = useState<PropertyType>('Single Family Detached');
@@ -123,6 +124,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (draft.streetAddress) setStreetAddress(draft.streetAddress);
     if (draft.unitNumber) setUnitNumber(draft.unitNumber);
     if (draft.city) setCity(draft.city);
+    if (draft.province) setProvince(draft.province);
+    else if (draft.city) setProvince('BC'); // drafts saved before Canada-wide listings were BC-only
     if (draft.postalCode) setPostalCode(draft.postalCode);
     if (draft.neighborhood) setNeighborhood(draft.neighborhood);
     if (draft.propertyType) setPropertyType(draft.propertyType);
@@ -164,6 +167,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         streetAddress,
         unitNumber,
         city,
+        province,
         postalCode,
         neighborhood,
         propertyType,
@@ -194,7 +198,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
     return () => clearTimeout(timer);
   }, [
-    streetAddress, unitNumber, city, postalCode, neighborhood, propertyType, lat, lng,
+    streetAddress, unitNumber, city, province, postalCode, neighborhood, propertyType, lat, lng,
     price, bedrooms, bathrooms, sqft, lotSqft, lotAcres, yearBuilt, parkingSpaces, strataFee, propertyTaxesAnnual,
     headline, description, neighborhoodHighlights, upgradesInput, inclusionsInput, photos,
     offersCashback, cashbackType, cashbackAmount, editingId, isSubmittedSuccess
@@ -287,8 +291,20 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         setValidationError('Please enter your street address.');
         return;
       }
-      if (!validateBCPostalCode(postalCode).valid) {
-        setValidationError('Please enter a valid BC postal code (e.g. V2Y 3K9).');
+      if (!city.trim()) {
+        setValidationError('Please enter your city or town.');
+        return;
+      }
+      if (!province) {
+        setValidationError('Please choose your province or territory.');
+        return;
+      }
+      if (!validateCanadianPostalCode(postalCode).valid) {
+        setValidationError('Please enter a valid Canadian postal code (e.g. V2Y 3K9).');
+        return;
+      }
+      if (!validateCanadianPostalCode(postalCode, province).valid) {
+        setValidationError(`That postal code doesn’t match ${provinceName(province)}. Please check the province or the postal code.`);
         return;
       }
       if (!neighborhood.trim()) {
@@ -296,10 +312,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         return;
       }
       // Place the home on the map. Falls back to the city centre if the lookup is unavailable.
-      const key = `${streetAddress.trim()}|${city}`;
+      const key = `${streetAddress.trim()}|${city.trim()}|${province}|${postalCode.trim()}`;
       if (geoKey !== key) {
         setLocating(true);
-        const g = await geocodeBCAddress(streetAddress.trim(), city);
+        const g = await geocodeAddress(streetAddress.trim(), city.trim(), province, postalCode.trim());
         setLat(g.lat);
         setLng(g.lng);
         setGeoKey(key);
@@ -364,7 +380,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       return;
     }
 
-    const { formatted: formattedPostal } = validateBCPostalCode(postalCode);
+    const { formatted: formattedPostal } = validateCanadianPostalCode(postalCode, province);
     const upgradesList = upgradesInput.split(',').map((x) => stripHtml(x.trim())).filter(Boolean);
     const inclusionsList = inclusionsInput.split(',').map((x) => stripHtml(x.trim())).filter(Boolean);
     const finalCashback = offersCashback ? commissionBreakdown.offeredCashback : 0;
@@ -377,8 +393,9 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         streetAddress: stripHtml(streetAddress),
         unitNumber: unitNumber ? stripHtml(unitNumber) : undefined,
         postalCode: formattedPostal,
-        city,
-        neighborhood: stripHtml(neighborhood) || city,
+        city: stripHtml(city.trim()),
+        province,
+        neighborhood: stripHtml(neighborhood) || stripHtml(city.trim()),
         lat,
         lng,
         propertyType,
@@ -543,7 +560,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label htmlFor="wizard-unit-number" className="block text-xs font-semibold text-slate-700 mb-1">Unit / Suite # (Optional)</label>
                 <input
@@ -557,15 +574,36 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
 
               <div>
-                <label htmlFor="wizard-city-select" className="block text-xs font-semibold text-slate-700 mb-1">City / Municipality</label>
-                <select
-                  id="wizard-city-select"
+                <label htmlFor="wizard-city-input" className="block text-xs font-semibold text-slate-700 mb-1">City or town</label>
+                <input
+                  id="wizard-city-input"
+                  type="text"
+                  list="wizard-city-suggestions"
+                  autoComplete="address-level2"
+                  placeholder="e.g. Langley, Ottawa, Halifax"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
+                />
+                <datalist id="wizard-city-suggestions">
+                  {citiesInProvince(province).map((c) => (
+                    <option key={c.name} value={c.name} />
+                  ))}
+                </datalist>
+              </div>
+
+              <div>
+                <label htmlFor="wizard-province-select" className="block text-xs font-semibold text-slate-700 mb-1">Province or territory</label>
+                <select
+                  id="wizard-province-select"
+                  value={province}
+                  autoComplete="address-level1"
+                  onChange={(e) => setProvince(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
                 >
-                  {['Langley', 'Surrey', 'Abbotsford', 'Burnaby', 'Vancouver', 'Coquitlam', 'Chilliwack', 'Richmond', 'White Rock', 'Maple Ridge', 'Delta', 'Mission'].map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                  <option value="">Choose…</option>
+                  {PROVINCES.map((p) => (
+                    <option key={p.code} value={p.code}>{p.name}</option>
                   ))}
                 </select>
               </div>
@@ -591,7 +629,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               <input
                 id="wizard-neighborhood"
                 type="text"
-                placeholder="e.g. Willoughby Heights, Walnut Grove, Kitsilano..."
+                placeholder="e.g. Willoughby, The Glebe, Clayton Park"
                 value={neighborhood}
                 onChange={(e) => setNeighborhood(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
@@ -1049,7 +1087,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                 <div>
                   <h3 className="font-bold text-slate-900 text-base">{headline}</h3>
-                  <div className="text-xs text-slate-500">{streetAddress}, {city}, BC</div>
+                  <div className="text-xs text-slate-500">{streetAddress}, {city}, {province}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-extrabold text-slate-900 tabular-nums">{formatCAD(price)}</div>
@@ -1084,10 +1122,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-3 leading-relaxed">
               <div className="font-bold text-slate-900 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>DirectHome BC Legal Declaration & Representation</span>
+                <span>DirectHome Legal Declaration & Representation</span>
               </div>
               <p className="text-slate-600">
-                You confirm that you are the owner of this property or are legally authorized by the owner to advertise it for sale, that all information and photos are accurate, and that you are solely responsible for this listing. DirectHome BC does not verify property ownership, is an advertising marketplace only, and is not a licensed real estate brokerage.
+                You confirm that you are the owner of this property or are legally authorized by the owner to advertise it for sale, that all information and photos are accurate, and that you are solely responsible for this listing. DirectHome does not verify property ownership, is an advertising marketplace only, and is not a licensed real estate brokerage.
               </p>
 
               {/* Mandatory Acceptance Checkbox */}

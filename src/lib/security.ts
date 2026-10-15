@@ -9,6 +9,8 @@
  * - Rate-limit verification for forms (sign-in, viewings, messaging, reports)
  */
 
+import { provinceByCode } from '../data/cities';
+
 /**
  * Escapes HTML characters to prevent XSS injection.
  */
@@ -35,18 +37,33 @@ export function stripHtml(input: string): string {
 }
 
 /**
- * Validates and standardizes a Canadian postal code (e.g., "V2Y 3K9").
+ * Validates and standardizes a Canadian postal code (e.g., "V2Y 3K9", "M5V 2T6").
+ * Canada Post never uses D, F, I, O, Q or U, and W and Z never start a code.
+ * When a province is given, the first letter must belong to that province
+ * (e.g. BC codes start with V, Ontario codes with K, L, M, N or P).
  */
-export function validateBCPostalCode(postal: string): { valid: boolean; formatted: string } {
+export function validateCanadianPostalCode(
+  postal: string,
+  provinceCode?: string
+): { valid: boolean; formatted: string } {
   const cleaned = postal.toUpperCase().replace(/\s+/g, '');
-  // Canadian postal code format: A1A1A1, BC postal codes start with V
-  const bcPostalRegex = /^V\d[A-Z]\d[A-Z]\d$/;
-  const isMatch = bcPostalRegex.test(cleaned);
-  if (!isMatch) {
+  const canadaRegex = /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\d[ABCEGHJ-NPRSTV-Z]\d$/;
+  if (!canadaRegex.test(cleaned)) {
     return { valid: false, formatted: postal.trim() };
+  }
+  if (provinceCode) {
+    const province = provinceByCode(provinceCode);
+    if (province && !province.postalLetters.includes(cleaned[0])) {
+      return { valid: false, formatted: postal.trim() };
+    }
   }
   const formatted = `${cleaned.substring(0, 3)} ${cleaned.substring(3)}`;
   return { valid: true, formatted };
+}
+
+/** BC-only check, kept for existing callers and tests. */
+export function validateBCPostalCode(postal: string): { valid: boolean; formatted: string } {
+  return validateCanadianPostalCode(postal, 'BC');
 }
 
 /**

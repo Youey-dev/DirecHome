@@ -352,7 +352,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Supabase</strong> stores our database, files and sign-in system (account data, listings, photos, messages).</li>
               <li><strong>Stripe</strong> processes listing-fee payments.</li>
               <li><strong>Netlify</strong> hosts the website.</li>
-              <li><strong>The Government of British Columbia's address service</strong> (geocoder.api.gov.bc.ca) receives the address you type when creating a listing, to place it on the map.</li>
+              <li><strong>The Government of British Columbia's address service</strong> (geocoder.api.gov.bc.ca) receives the address you type when creating a BC listing, to place it on the map.</li>
+              <li><strong>OpenStreetMap's Nominatim address service</strong> (nominatim.openstreetmap.org) receives the address you type when creating a listing outside BC, or when the BC service cannot find it, to place it on the map.</li>
               <li><strong>OpenStreetMap</strong> map servers deliver the map images and receive your IP address when a map loads.</li>
             </ul>
             <p>

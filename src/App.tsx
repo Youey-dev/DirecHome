@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from './lib/supabase';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LandingPage } from './pages/LandingPage';
-import { BrowsePage } from './pages/BrowsePage';
+import { BrowsePage, BrowseFilters } from './pages/BrowsePage';
 import { ListingDetailPage } from './pages/ListingDetailPage';
 import { SavedPage } from './pages/SavedPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
@@ -44,19 +44,19 @@ const TAB_PATHS: Record<string, string> = {
 };
 
 const TAB_TITLES: Record<string, string> = {
-  landing: 'DirectHome BC · Fraser Valley & Lower Mainland Home Marketplace',
-  browse: 'Browse homes for sale by owner · DirectHome BC',
-  wizard: 'List your home · DirectHome BC',
-  dashboard: 'Your dashboard · DirectHome BC',
-  admin: 'Admin · DirectHome BC',
-  saved: 'Saved homes · DirectHome BC',
-  'how-it-works': 'How it works · DirectHome BC',
-  terms: 'Terms of Use · DirectHome BC',
-  privacy: 'Privacy Policy · DirectHome BC',
-  rules: 'Listing Rules · DirectHome BC',
-  cashback: 'Cash-Back Policy · DirectHome BC',
-  notifications: 'Notification Preferences · DirectHome BC',
-  calculator: 'Commission & Cash-Back Estimator · DirectHome BC',
+  landing: 'DirectHome Canada · Sell your home yourself, no commission',
+  browse: 'Browse homes for sale by owner · DirectHome Canada',
+  wizard: 'List your home · DirectHome Canada',
+  dashboard: 'Your dashboard · DirectHome Canada',
+  admin: 'Admin · DirectHome Canada',
+  saved: 'Saved homes · DirectHome Canada',
+  'how-it-works': 'How it works · DirectHome Canada',
+  terms: 'Terms of Use · DirectHome Canada',
+  privacy: 'Privacy Policy · DirectHome Canada',
+  rules: 'Listing Rules · DirectHome Canada',
+  cashback: 'Cash-Back Policy · DirectHome Canada',
+  notifications: 'Notification Preferences · DirectHome Canada',
+  calculator: 'Savings estimator · DirectHome Canada',
 };
 
 function parsePath(pathname: string): { tab: string; listingId: string | null } {
@@ -113,6 +113,8 @@ function MainApp() {
   const [editListing, setEditListing] = useState<Listing | null>(null);
   const [dashboardIntent, setDashboardIntent] = useState<DashboardIntent | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Filters from the homepage search box, handed to the browse page
+  const [browseFilters, setBrowseFilters] = useState<BrowseFilters | undefined>(undefined);
   const [dashboardBadge, setDashboardBadge] = useState(0);
 
   // Keep the screen in sync with the database cache
@@ -216,7 +218,7 @@ function MainApp() {
   const currentListing = selectedListingId ? db.getListingById(selectedListingId) : undefined;
 
   if (!isSupabaseConfigured) return <SetupNotice />;
-  if (initializing) return <Loading label="Loading DirectHome BC…" />;
+  if (initializing) return <Loading label="Loading DirectHome Canada…" />;
 
   const signedIn = !isGuestUser(activeUser);
   const needsSignIn = (
@@ -255,12 +257,18 @@ function MainApp() {
               onToggleFavorite={handleToggleFavorite}
               onSelectListing={handleSelectListing}
               onNavigate={handleNavigate}
+              onSearch={(filters) => {
+                setBrowseFilters(filters);
+                handleNavigate('browse');
+              }}
             />
           )}
 
           {currentTab === 'browse' &&
             (dataReady ? (
               <BrowsePage
+                key={JSON.stringify(browseFilters ?? {})}
+                initialFilters={browseFilters}
                 listings={listings.filter((l) => isListingLive(l))}
                 savedIds={savedIds}
                 onToggleFavorite={handleToggleFavorite}
@@ -351,11 +359,11 @@ function MainApp() {
           {currentTab === 'calculator' && (
             <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
               <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  BC Commission & Cash-Back Estimator
+                <h1 className="font-display text-5xl font-bold text-slate-900 leading-none">
+                  Savings estimator
                 </h1>
-                <p className="text-sm text-slate-500 mt-1">
-                  Estimate what you could save using an example commission rate, and how much closing cash-back you could offer. All figures are estimates.
+                <p className="text-base text-slate-600 mt-3 max-w-[40em]">
+                  Estimate what you could save using an example commission rate, and how much closing cash back you could offer. Commission rates vary by province and are negotiable. All figures are estimates.
                 </p>
               </div>
               <SavingsCalculator onApplyToListing={() => handleNavigate('wizard')} />

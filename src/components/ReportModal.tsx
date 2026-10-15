@@ -65,7 +65,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
             </div>
             <h4 className="text-lg font-bold text-slate-900">Report Received</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Thank you for helping keep DirectHome BC safe. Our team will review this listing.
+              Thank you for helping keep DirectHome safe. Our team will review this listing.
             </p>
             <button
               onClick={onClose}

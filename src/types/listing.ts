@@ -97,7 +97,8 @@ export interface Listing {
   unitNumber?: string;
   postalCode?: string;
   city: string;
-  province: 'BC';
+  /** Two-letter province or territory code, e.g. 'BC', 'ON', 'QC'. */
+  province: string;
   /** First three characters of the postal code (e.g. "V2Y") — safe to show publicly. */
   postalFsa?: string;
   neighborhood: string;
