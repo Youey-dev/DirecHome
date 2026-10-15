@@ -142,7 +142,10 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
-      
+      <h1 className="font-display font-bold text-[40px] sm:text-[48px] leading-none text-slate-900">
+        Homes for sale by owner
+      </h1>
+
       {/* Top Search & Filter Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

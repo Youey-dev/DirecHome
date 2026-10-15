@@ -1,13 +1,19 @@
 import React from 'react';
+import { NavLink } from './NavLink';
 
-const FooterLink: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({ onClick, children }) => (
+const FooterLink: React.FC<{ to: string; onNavigate: (tab: string) => void; children: React.ReactNode }> = ({
+  to,
+  onNavigate,
+  children,
+}) => (
   <li>
-    <button
-      onClick={onClick}
-      className="text-left text-white hover:text-sign underline-offset-4 hover:underline transition-colors cursor-pointer min-h-[32px]"
+    <NavLink
+      to={to}
+      onNavigate={onNavigate}
+      className="inline-flex items-center text-left text-white hover:text-sign underline-offset-4 hover:underline transition-colors min-h-[32px]"
     >
       {children}
-    </button>
+    </NavLink>
   </li>
 );
 
@@ -33,23 +39,24 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
 
           <nav aria-label="Marketplace">
             <ul className="space-y-2">
-              <FooterLink onClick={() => onNavigate('browse')}>Browse homes</FooterLink>
-              <FooterLink onClick={() => onNavigate('wizard')}>List your home</FooterLink>
-              <FooterLink onClick={() => onNavigate('calculator')}>Savings estimator</FooterLink>
-              <FooterLink onClick={() => onNavigate('how-it-works')}>How it works</FooterLink>
-              <FooterLink onClick={() => onNavigate('guide-selling')}>Guide: selling your home yourself</FooterLink>
-              <FooterLink onClick={() => onNavigate('guide-buying')}>Guide: buying a home sold by owner</FooterLink>
-              <FooterLink onClick={() => onNavigate('dashboard')}>My dashboard and messages</FooterLink>
+              <FooterLink to="browse" onNavigate={onNavigate}>Browse homes</FooterLink>
+              <FooterLink to="wizard" onNavigate={onNavigate}>List your home</FooterLink>
+              <FooterLink to="calculator" onNavigate={onNavigate}>Savings estimator</FooterLink>
+              <FooterLink to="how-it-works" onNavigate={onNavigate}>How it works</FooterLink>
+              <FooterLink to="guide-selling" onNavigate={onNavigate}>Selling without a realtor</FooterLink>
+              <FooterLink to="guide-bc" onNavigate={onNavigate}>Selling without a realtor in BC</FooterLink>
+              <FooterLink to="guide-buying" onNavigate={onNavigate}>Buying a house for sale by owner</FooterLink>
+              <FooterLink to="dashboard" onNavigate={onNavigate}>My dashboard and messages</FooterLink>
             </ul>
           </nav>
 
           <nav aria-label="Legal">
             <ul className="space-y-2">
-              <FooterLink onClick={() => onNavigate('terms')}>Terms of use</FooterLink>
-              <FooterLink onClick={() => onNavigate('privacy')}>Privacy policy</FooterLink>
-              <FooterLink onClick={() => onNavigate('rules')}>Community and listing rules</FooterLink>
-              <FooterLink onClick={() => onNavigate('cashback')}>How cash back works</FooterLink>
-              <FooterLink onClick={() => onNavigate('notifications')}>Email preferences (CASL)</FooterLink>
+              <FooterLink to="terms" onNavigate={onNavigate}>Terms of use</FooterLink>
+              <FooterLink to="privacy" onNavigate={onNavigate}>Privacy policy</FooterLink>
+              <FooterLink to="rules" onNavigate={onNavigate}>Community and listing rules</FooterLink>
+              <FooterLink to="cashback" onNavigate={onNavigate}>How cash back works</FooterLink>
+              <FooterLink to="notifications" onNavigate={onNavigate}>Email preferences (CASL)</FooterLink>
             </ul>
           </nav>
         </div>

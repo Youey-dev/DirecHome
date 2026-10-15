@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AlertTriangle, ArrowRight, ExternalLink, MapPin, Scale } from 'lucide-react';
 import type { Guide, GuideBlock } from '../data/guides';
 import { GUIDES_LAST_UPDATED } from '../data/guides';
+import { NavLink } from '../components/NavLink';
 
 interface GuidePageProps {
   guide: Guide;
@@ -111,12 +112,20 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
                 </button>
               </li>
             </ol>
-            <button
-              onClick={() => onNavigate(guide.otherGuide.tab)}
-              className="mt-4 self-start text-sm font-semibold text-emerald-700 hover:text-slate-900 underline underline-offset-4 cursor-pointer min-h-[44px]"
-            >
-              {guide.otherGuide.label}
-            </button>
+            <span className="mt-5 text-sm font-bold text-slate-900">Related guides</span>
+            <ul className="flex flex-col">
+              {guide.related.map((r) => (
+                <li key={r.tab}>
+                  <NavLink
+                    to={r.tab}
+                    onNavigate={onNavigate}
+                    className="inline-flex items-center text-sm font-semibold text-emerald-700 hover:text-slate-900 underline underline-offset-4 min-h-[40px]"
+                  >
+                    {r.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
           </div>
         </nav>
 
@@ -195,13 +204,14 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
               <h2 className="font-display font-bold text-[34px] leading-none">{guide.cta.title}</h2>
               <p className="text-base text-slate-300 leading-relaxed">{guide.cta.text}</p>
             </div>
-            <button
-              onClick={() => onNavigate(guide.cta.tab)}
-              className="self-start sm:self-auto inline-flex items-center gap-2 px-6 py-3.5 bg-sign hover:bg-amber-300 text-slate-900 font-semibold text-base rounded-md cursor-pointer min-h-[48px]"
+            <NavLink
+              to={guide.cta.tab}
+              onNavigate={onNavigate}
+              className="self-start sm:self-auto inline-flex items-center gap-2 px-6 py-3.5 bg-sign hover:bg-amber-300 text-slate-900 font-semibold text-base rounded-md min-h-[48px]"
             >
               {guide.cta.button}
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </button>
+            </NavLink>
           </section>
         </div>
       </div>

@@ -85,7 +85,15 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         </span>
         <span className="text-[15px] text-slate-600 truncate">{place}</span>
         <h3 className="text-sm font-semibold text-emerald-700 pt-1 line-clamp-1 group-hover:underline underline-offset-4">
-          {listing.headline}
+          <a
+            href={`/listing/${listing.id}`}
+            onClick={(e) => {
+              // Let the card's own click open the listing in the app; ctrl/cmd-click opens a new tab.
+              if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) e.preventDefault();
+            }}
+          >
+            {listing.headline}
+          </a>
         </h3>
       </div>
     </article>

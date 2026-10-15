@@ -16,6 +16,7 @@ import { AuthModal } from './components/AuthModal';
 import { PasswordRecoveryModal } from './components/PasswordRecoveryModal';
 import { SetupNotice } from './components/SetupNotice';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { TAB_PATHS, pathFor } from './lib/routes';
 
 // Heavier pages load only when visited (keeps the first page load fast)
 const WizardPage = lazy(() => import('./pages/WizardPage').then((m) => ({ default: m.WizardPage })));
@@ -26,7 +27,7 @@ const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default:
 const GuideRoute = lazy(() =>
   Promise.all([import('./pages/GuidePage'), import('./data/guides')]).then(([page, data]) => ({
     default: ({ tab, onNavigate }: { tab: string; onNavigate: (tab: string) => void }) => (
-      <page.GuidePage guide={tab === 'guide-buying' ? data.BUYER_GUIDE : data.SELLER_GUIDE} onNavigate={onNavigate} />
+      <page.GuidePage guide={tab === 'guide-buying' ? data.BUYER_GUIDE : tab === 'guide-bc' ? data.BC_SELLER_GUIDE : data.SELLER_GUIDE} onNavigate={onNavigate} />
     ),
   })),
 );
@@ -34,40 +35,25 @@ const GuideRoute = lazy(() =>
 // ---------------------------------------------------------------------------
 // Real page addresses (so links can be shared and the back button works)
 // ---------------------------------------------------------------------------
-const TAB_PATHS: Record<string, string> = {
-  landing: '/',
-  browse: '/browse',
-  wizard: '/sell',
-  dashboard: '/dashboard',
-  admin: '/admin',
-  saved: '/saved',
-  'how-it-works': '/how-it-works',
-  terms: '/terms',
-  privacy: '/privacy',
-  rules: '/rules',
-  cashback: '/cashback',
-  notifications: '/notifications',
-  calculator: '/calculator',
-  'guide-selling': '/guides/selling-your-home',
-  'guide-buying': '/guides/buying-a-home',
-};
 
 const TAB_TITLES: Record<string, string> = {
-  landing: 'OwnersMarket · Sell your home yourself, no commission',
-  browse: 'Browse homes for sale by owner · OwnersMarket',
+  landing: 'For Sale by Owner in Canada, No Commission · OwnersMarket',
+  browse: 'Homes for Sale by Owner in Canada · OwnersMarket',
   wizard: 'List your home · OwnersMarket',
   dashboard: 'Your dashboard · OwnersMarket',
   admin: 'Admin · OwnersMarket',
   saved: 'Saved homes · OwnersMarket',
-  'how-it-works': 'How it works · OwnersMarket',
+  'how-it-works': 'How Selling Your Home Privately Works · OwnersMarket',
   terms: 'Terms of Use · OwnersMarket',
   privacy: 'Privacy Policy · OwnersMarket',
   rules: 'Listing Rules · OwnersMarket',
   cashback: 'Cash-Back Policy · OwnersMarket',
   notifications: 'Notification Preferences · OwnersMarket',
-  calculator: 'Savings estimator · OwnersMarket',
-  'guide-selling': 'How to sell your home yourself in Canada · OwnersMarket',
-  'guide-buying': 'How to buy a home sold by owner in Canada · OwnersMarket',
+  calculator: 'Real Estate Commission Calculator · OwnersMarket',
+  'not-found': 'Page not found · OwnersMarket',
+  'guide-selling': 'How to Sell Your House Without a Realtor in Canada · OwnersMarket',
+  'guide-bc': 'How to Sell Your House Without a Realtor in BC · OwnersMarket',
+  'guide-buying': 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
 };
 
 function parsePath(pathname: string): { tab: string; listingId: string | null } {
@@ -75,13 +61,9 @@ function parsePath(pathname: string): { tab: string; listingId: string | null } 
   const detail = clean.match(/^\/listing\/([0-9a-fA-F-]{36})$/);
   if (detail) return { tab: 'detail', listingId: detail[1] };
   const found = Object.entries(TAB_PATHS).find(([, p]) => p === clean);
-  return { tab: found ? found[0] : 'landing', listingId: null };
+  return { tab: found ? found[0] : 'not-found', listingId: null };
 }
 
-function pathFor(tab: string, listingId?: string | null): string {
-  if (tab === 'detail' && listingId) return `/listing/${listingId}`;
-  return TAB_PATHS[tab] ?? '/';
-}
 
 const Loading: React.FC<{ label?: string }> = ({ label = 'Loading…' }) => (
   <div className="flex items-center justify-center py-32 text-sm text-slate-500">{label}</div>
@@ -361,9 +343,17 @@ function MainApp() {
               needsSignIn
             ))}
 
+          {currentTab === 'not-found' && (
+            <Gate
+              title="Page not found"
+              text="This page doesn’t exist. It may have moved, or the link may have a typo."
+              action={{ label: 'Go to the homepage', onClick: () => handleNavigate('landing') }}
+            />
+          )}
+
           {currentTab === 'how-it-works' && <HowItWorksPage onNavigate={handleNavigate} />}
 
-          {(currentTab === 'guide-selling' || currentTab === 'guide-buying') && (
+          {currentTab.startsWith('guide-') && (
             <GuideRoute key={currentTab} tab={currentTab} onNavigate={handleNavigate} />
           )}
 
@@ -375,7 +365,7 @@ function MainApp() {
             <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
               <div className="mb-6">
                 <h1 className="font-display text-5xl font-bold text-slate-900 leading-none">
-                  Savings estimator
+                  Real estate commission calculator
                 </h1>
                 <p className="text-base text-slate-600 mt-3 max-w-[40em]">
                   Estimate what you could save using an example commission rate, and how much closing cash back you could offer. Commission rates vary by province and are negotiable. All figures are estimates.
