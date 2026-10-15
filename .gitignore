@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Generated before each Netlify build (scripts/write-edge-config.mjs)
+netlify/edge-functions/lib/config.ts

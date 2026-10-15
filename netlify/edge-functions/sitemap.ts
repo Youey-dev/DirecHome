@@ -1,0 +1,30 @@
+/**
+ * /sitemap.xml: the public pages plus every public listing, read live from the database.
+ * Submit https://ownersmarket.ca/sitemap.xml in Google Search Console once.
+ */
+import { SITE_URL, SITEMAP_PATHS, readPublic } from './lib/site.ts';
+
+type Row = { id: string; updated_at: string | null };
+
+const xml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+export default async () => {
+  const listings = (await readPublic<Row[]>('listings?select=id,updated_at&order=updated_at.desc&limit=5000')) ?? [];
+
+  const urls = [
+    ...SITEMAP_PATHS.map((p) => `  <url><loc>${xml(SITE_URL + p)}</loc></url>`),
+    ...listings.map(
+      (l) =>
+        `  <url><loc>${xml(`${SITE_URL}/listing/${l.id}`)}</loc>${
+          l.updated_at ? `<lastmod>${xml(l.updated_at.slice(0, 10))}</lastmod>` : ''
+        }</url>`,
+    ),
+  ];
+
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+  return new Response(body, {
+    headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' },
+  });
+};
+
+export const config = { path: '/sitemap.xml' };
