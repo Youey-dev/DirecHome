@@ -37,6 +37,8 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               <FooterLink onClick={() => onNavigate('wizard')}>List your home</FooterLink>
               <FooterLink onClick={() => onNavigate('calculator')}>Savings estimator</FooterLink>
               <FooterLink onClick={() => onNavigate('how-it-works')}>How it works</FooterLink>
+              <FooterLink onClick={() => onNavigate('guide-selling')}>Guide: selling your home yourself</FooterLink>
+              <FooterLink onClick={() => onNavigate('guide-buying')}>Guide: buying a home sold by owner</FooterLink>
               <FooterLink onClick={() => onNavigate('dashboard')}>My dashboard and messages</FooterLink>
             </ul>
           </nav>
