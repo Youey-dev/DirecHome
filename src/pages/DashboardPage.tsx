@@ -475,7 +475,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     }`}>
                       <div className="text-slate-700">
                         {(listing.paymentStatus === 'unpaid' || listing.paymentStatus === 'canceled' || !listing.paymentStatus) && (
-                          <span>Approved. Activate your listing to publish it to buyers: <strong>$25 CAD / month</strong>, cancel any time.</span>
+                          <span>Approved. Activate your listing to publish it to buyers: <strong>$24.99 CAD / month</strong>, cancel any time.</span>
                         )}
                         {listing.paymentStatus === 'active' && !listing.cancelAtPeriodEnd && (
                           <span>Subscription active{listing.nextBillingAt ? `, renews ${fmtDate(listing.nextBillingAt)}` : ''}.</span>

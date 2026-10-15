@@ -61,7 +61,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           </div>
           <h3 className="text-lg font-bold text-slate-900">The Buyer Cash-Back Mechanism</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            OwnersMarket charges no commission — just a flat $25/month per active listing. A seller who would otherwise pay a commission (for example, 7% on the first $100k and 2.5% on the balance, used here only as an example; commissions are negotiable) could save a significant amount, and may choose to offer part of it to the buyer as a cash-back credit at completion.
+            OwnersMarket charges no commission — just a flat $24.99/month per active listing. A seller who would otherwise pay a commission (for example, 7% on the first $100k and 2.5% on the balance, used here only as an example; commissions are negotiable) could save a significant amount, and may choose to offer part of it to the buyer as a cash-back credit at completion.
           </p>
           <div className="pt-2 text-xs text-emerald-800 font-medium flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" />
@@ -117,7 +117,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Listing Commission</td>
                 <td className="py-3 px-4 text-rose-700">Varies by brokerage and is negotiable</td>
-                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">No commission — flat $25/month per active listing</td>
+                <td className="py-3 px-4 font-bold text-emerald-800 bg-emerald-50/50">No commission — flat $24.99/month per active listing</td>
               </tr>
               <tr>
                 <td className="py-3 px-4 font-semibold text-slate-900">Buyer Cash-Back</td>

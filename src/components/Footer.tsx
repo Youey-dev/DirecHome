@@ -27,7 +27,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               OwnersMarket is an advertising platform, not a real estate brokerage, and does not give real estate advice. Every listing is reviewed before publishing; ownership is not verified. Buyers and sellers should talk to their own lawyer or notary before signing anything.
             </p>
             <p className="leading-relaxed max-w-[36em]">
-              No commission. A flat $25 a month per active listing. Exact addresses stay private until the owner confirms a viewing.
+              No commission. A flat $24.99 a month per active listing. Exact addresses stay private until the owner confirms a viewing.
             </p>
           </div>
 

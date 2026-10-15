@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { OPEN_PROVINCES, ALL_PROVINCES } from '../data/cities';
-import { calculateBCCommission, formatCAD, LISTING_FEE_CAD_PER_MONTH } from '../lib/commissionCalc';
+import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH, LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import type { BrowseFilters } from './BrowsePage';
 
 /**
@@ -130,7 +130,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Your home is ready. Let the photos sell it.
           </h1>
           <p className="text-lg sm:text-[19px] leading-relaxed text-slate-700 max-w-[34em]">
-            Put your home in front of buyers anywhere in Canada for ${LISTING_FEE_CAD_PER_MONTH} a month, with no commission. Buyers message you to book a viewing, and your own lawyer or notary handles the contract.
+            Put your home in front of buyers anywhere in Canada for {LISTING_FEE_LABEL} a month, with no commission. Buyers message you to book a viewing, and your own lawyer or notary handles the contract.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 pt-1">
             <button
@@ -273,7 +273,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               },
               {
                 title: 'Go live after a quick review',
-                text: `We check the listing for accuracy and photo quality, then you start your $${LISTING_FEE_CAD_PER_MONTH} monthly plan and buyers can find it.`,
+                text: `We check the listing for accuracy and photo quality, then you start your ${LISTING_FEE_LABEL} monthly plan and buyers can find it.`,
               },
               {
                 title: 'Pick your viewing times',
@@ -318,7 +318,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
           <div className="flex justify-between items-baseline gap-4 border-b border-slate-700 pb-4">
             <span className="text-base text-slate-300">OwnersMarket, listed for {EXAMPLE_MONTHS} months</span>
-            <span className="font-display font-semibold text-[34px]">{formatCAD(exampleFees)}</span>
+            <span className="font-display font-semibold text-[34px]">{formatCADCents(exampleFees)}</span>
           </div>
           <div className="flex justify-between items-baseline gap-4">
             <span className="text-[17px] font-semibold">You could keep about</span>
@@ -364,7 +364,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           onClick={() => onNavigate('wizard')}
           className="self-start md:self-auto px-7 py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[17px] rounded-md cursor-pointer min-h-[52px]"
         >
-          List your home for ${LISTING_FEE_CAD_PER_MONTH} a month
+          List your home for {LISTING_FEE_LABEL} a month
         </button>
       </section>
     </div>

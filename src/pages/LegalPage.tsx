@@ -273,7 +273,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">6. Fees</h2>
             <p>
-              OwnersMarket charges no commission. Sellers pay a flat listing fee of $25 CAD per month for each active listing, billed through Stripe, until cancelled. Any savings figures shown on the site are estimates only and use an example commission rate; actual commissions are negotiable and vary by brokerage.
+              OwnersMarket charges no commission. Sellers pay a flat listing fee of $24.99 CAD per month for each active listing, billed through Stripe, until cancelled. Any savings figures shown on the site are estimates only and use an example commission rate; actual commissions are negotiable and vary by brokerage.
             </p>
           </section>
 
@@ -506,7 +506,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>The Basics</span>
             </div>
             <p>
-              OwnersMarket charges no commission — sellers pay a flat $25/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
+              OwnersMarket charges no commission — sellers pay a flat $24.99/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
             </p>
           </div>
 

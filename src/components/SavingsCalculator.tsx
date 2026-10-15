@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { calculateBCCommission, formatCAD, LISTING_FEE_CAD_PER_MONTH } from '../lib/commissionCalc';
+import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH, LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import { CASHBACK_LENDER_NOTICE } from '../lib/legalText';
 import { DollarSign, CheckCircle2, Info, ArrowRight, Sparkles } from 'lucide-react';
 
@@ -228,7 +228,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           {/* OwnersMarket listing fee */}
           <div className="flex items-center justify-between gap-3 py-2.5 border-b border-slate-200 text-sm">
             <span className="text-slate-600">
-              OwnersMarket listing fee: ${LISTING_FEE_CAD_PER_MONTH}/month ×{' '}
+              OwnersMarket listing fee: {LISTING_FEE_LABEL}/month ×{' '}
               <label htmlFor="calculator-months" className="sr-only">Months listed</label>
               <select
                 id="calculator-months"
@@ -243,7 +243,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
               {monthsListed === 1 ? 'month' : 'months'} listed
             </span>
             <span className="font-semibold text-slate-900 tabular-nums">
-              -{formatCAD(listingFees)}
+              -{formatCADCents(listingFees)}
             </span>
           </div>
 
@@ -276,7 +276,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
                   Estimated amount you could keep
                 </span>
                 <span className="text-[11px] text-emerald-700">
-                  Estimate after {formatCAD(breakdown.offeredCashback)} buyer cash-back and {formatCAD(listingFees)} in listing fees
+                  Estimate after {formatCAD(breakdown.offeredCashback)} buyer cash-back and {formatCADCents(listingFees)} in listing fees
                 </span>
               </div>
               <div className="text-2xl sm:text-3xl font-extrabold text-emerald-800 tabular-nums">

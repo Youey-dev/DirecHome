@@ -1023,7 +1023,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span>Optional: Offer a Buyer Cash-Back</span>
               </div>
               <p className="text-xs text-emerald-950/90 leading-relaxed">
-                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. OwnersMarket charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
+                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. OwnersMarket charges no commission, just a flat $24.99/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
               </p>
             </div>
 
@@ -1074,7 +1074,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                     <div className="text-base font-bold text-emerald-900 mt-0.5 tabular-nums">
                       {formatCAD(commissionBreakdown.netSellerSavingsWithCashback)}
                     </div>
-                    <div className="text-[10px] text-emerald-800/80">before $25/month listing fees</div>
+                    <div className="text-[10px] text-emerald-800/80">before $24.99/month listing fees</div>
                   </div>
                 </div>
 

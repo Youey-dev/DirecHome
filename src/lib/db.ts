@@ -692,7 +692,7 @@ class DataStore {
     await this.refresh();
   }
 
-  /** Sends the owner to Stripe Checkout to activate a listing ($25 CAD / month). */
+  /** Sends the owner to Stripe Checkout to activate a listing ($24.99 CAD / month). */
   async startCheckout(listingId: string): Promise<void> {
     this.requireUser();
     const { data, error } = await supabase.functions.invoke('create-checkout', { body: { listingId } });

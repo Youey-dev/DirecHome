@@ -11,7 +11,9 @@
  */
 
 /** OwnersMarket charges no commission; the listing fee is a flat monthly amount per active listing. */
-export const LISTING_FEE_CAD_PER_MONTH = 25;
+export const LISTING_FEE_CAD_PER_MONTH = 24.99;
+/** The listing fee as shown to people, e.g. "$24.99". */
+export const LISTING_FEE_LABEL = '$24.99';
 
 export interface CommissionBreakdown {
   price: number;
@@ -88,5 +90,15 @@ export function formatCAD(amount: number): string {
     style: 'currency',
     currency: 'CAD',
     maximumFractionDigits: 0
+  }).format(amount);
+}
+
+/** Like formatCAD, but always shows cents (e.g. "$74.97"). Use for listing fees. */
+export function formatCADCents(amount: number): string {
+  return new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency: 'CAD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(amount);
 }
