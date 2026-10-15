@@ -20,7 +20,9 @@ import {
   ExternalLink,
   Send,
   AlertCircle,
-  CreditCard
+  CreditCard,
+  Printer,
+  Download
 } from 'lucide-react';
 
 export interface DashboardIntent {
@@ -44,6 +46,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   intent
 }) => {
   const [activeTab, setActiveTab] = useState<'listings' | 'viewings' | 'messages'>('listings');
+  // Which sign is being made right now (listing id + kind), so its button can show progress
+  const [signBusy, setSignBusy] = useState<string | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
   const [viewings, setViewings] = useState<ViewingRequest[]>([]);
   const [threads, setThreads] = useState<ConversationThread[]>([]);
@@ -129,13 +133,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const fmtDate = (iso?: string) =>
     iso ? new Date(iso).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
 
+  const handleDownloadSign = async (listingId: string, kind: 'lawn' | 'window') => {
+    setSignBusy(`${listingId}:${kind}`);
+    try {
+      // The sign maker loads only when it's needed
+      const { downloadSign } = await import('../lib/signPdf');
+      await downloadSign(listingId, kind);
+    } catch {
+      showToast('We couldn’t make your sign. Please check your connection and try again.');
+    } finally {
+      setSignBusy(null);
+    }
+  };
+
   const handleMarkSold = (id: string) => {
     const l = listings.find((x) => x.id === id);
     if (l && ['active', 'past_due'].includes(l.paymentStatus ?? '') && !l.cancelAtPeriodEnd) {
       showToast('⚠️ Cancel your subscription first (tap "Manage billing") so you are not charged again, then mark it sold.');
       return;
     }
-    void run(() => db.updateListingStatus(id, 'sold'), '🎉 Congratulations on selling your home! Marked as Sold.');
+    void run(() => db.updateListingStatus(id, 'sold'), '🎉 Congratulations on selling your home! Marked as sold. Remember to take down your for-sale sign.');
   };
 
   const handleDelete = (id: string) => {
@@ -504,6 +521,38 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           <span>Manage billing</span>
                         </button>
                       )}
+                    </div>
+                  )}
+
+                  {/* Printable for-sale signs (live listings only) */}
+                  {isListingLive(listing) && (
+                    <div className="px-5 py-4 border-t border-slate-100 bg-white text-xs space-y-2.5">
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                        <Printer className="w-4 h-4 text-emerald-700" aria-hidden="true" />
+                        <span>Your for-sale sign</span>
+                      </div>
+                      <p className="text-slate-600 leading-relaxed">
+                        Free to download. The QR code opens this listing so passers-by can see photos and book a viewing.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {([
+                          ['lawn', 'Lawn sign (24 × 18 in)'],
+                          ['window', 'Window sign (Letter)'],
+                        ] as const).map(([kind, label]) => (
+                          <button
+                            key={kind}
+                            onClick={() => handleDownloadSign(listing.id, kind)}
+                            disabled={signBusy !== null}
+                            className="px-3 py-1.5 bg-white hover:bg-slate-100 disabled:opacity-60 text-slate-800 font-semibold rounded-lg border border-slate-300 flex items-center gap-1.5 cursor-pointer min-h-[44px]"
+                          >
+                            <Download className="w-3.5 h-3.5 text-slate-500" aria-hidden="true" />
+                            <span>{signBusy === `${listing.id}:${kind}` ? 'Making your sign…' : label}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-slate-500 leading-relaxed">
+                        Print the lawn sign at a print shop as an 18 × 24 in coroplast (plastic) sign with a wire stake; paper won’t last outside. Print the window sign at home. Place it on your own property, check your city’s and strata’s sign rules, and take it down when your home sells.
+                      </p>
                     </div>
                   )}
 

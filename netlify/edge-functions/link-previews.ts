@@ -128,5 +128,5 @@ export default async (request: Request, context: { next: () => Promise<Response>
 
 export const config = {
   path: '/*',
-  excludedPath: ['/assets/*', '/sitemap.xml', '/robots.txt', '/*.png', '/*.ico', '/*.svg', '/*.jpg', '/*.webp', '/*.js', '/*.css', '/*.mjs', '/*.json', '/*.txt'],
+  excludedPath: ['/assets/*', '/signs/*', '/sitemap.xml', '/robots.txt', '/*.png', '/*.ico', '/*.svg', '/*.jpg', '/*.webp', '/*.js', '/*.css', '/*.mjs', '/*.json', '/*.txt'],
 };
