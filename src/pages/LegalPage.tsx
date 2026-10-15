@@ -84,7 +84,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   };
 
   const handleDeleteAccountData = async () => {
-    // BC PIPA self-serve erasure: removes the account, listings, photos, messages and favourites
+    // Self-serve erasure (Canadian privacy law): removes the account, listings, photos, messages and favourites
     if (isGuestUser(activeUser)) {
       setShowDeleteModal(false);
       alert('Please sign in to delete your account.');
@@ -121,18 +121,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         <span>Back to marketplace</span>
       </button>
 
-      {/* Prominent Legal Review Notice Banner */}
-      <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex items-start gap-3 text-amber-950 shadow-sm">
-        <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <div className="text-xs font-bold uppercase tracking-wider text-amber-800">
-            [PENDING FORMAL REVIEW BY BRITISH COLUMBIA LEGAL COUNSEL]
-          </div>
-          <p className="text-xs sm:text-sm text-amber-900 leading-relaxed">
-            These documents are drafts written for British Columbia, including the <em>Real Estate Services Act</em> (RESA), BC's <em>Personal Information Protection Act</em> (PIPA), the federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) where it applies, and Canada’s Anti-Spam Legislation (CASL). They remain subject to final review by a BC lawyer.
-          </p>
-        </div>
-      </div>
 
       {/* Document Selector Segmented Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto scrollbar-none">
@@ -209,14 +197,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       {activeTab === 'terms' && (
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-wider mb-1">
-              <span>Status: Pending Lawyer Review</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Terms of Use & Advertising Agreement
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Effective Version: 2026-v1.1-draft · Applicable Jurisdiction: British Columbia, Canada
+              Last updated: October 14, 2026 · Applies across Canada
             </p>
           </div>
 
@@ -224,7 +209,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-200/90 text-emerald-950 font-medium space-y-2">
             <div className="font-bold text-base flex items-center gap-2 text-emerald-900">
               <FileCheck className="w-5 h-5 text-emerald-700" />
-              <span>Mandatory Statutory Notice to All Users</span>
+              <span>Important notice to all users</span>
             </div>
             <p className="text-xs sm:text-sm leading-relaxed">
               <strong>"This site is an advertising platform. We are not a real estate brokerage and do not provide real estate advice. Sellers and buyers should consult a lawyer or notary before signing any agreement."</strong>
@@ -232,15 +217,17 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">1. Nature of the DirectHome BC Service</h2>
+            <h2 className="text-base font-bold text-slate-900">1. What DirectHome is</h2>
             <p>
-              DirectHome BC operates solely as an online classified advertising marketplace connecting property owners with prospective buyers. DirectHome BC Technologies Inc.:
+              DirectHome is an online advertising service. Property owners in every Canadian province and territory except Quebec pay a flat fee to advertise their own homes for sale, and buyers can browse those ads and contact owners directly. DirectHome Canada ("DirectHome", "we", "us") is operated from British Columbia. DirectHome:
             </p>
             <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
-              <li>Is <strong>NOT</strong> a real estate brokerage licensed under the British Columbia <em>Real Estate Services Act</em> (RESA).</li>
+              <li>Is <strong>NOT</strong> a real estate brokerage and is not licensed or registered to provide real estate services in any province or territory, including under British Columbia's <em>Real Estate Services Act</em>, Alberta's <em>Real Estate Act</em>, Ontario's <em>Trust in Real Estate Services Act, 2002</em>, or Quebec's <em>Real Estate Brokerage Act</em>.</li>
               <li>Does <strong>NOT</strong> act as an agent, broker, or legal representative for any buyer, seller, or third party.</li>
               <li>Does <strong>NOT</strong> provide real estate trading services, price valuations, appraisals, marketing advice, or negotiation assistance.</li>
-              <li>Does <strong>NOT</strong> provide, draft, review or fill in contracts or contract forms, and does <strong>NOT</strong> hold purchase deposits in trust.</li>
+              <li>Does <strong>NOT</strong> present, receive or negotiate offers on anyone's behalf.</li>
+              <li>Does <strong>NOT</strong> provide, draft, review or fill in contracts or contract forms, and does <strong>NOT</strong> hold deposits or any other money for buyers or sellers.</li>
+              <li>Charges a flat advertising fee that does <strong>not</strong> depend on whether a property sells or on its sale price. DirectHome receives no commission, referral fee or other payment connected to any sale.</li>
             </ul>
           </section>
 
@@ -248,7 +235,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <h2 className="text-base font-bold text-slate-900">2. Cash-Back Offer Terms & Conditions</h2>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2">
               <p>
-                <strong>Seller's Offer, Not a Platform Guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. DirectHome BC does not fund, pay, or guarantee cash-back payments.
+                <strong>Seller's Offer, Not a Platform Guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. DirectHome does not fund, pay, or guarantee cash-back payments.
               </p>
               <p>
                 <strong>Written Into the Contract by Your Lawyer or Notary:</strong> For a cash-back offer to take effect, it must be included in the purchase contract. {CONTRACT_NOTICE}
@@ -262,48 +249,59 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">3. Seller Representations; No Ownership Verification</h2>
             <p>
-              By submitting a listing, the seller represents and warrants that they are the registered owner of the property, or are legally authorized by all registered owners to advertise it for sale, and that the listing is accurate. <strong>DirectHome BC does not verify property ownership, title, or the seller's authority to sell.</strong>
+              By submitting a listing, the seller represents and warrants that they are the registered owner of the property, or are legally authorized by all registered owners to advertise it for sale, and that the listing is accurate. <strong>DirectHome does not verify property ownership, title, or the seller's authority to sell.</strong>
             </p>
             <p className="text-xs text-slate-600">
-              DirectHome BC reviews listings only for spam, scams and inappropriate content before they can be published; this review is not a check of ownership or title. Buyers are responsible for confirming registered ownership (for example, through an LTSA title search) and should use a BC lawyer or notary before signing any agreement or paying any money. Sellers are solely responsible for their listings and agree to indemnify DirectHome BC for claims arising from inaccurate or unauthorized listings.
+              DirectHome reviews listings only for spam, scams and inappropriate content before they can be published; this review is not a check of ownership or title. Buyers are responsible for confirming who the registered owner is (for example, through a search at the land titles or land registry office in the property's province or territory) and should use their own lawyer, or a notary in provinces where notaries handle real estate, before signing any agreement or paying any money. Sellers are solely responsible for their listings and agree to indemnify DirectHome for claims arising from inaccurate or unauthorized listings.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">4. Independent Legal Representation Requirement</h2>
             <p>
-              {CONTRACT_NOTICE} Each party should engage their own independent British Columbia notary public or lawyer (a member of the Law Society of British Columbia) to prepare the contract and handle conveyancing, title registration, and financial adjustments.
+              {CONTRACT_NOTICE} Each party should hire their own independent lawyer, or a notary in provinces where notaries handle real estate transactions (such as British Columbia), to prepare the contract and handle the closing, title transfer and money adjustments.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">5. Limitation of Liability</h2>
             <p className="text-xs text-slate-500 leading-relaxed">
-              DirectHome BC makes no warranties regarding the accuracy of seller-submitted descriptions, measurements, property conditions, or zoning compliance. Buyers are solely responsible for conducting independent building inspections, property disclosures audits, and title verifications.
+              DirectHome makes no warranties regarding the accuracy of seller-submitted descriptions, measurements, property conditions, or zoning compliance. Buyers are solely responsible for arranging independent building inspections, reviewing any seller disclosures, confirming zoning and permits with the local municipality, and verifying title.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">6. Fees</h2>
             <p>
-              DirectHome BC charges no commission. Sellers pay a flat listing fee of $25 CAD per month for each active listing, billed through Stripe, until cancelled. Any savings figures shown on the site are estimates only and use an example commission rate; actual commissions are negotiable and vary by brokerage.
+              DirectHome charges no commission. Sellers pay a flat listing fee of $25 CAD per month for each active listing, billed through Stripe, until cancelled. Any savings figures shown on the site are estimates only and use an example commission rate; actual commissions are negotiable and vary by brokerage.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">7. Where DirectHome is available</h2>
+            <p>
+              DirectHome does not currently accept listings for properties in Quebec. We plan to open in Quebec once our site and terms are available in French. Any Quebec listing submitted in the meantime will be declined.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">8. Governing law</h2>
+            <p>
+              These Terms are governed by the laws of the Province of British Columbia and the federal laws of Canada that apply there. Any dispute about these Terms will be heard in the courts of British Columbia, unless the law of your province or territory gives you the right to bring it where you live. Nothing in these Terms limits any rights you have under the consumer protection laws of your province or territory, including Quebec's <em>Consumer Protection Act</em>.
             </p>
           </section>
         </article>
       )}
 
-      {/* ---------------- SECTION 2: PRIVACY POLICY (BC PIPA) ---------------- */}
+      {/* ---------------- SECTION 2: PRIVACY POLICY (CANADA) ---------------- */}
       {activeTab === 'privacy' && (
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-wider mb-1">
-              <span>Status: Pending Lawyer Review</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Privacy Policy
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Under British Columbia's <em>Personal Information Protection Act</em> (PIPA) · Version: {PRIVACY_VERSION}
+              Applies across Canada · Last updated: October 14, 2026
             </p>
           </div>
 
@@ -313,7 +311,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>Which privacy laws apply</span>
             </div>
             <p>
-              DirectHome BC is based in British Columbia, so our handling of your personal information is governed mainly by BC's <em>Personal Information Protection Act</em> (PIPA). Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) also applies when personal information is transferred across provincial or national borders, including to the service providers described below.
+              DirectHome serves people across Canada. Our handling of personal information is governed by Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) and, where they apply, by British Columbia's and Alberta's <em>Personal Information Protection Act</em>s and Quebec's <em>Act respecting the protection of personal information in the private sector</em> (as updated by Law 25). We follow the same privacy practices for every user, wherever they live in Canada. Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) also applies when personal information is transferred across provincial or national borders, including to the service providers described below.
             </p>
           </div>
 
@@ -326,7 +324,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Viewing requests:</strong> the requesting buyer's name, email, phone number, preferred date and time, and any note.</li>
               <li><strong>Messages</strong> sent between buyers and sellers on the site.</li>
               <li><strong>Saved homes, reports</strong> you file about listings, and the <strong>notifications</strong> we show you.</li>
-              <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by DirectHome BC.</strong></li>
+              <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by DirectHome.</strong></li>
               <li><strong>Technical information:</strong> our hosting and sign-in providers automatically log technical data such as IP address, browser type and sign-in times, for security and to keep the site working.</li>
               <li><strong>On your device:</strong> your browser stores your sign-in session, an unfinished listing draft, and your cookie and email preferences. We do not use advertising or analytics trackers.</li>
             </ul>
@@ -393,7 +391,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>7. Your right to access, correct and delete your data</span>
             </h2>
             <p className="text-xs sm:text-sm">
-              Under PIPA you can ask to see the personal information we hold about you and ask us to correct it. You can also download a copy below, or permanently delete your account, listings, photos and conversations at any time.
+              Under Canadian privacy law, you can ask to see the personal information we hold about you, ask how it has been used and who it has been shared with, ask us to correct it, and withdraw your consent (which may mean closing your account). We will respond within 30 days. You can also download a copy below, or permanently delete your account, listings, photos and conversations at any time.
             </p>
 
             {/* Data Export Box */}
@@ -449,7 +447,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-2 pt-2">
             <h2 className="text-base font-bold text-slate-900">8. Contact our privacy officer</h2>
             <p className="text-xs text-slate-600">
-              For privacy questions, access or correction requests, or complaints, contact our privacy officer at <code>privacy@directhome.ca</code>. If you are not satisfied with our response, you can contact the Office of the Information and Privacy Commissioner for British Columbia.
+              For privacy questions, access or correction requests, or complaints, contact our privacy officer at <code>privacy@directhome.ca</code>. If you are not satisfied with our response, you can complain to the Office of the Privacy Commissioner of Canada (priv.gc.ca). If you live in British Columbia, Alberta or Quebec, you can also contact your provincial privacy regulator: the Office of the Information and Privacy Commissioner for British Columbia, the Office of the Information and Privacy Commissioner of Alberta, or the Commission d'accès à l'information du Québec.
             </p>
           </section>
         </article>
@@ -459,35 +457,32 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       {activeTab === 'rules' && (
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-wider mb-1">
-              <span>Status: Pending Lawyer Review</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Community & Listing Rules
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Standards for sellers and buyers in British Columbia · Version: 2026-v1.1-draft
+              Standards for sellers and buyers across Canada · Last updated: October 14, 2026
             </p>
           </div>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">1. Accurate Representation Standard</h2>
             <p>
-              All property descriptions, square footage, inclusions, and photo representations must be accurate and truthful. Sellers must disclose known material defects in accordance with British Columbia common law and the Property Condition Disclosure Statement (PCDS).
+              All property descriptions, square footage, inclusions and photos must be accurate and truthful. Sellers must not hide or misrepresent known problems with the property, and must give buyers any disclosure the law of their province or territory requires. These duties vary across Canada. In most provinces, sellers must disclose known hidden defects that make a home dangerous or unfit to live in, and some provinces use standard disclosure forms (such as British Columbia's Property Condition Disclosure Statement). Sellers should ask their lawyer or notary what they are required to disclose.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">2. Respectful Direct Communication</h2>
             <p>
-              DirectHome BC connects real community members. All in-app messages and viewing interactions must be respectful, civil, and free of harassment. Unsolicited commercial solicitation by licensed agents or mortgage originators is strictly prohibited and subject to immediate account suspension.
+              DirectHome connects real community members. All in-app messages and viewing interactions must be respectful, civil, and free of harassment. Unsolicited commercial solicitation by licensed agents or mortgage originators is strictly prohibited and subject to immediate account suspension.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">3. Zero Tolerance for Scams or Off-Platform Deposits</h2>
             <p>
-              Never wire funds, transfer e-Transfers, or pay deposits directly to a stranger. All transaction deposits must be held in the legal trust account of a licensed British Columbia Notary Public or member of the Law Society of British Columbia in accordance with standard real estate conveyance practice.
+              Never wire money, send an e-Transfer or pay a deposit directly to a stranger. Deposits should be paid only into the trust account of a lawyer, or of a notary in provinces where notaries handle real estate, as set out in the purchase contract. DirectHome never asks for, holds or handles deposits or any other money between buyers and sellers.
             </p>
           </section>
         </article>
@@ -497,14 +492,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       {activeTab === 'cashback' && (
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-wider mb-1">
-              <span>Status: Pending Lawyer Review</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              How Buyer Cash-Back Works in British Columbia
+              How Buyer Cash-Back Works
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              General information only — not legal or financial advice · Version: 2026-v1.1-draft
+              General information only, not legal or financial advice · Last updated: October 14, 2026
             </p>
           </div>
 
@@ -514,7 +506,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>The Basics</span>
             </div>
             <p>
-              DirectHome BC charges no commission — sellers pay a flat $25/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
+              DirectHome charges no commission — sellers pay a flat $25/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
             </p>
           </div>
 
@@ -540,7 +532,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">Legal Boundary Notice</h2>
             <p className="text-xs text-slate-600">
-              DirectHome BC is not a party to the purchase contract, does not provide, draft or review contracts, does not hold deposit trust monies, and does not fund, pay or guarantee cash-back payments. Any cash-back is a commitment made directly between the seller and buyer.
+              DirectHome is not a party to the purchase contract, does not provide, draft or review contracts, does not hold deposit trust monies, and does not fund, pay or guarantee cash-back payments. Any cash-back is a commitment made directly between the seller and buyer.
             </p>
           </section>
         </article>
@@ -550,9 +542,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       {activeTab === 'notifications' && (
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-wider mb-1">
-              <span>Status: Pending Lawyer Review</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Email Notifications & CASL Compliance
             </h1>
@@ -567,7 +556,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>Strict Zero-Spam Policy (CASL Standard)</span>
             </div>
             <p>
-              DirectHome BC only sends transactional emails necessary for servicing your viewing requests, buyer messages, and listing review notifications. <strong>We never send marketing or promotional emails without your explicit, voluntary opt-in consent.</strong>
+              DirectHome only sends transactional emails necessary for servicing your viewing requests, buyer messages, and listing review notifications. <strong>We never send marketing or promotional emails without your explicit, voluntary opt-in consent.</strong>
             </p>
           </div>
 
@@ -596,7 +585,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <div>
                 <div className="font-semibold text-slate-900 text-sm">Product News & Feature Announcements</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Optional updates about new seller tools, savings calculators, and Fraser Valley marketplace news.
+                  Optional updates about new seller tools, savings estimators and DirectHome news across Canada.
                 </div>
               </div>
               <input

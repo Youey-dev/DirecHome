@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
-import { PROVINCES, ALL_PROVINCES } from '../data/cities';
+import { OPEN_PROVINCES, ALL_PROVINCES } from '../data/cities';
 import { calculateBCCommission, formatCAD, LISTING_FEE_CAD_PER_MONTH } from '../lib/commissionCalc';
 import type { BrowseFilters } from './BrowsePage';
 
@@ -181,7 +181,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Province
             <select value={province} onChange={(e) => setProvince(e.target.value)} className={fieldClass}>
               <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
-              {PROVINCES.map((p) => (
+              {OPEN_PROVINCES.map((p) => (
                 <option key={p.code} value={p.code}>{p.name}</option>
               ))}
             </select>

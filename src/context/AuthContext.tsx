@@ -1,5 +1,5 @@
 /**
- * Authentication for DirectHome BC (Supabase Auth).
+ * Authentication for DirectHome Canada (Supabase Auth).
  *
  * IMPORTANT: a person's role (member / admin) is read from the database
  * table public.users — never from anything the browser or the signup form supplies.

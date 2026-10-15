@@ -1,5 +1,5 @@
 /**
- * Supabase client for DirectHome BC.
+ * Supabase client for DirectHome Canada.
  *
  * Only the PUBLIC project URL and the public "anon" key belong in the browser.
  * Never put the service_role key in any VITE_ variable — it would be visible to everyone.

@@ -1,5 +1,5 @@
 /**
- * DirectHome BC — data layer (Supabase)
+ * DirectHome Canada — data layer (Supabase)
  *
  * Replaces the old browser-only localStorage store. Everything a person is allowed
  * to see is loaded from Supabase into a small in-memory cache that the pages read
@@ -27,7 +27,7 @@ import type {
 
 type Row = Record<string, any>;
 
-export const TERMS_VERSION = '2026-v1.1-draft'; // v1.1: ownership is no longer verified
+export const TERMS_VERSION = '2026-10-14'; // Canada-wide terms; ownership is not verified
 
 export const GUEST_USER: UserProfile = {
   id: 'guest',

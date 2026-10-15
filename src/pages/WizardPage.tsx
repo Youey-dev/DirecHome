@@ -3,7 +3,7 @@ import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing'
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, TERMS_VERSION } from '../lib/db';
 import { geocodeAddress } from '../lib/geocode';
-import { PROVINCES, citiesInProvince, provinceName } from '../data/cities';
+import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
 import { calculateBCCommission, formatCAD } from '../lib/commissionCalc';
 import { 
@@ -124,8 +124,12 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (draft.streetAddress) setStreetAddress(draft.streetAddress);
     if (draft.unitNumber) setUnitNumber(draft.unitNumber);
     if (draft.city) setCity(draft.city);
-    if (draft.province) setProvince(draft.province);
-    else if (draft.city) setProvince('BC'); // drafts saved before Canada-wide listings were BC-only
+    if (draft.province) {
+      // A draft for a province that isn't open yet (Quebec) starts with no province chosen
+      if (!CLOSED_PROVINCES.includes(draft.province)) setProvince(draft.province);
+    } else if (draft.city) {
+      setProvince('BC'); // drafts saved before Canada-wide listings were BC-only
+    }
     if (draft.postalCode) setPostalCode(draft.postalCode);
     if (draft.neighborhood) setNeighborhood(draft.neighborhood);
     if (draft.propertyType) setPropertyType(draft.propertyType);
@@ -297,6 +301,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       }
       if (!province) {
         setValidationError('Please choose your province or territory.');
+        return;
+      }
+      if (CLOSED_PROVINCES.includes(province as any) || postalInClosedProvince(postalCode)) {
+        setValidationError(QUEBEC_COMING_SOON);
         return;
       }
       if (!validateCanadianPostalCode(postalCode).valid) {
@@ -602,10 +610,11 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
                 >
                   <option value="">Choose…</option>
-                  {PROVINCES.map((p) => (
+                  {OPEN_PROVINCES.map((p) => (
                     <option key={p.code} value={p.code}>{p.name}</option>
                   ))}
                 </select>
+                <p className="mt-1 text-xs text-slate-500">{QUEBEC_COMING_SOON}</p>
               </div>
 
               <div>
@@ -1014,7 +1023,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span>Optional: Offer a Buyer Cash-Back</span>
               </div>
               <p className="text-xs text-emerald-950/90 leading-relaxed">
-                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. DirectHome charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer.
+                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. DirectHome charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
               </p>
             </div>
 
