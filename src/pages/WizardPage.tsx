@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, TERMS_VERSION } from '../lib/db';
+import { coachListing, measureDarkPhotos } from '../lib/listingCoach';
 import { geocodeAddress } from '../lib/geocode';
 import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
@@ -66,6 +67,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   // One id for this listing for the whole session, so a retry never creates a duplicate
   const listingIdRef = useRef<string>(typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : '');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // Listing coach: how many photos look dark (measured when the seller reaches the review step)
+  const [darkPhotos, setDarkPhotos] = useState(0);
 
   // Form State
   const [streetAddress, setStreetAddress] = useState('');
@@ -285,6 +288,34 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       return remaining;
     });
   };
+
+  useEffect(() => {
+    if (currentStep !== 6 || photos.length === 0) return;
+    let cancelled = false;
+    measureDarkPhotos(photos).then((n) => {
+      if (!cancelled) setDarkPhotos(n);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentStep, photos]);
+
+  const coachTips = coachListing({
+    propertyType,
+    sqft,
+    yearBuilt,
+    lotSqft,
+    lotAcres,
+    strataFee,
+    propertyTaxesAnnual,
+    photos,
+    headline,
+    description,
+    neighborhoodHighlights,
+    upgrades: upgradesInput,
+    inclusions: inclusionsInput,
+    darkPhotos,
+  });
 
   // Step Navigation Validation
   const handleNext = async () => {
@@ -1126,6 +1157,41 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Listing coach: tips before submitting (never about price) */}
+            {coachTips.length > 0 ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-5 space-y-3">
+                <div>
+                  <div className="font-bold text-slate-900 text-sm">Tips to get more viewing requests</div>
+                  <p className="text-xs text-slate-600 mt-0.5">Optional. You can submit now and improve your listing any time with Edit.</p>
+                </div>
+                <ul className="space-y-2">
+                  {coachTips.map((tip) => (
+                    <li key={tip.id} className="flex items-start gap-3 text-xs text-slate-800 leading-relaxed">
+                      <span
+                        className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                          tip.level === 'important' ? 'bg-amber-200 text-amber-950' : 'bg-white text-slate-600 border border-slate-200'
+                        }`}
+                      >
+                        {tip.level === 'important' ? 'Buyers ask' : 'Tip'}
+                      </span>
+                      <span className="flex-1">{tip.text}</span>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(tip.step)}
+                        className="shrink-0 font-semibold text-emerald-800 underline underline-offset-2 hover:text-slate-900 cursor-pointer min-h-[32px]"
+                      >
+                        Fix
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-950 font-semibold">
+                Your listing looks complete. Nice work.
+              </div>
+            )}
 
             {/* Legal Confirmation & Mandatory Terms Acceptance */}
             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-3 leading-relaxed">

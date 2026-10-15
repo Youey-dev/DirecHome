@@ -10,6 +10,7 @@ import { runCalculatorTests } from './calculator.test';
 import { runSecurityTests } from './security.test';
 import { runWizardTests } from './wizard.test';
 import { runSignTests } from './sign.test';
+import { runCoachTests } from './coach.test';
 
 async function main() {
   console.log('====================================================');
@@ -21,6 +22,7 @@ async function main() {
     runSecurityTests();
     await runWizardTests();
     await runSignTests();
+    runCoachTests();
 
     console.log('====================================================');
     console.log('✨ SUCCESS: ALL TEST SUITES PASSED WITHOUT ERRORS!');
