@@ -364,12 +364,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {[
             {
               tab: 'guide-selling',
-              title: 'How to sell your home yourself in BC',
+              title: 'How to sell your home yourself in Canada',
               text: 'Nine steps from pricing research and paperwork to safe viewings, offers and handing over the keys.',
             },
             {
               tab: 'guide-buying',
-              title: 'How to buy a home sold by owner in BC',
+              title: 'How to buy a home sold by owner in Canada',
               text: 'Eight steps from pre-approval to moving in, including how to check the title and keep your deposit safe.',
             },
           ].map((g) => (

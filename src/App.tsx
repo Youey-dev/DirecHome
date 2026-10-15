@@ -66,8 +66,8 @@ const TAB_TITLES: Record<string, string> = {
   cashback: 'Cash-Back Policy · OwnersMarket',
   notifications: 'Notification Preferences · OwnersMarket',
   calculator: 'Savings estimator · OwnersMarket',
-  'guide-selling': 'How to sell your home yourself in BC · OwnersMarket',
-  'guide-buying': 'How to buy a home sold by owner in BC · OwnersMarket',
+  'guide-selling': 'How to sell your home yourself in Canada · OwnersMarket',
+  'guide-buying': 'How to buy a home sold by owner in Canada · OwnersMarket',
 };
 
 function parsePath(pathname: string): { tab: string; listingId: string | null } {

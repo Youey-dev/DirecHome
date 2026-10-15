@@ -23,12 +23,12 @@ const Block: React.FC<{ block: GuideBlock }> = ({ block }) => {
           ))}
         </ul>
       );
-    case 'bc':
+    case 'province':
       return (
         <div className="rounded-lg bg-fern px-5 py-4">
           <div className="flex items-center gap-2 text-sm font-bold text-emerald-800">
             <MapPin className="w-4 h-4" aria-hidden="true" />
-            <span>In British Columbia</span>
+            <span>In {block.label}</span>
           </div>
           <p className="mt-1.5 text-base leading-relaxed text-slate-900">{block.text}</p>
         </div>
@@ -38,7 +38,7 @@ const Block: React.FC<{ block: GuideBlock }> = ({ block }) => {
         <div className="rounded-lg border border-slate-200 bg-white px-5 py-4">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
             <Scale className="w-4 h-4 text-emerald-700" aria-hidden="true" />
-            <span>Ask your lawyer or notary</span>
+            <span>Ask your lawyer</span>
           </div>
           <p className="mt-1.5 text-base leading-relaxed text-slate-700">{block.text}</p>
         </div>
@@ -78,7 +78,7 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
           </p>
           <p className="text-sm leading-relaxed text-slate-600 max-w-[46em] border-t border-slate-200 pt-4 mt-1">
             General information to help you understand the process, not legal, tax or real estate advice. Rules change, so
-            check the official sources linked in each step and ask your own lawyer or notary about your situation.
+            check the official sources linked in each step and ask your own lawyer about your situation.
             OwnersMarket is an advertising service, not a real estate brokerage.
           </p>
         </div>

@@ -1,22 +1,24 @@
 /**
- * Step-by-step guides for sellers and buyers in British Columbia.
+ * Step-by-step guides for sellers and buyers, for every province and territory except Quebec
+ * (OwnersMarket isn't open in Quebec yet).
  *
  * Written for the user profiles in the "OwnersMarket user profiles and user stories" doc:
  * the seller guide for "Sandra" (prepared DIY seller), the buyer guide for "Jordan" (phone-first buyer).
  *
  * Legal guardrails (from the Canada-wide legal review): general information only. Never tell
  * people what price to ask or offer, never give them contract wording, and send every legal
- * decision to their own lawyer or notary. OwnersMarket does not verify ownership, hold deposits
- * or handle offers.
+ * decision to their own lawyer (or notary, where the province allows). OwnersMarket does not
+ * verify ownership, hold deposits or handle offers.
  *
- * Facts checked October 14, 2026 against the official pages linked in each step.
- * Review this file at least once a year, and whenever a BC rule changes.
+ * Province notes: only add one when the rule is checked against an official source and really
+ * differs from the general text. Facts checked October 14, 2026 against the pages linked in
+ * each step. Review this file at least once a year.
  */
 
 export type GuideBlock =
   | { kind: 'p'; text: string }
   | { kind: 'list'; items: string[] }
-  | { kind: 'bc'; text: string }
+  | { kind: 'province'; label: string; text: string }
   | { kind: 'lawyer'; text: string }
   | { kind: 'warning'; text: string };
 
@@ -49,18 +51,12 @@ export interface Guide {
 export const GUIDES_LAST_UPDATED = 'October 14, 2026';
 
 const LAWYER_LINKS: GuideLink[] = [
-  { label: 'Find a lawyer: Law Society of British Columbia', url: 'https://www.lawsociety.bc.ca/' },
-  { label: 'Find a notary: Society of Notaries Public of BC', url: 'https://notaries.bc.ca/' },
+  { label: 'Find your province’s law society (Federation of Law Societies of Canada)', url: 'https://flsc.ca/about-us/' },
 ];
 
 const RESCISSION_LINK: GuideLink = {
-  label: 'Home buyer rescission period (BC Financial Services Authority)',
+  label: 'BC home buyer rescission period (BC Financial Services Authority)',
   url: 'https://www.bcfsa.ca/public-resources/real-estate/home-buyer-rescission-period',
-};
-
-const LTSA_LINK: GuideLink = {
-  label: 'Search a land title online: myLTSA Explorer (Land Title and Survey Authority)',
-  url: 'https://ltsa.ca/online-services/myltsa-explorer',
 };
 
 // ---------------------------------------------------------------------------
@@ -68,10 +64,10 @@ const LTSA_LINK: GuideLink = {
 // ---------------------------------------------------------------------------
 export const SELLER_GUIDE: Guide = {
   tab: 'guide-selling',
-  eyebrow: 'Seller guide · British Columbia',
-  title: 'How to sell your home yourself in BC',
+  eyebrow: 'Seller guide · Canada, outside Québec',
+  title: 'How to sell your home yourself in Canada',
   lead:
-    'Nine steps from "should I?" to handing over the keys. You do the selling: photos, viewings and talking to buyers. Your lawyer or notary handles the legal side, as with any home sale in BC.',
+    'Nine steps from "should I?" to handing over the keys. You do the selling: photos, viewings and talking to buyers. Your lawyer handles the legal side, as with any home sale in Canada. The steps are the same in every province and territory; where a rule differs, we say so.',
   readTime: 'About a 12-minute read',
   steps: [
     {
@@ -85,7 +81,7 @@ export const SELLER_GUIDE: Guide = {
           items: [
             'Your home is move-in ready, with no big repairs to explain. Good photos do most of the selling.',
             'You can open the door for viewings on evenings or weekends.',
-            'You have a lawyer or notary, or are happy to hire one.',
+            'You have a real estate lawyer, or are happy to hire one.',
             'You are comfortable answering buyers’ questions and talking about price directly.',
           ],
         },
@@ -97,27 +93,29 @@ export const SELLER_GUIDE: Guide = {
     },
     {
       id: 'lawyer',
-      title: 'Hire your lawyer or notary before you list',
+      title: 'Hire your lawyer before you list',
       summary: 'Line them up first, so you are ready the day an offer arrives.',
       blocks: [
-        { kind: 'p', text: 'In a private sale, your lawyer or notary is the person who protects you. They usually:' },
+        { kind: 'p', text: 'In a private sale, your real estate lawyer is the person who protects you. They usually:' },
         {
           kind: 'list',
           items: [
-            'review or prepare the contract of purchase and sale, and explain each term before you sign',
+            'review or prepare the agreement of purchase and sale, and explain each term before you sign',
             'hold the buyer’s deposit in their trust account',
             'pay off your mortgage from the sale money',
-            'work out the adjustments for property taxes, strata fees and utilities',
-            'register the transfer of title with the Land Title Office on completion day',
+            'work out the adjustments for property taxes, condo fees and utilities',
+            'transfer the title to the buyer through your province’s land registry on closing day',
           ],
         },
+        { kind: 'p', text: 'Ask for a fixed-fee quote, and ask whether they have handled private sales without agents.' },
         {
-          kind: 'bc',
-          text: 'In BC, both lawyers and notaries public can handle a home sale. Ask for a fixed-fee quote, and ask whether they have done private sales without agents.',
+          kind: 'province',
+          label: 'British Columbia',
+          text: 'A notary public can also handle your sale instead of a lawyer.',
         },
         {
           kind: 'lawyer',
-          text: 'Questions to ask at your first call: What documents should I gather? What should I disclose about the home? Will you prepare the contract, or review one the buyer’s lawyer sends?',
+          text: 'Questions to ask at your first call: What documents should I gather? What should I disclose about the home? Will you prepare the agreement, or review one the buyer’s lawyer sends?',
         },
       ],
       links: LAWYER_LINKS,
@@ -131,7 +129,7 @@ export const SELLER_GUIDE: Guide = {
         {
           kind: 'list',
           items: [
-            'Your BC Assessment value. It is a useful reference, but it is a value from July 1 of the year before, so the market may have moved since.',
+            'Your latest property assessment from your city or provincial assessment office. It is a useful reference, but it is usually based on an earlier date, so the market may have moved since.',
             'Recent sales of similar homes nearby: same type, size, age and condition.',
             'Similar homes listed for sale right now. These are your competition.',
             'A paid appraisal from a certified appraiser, if you want an independent professional opinion.',
@@ -142,7 +140,6 @@ export const SELLER_GUIDE: Guide = {
           text: 'Be honest with yourself about condition and location. A home priced close to the market usually gets more viewing requests in its first few weeks.',
         },
       ],
-      links: [{ label: 'Look up any property’s assessed value (BC Assessment)', url: 'https://www.bcassessment.ca/' }],
     },
     {
       id: 'documents',
@@ -153,30 +150,40 @@ export const SELLER_GUIDE: Guide = {
         {
           kind: 'list',
           items: [
-            'your latest property tax notice',
+            'your latest property tax bill',
             'your mortgage details, so your lawyer can get a payout statement from the lender',
             'typical utility and heating costs for a year',
             'permits and records for renovations, and receipts for major work (roof, furnace, windows)',
-            'a survey certificate or site plan, if you have one',
-            'for a strata home: bylaws, recent meeting minutes, financial statements, the depreciation report and an information certificate (Form B) from your strata manager',
+            'a survey or real property report, if you have one',
+            'for a condo: the bylaws, recent meeting minutes, financial statements, reserve fund study and the condo corporation’s certificate for buyers',
           ],
         },
         {
-          kind: 'bc',
-          text: 'Sellers in BC have a legal duty to disclose known material latent defects: hidden problems a reasonable inspection would not find, that make the home dangerous, unfit to live in, or unfit for the buyer’s known purpose. Examples include basement leaks, structural damage and an old underground oil tank. BC has no required disclosure form, but many sellers fill in a voluntary Property Disclosure Statement.',
+          kind: 'p',
+          text: 'In most provinces, sellers must disclose known hidden defects that make a home dangerous or unfit to live in, such as a leaking basement, structural damage or an old underground oil tank. Some provinces use standard disclosure forms. Hiding a known problem can lead to a lawsuit after the sale.',
         },
         {
-          kind: 'bc',
-          text: 'If you have owned the home for less than 2 years (730 days), BC’s home flipping tax may apply to your profit. Talk to an accountant before you list.',
+          kind: 'province',
+          label: 'British Columbia',
+          text: 'Condo (strata) sellers provide an information certificate called a Form B, and the reserve study is called a depreciation report. BC also has a home flipping tax on profits from homes owned for less than 2 years (730 days).',
+        },
+        {
+          kind: 'province',
+          label: 'Ontario',
+          text: 'Condo buyers usually make their offer conditional on reviewing the condo’s status certificate.',
+        },
+        {
+          kind: 'p',
+          text: 'Across Canada, if you have owned the home for less than a year (365 days), the federal flipping rule may tax your profit as business income. Talk to an accountant before you list.',
         },
         {
           kind: 'lawyer',
-          text: 'Ask your lawyer or notary what you need to disclose about your home, and whether to use a disclosure statement.',
+          text: 'Ask your lawyer what you need to disclose about your home, and whether to use a disclosure statement.',
         },
       ],
       links: [
         {
-          label: 'What counts as a material latent defect (BC Financial Services Authority)',
+          label: 'What counts as a material latent defect, a BC example (BC Financial Services Authority)',
           url: 'https://www.bcfsa.ca/public-resources/real-estate/selling-home/material-latent-defects',
         },
         { label: 'BC home flipping tax (Government of BC)', url: 'https://www2.gov.bc.ca/gov/content/taxes/income-taxes/bc-home-flipping-tax' },
@@ -211,7 +218,7 @@ export const SELLER_GUIDE: Guide = {
         {
           kind: 'list',
           items: [
-            'Add your photos, price and the basics: rooms, size, taxes and strata fees if any.',
+            'Add your photos, price and the basics: rooms, size, taxes and condo fees if any.',
             'Every listing is reviewed for spam, scams and inappropriate content before it goes live.',
             'Your exact address stays private until you confirm a viewing.',
             'You pay a flat $24.99 a month per active listing. No commission, and you can cancel any time.',
@@ -235,12 +242,12 @@ export const SELLER_GUIDE: Guide = {
             'Have another adult at home with you, and show one group at a time.',
             'Put away valuables, keys, medication, mail and documents with your personal details.',
             'Walk the buyer through the home rather than letting them wander alone.',
-            'Answer questions about the home honestly. For questions about the contract or the law, say "my lawyer can answer that".',
+            'Answer questions about the home honestly. For questions about the agreement or the law, say "my lawyer can answer that".',
           ],
         },
         {
           kind: 'warning',
-          text: 'Watch for scams: a "buyer" who won’t view the home, sends more money than agreed and asks for a refund, or asks for your banking or ID details. Never share these. Money only ever moves through the lawyers’ or notaries’ trust accounts.',
+          text: 'Watch for scams: a "buyer" who won’t view the home, sends more money than agreed and asks for a refund, or asks for your banking or ID details. Never share these. Money only ever moves through the lawyers’ trust accounts.',
         },
       ],
     },
@@ -251,41 +258,48 @@ export const SELLER_GUIDE: Guide = {
       blocks: [
         {
           kind: 'p',
-          text: 'An offer is a written contract of purchase and sale. It usually sets out the price, the deposit, the conditions (in BC these are called "subjects", such as financing, inspection and reviewing strata documents), and the completion and possession dates.',
+          text: 'An offer is a written agreement of purchase and sale (called a contract of purchase and sale in some provinces). It usually sets out the price, the deposit, the buyer’s conditions (such as financing, a home inspection and reviewing condo documents), and the closing and possession dates.',
         },
         {
           kind: 'list',
           items: [
-            'Send every offer to your lawyer or notary before you respond.',
+            'Send every offer to your lawyer before you respond.',
             'You can accept it, make a counter-offer, or decline it.',
-            'The deposit is paid into a lawyer’s or notary’s trust account, as the contract says. Never take a deposit yourself.',
+            'The deposit is paid into a lawyer’s trust account, as the agreement says. Never take a deposit yourself.',
           ],
         },
         {
-          kind: 'bc',
-          text: 'After you accept an offer, the buyer has 3 business days to cancel (the home buyer rescission period). If they cancel, they pay you a fee of 0.25% of the price. This applies to private sales too, and neither side can waive it.',
+          kind: 'province',
+          label: 'British Columbia',
+          text: 'Conditions are called "subjects", and closing is called "completion". After you accept an offer, the buyer has 3 business days to cancel (the home buyer rescission period). If they cancel, they pay you a fee of 0.25% of the price. It applies to private sales too, and neither side can waive it.',
         },
       ],
       links: [RESCISSION_LINK],
     },
     {
-      id: 'completion',
-      title: 'Subjects removed, completion and keys',
-      summary: 'Once subjects are removed, the sale is firm and the lawyers finish it.',
+      id: 'closing',
+      title: 'Conditions removed, closing and keys',
+      summary: 'Once the conditions are removed, the sale is firm and the lawyers finish it.',
       blocks: [
         {
           kind: 'list',
           items: [
-            'The buyer removes their subjects in writing by the dates in the contract. After that, the sale is firm.',
+            'The buyer removes (or waives) their conditions in writing by the dates in the agreement. After that, the sale is firm.',
             'Mark your listing as sold and cancel your OwnersMarket plan.',
-            'Your lawyer or notary pays out your mortgage, handles the adjustments and registers the transfer on completion day.',
-            'Hand over the keys on possession day, as the contract says. Leave the home clean and the included items in place.',
+            'Your lawyer pays out your mortgage, handles the adjustments and transfers the title on closing day.',
+            'Hand over the keys on possession day, as the agreement says. Leave the home clean and the included items in place.',
             'Cancel your home insurance and utilities from the possession date, and forward your mail.',
           ],
         },
         {
           kind: 'p',
-          text: 'At tax time, report the sale on your tax return. In Canada, the sale of your principal residence still has to be reported, even when no tax is owed. An accountant can help.',
+          text: 'At tax time, report the sale on your tax return. In Canada, the sale of your principal residence has to be reported, even when no tax is owed. An accountant can help.',
+        },
+      ],
+      links: [
+        {
+          label: 'Reporting the sale of your principal residence (Canada Revenue Agency)',
+          url: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/personal-income/line-12700-capital-gains/principal-residence-other-real-estate.html',
         },
       ],
     },
@@ -293,13 +307,13 @@ export const SELLER_GUIDE: Guide = {
   checklistTitle: 'Seller checklist',
   checklist: [
     'My home is move-in ready and I can be there for viewings',
-    'I have hired a lawyer or notary',
+    'I have hired a real estate lawyer',
     'I have researched prices of similar homes nearby',
-    'I have gathered my property tax notice, mortgage details and records of work done',
+    'I have gathered my property tax bill, mortgage details and records of work done',
     'I know what I need to disclose about my home',
     'My photos are bright, level and cover every main room',
     'I have decided what I will do if a buyer brings an agent',
-    'I know to send every offer to my lawyer or notary before signing',
+    'I know to send every offer to my lawyer before signing',
   ],
   cta: {
     title: 'Ready when your home is',
@@ -315,10 +329,10 @@ export const SELLER_GUIDE: Guide = {
 // ---------------------------------------------------------------------------
 export const BUYER_GUIDE: Guide = {
   tab: 'guide-buying',
-  eyebrow: 'Buyer guide · British Columbia',
-  title: 'How to buy a home sold by owner in BC',
+  eyebrow: 'Buyer guide · Canada, outside Québec',
+  title: 'How to buy a home sold by owner in Canada',
   lead:
-    'Eight steps from pre-approval to moving in. You deal with the owner directly for viewings and questions. Your own lawyer or notary protects you on the contract, the deposit and the title.',
+    'Eight steps from pre-approval to moving in. You deal with the owner directly for viewings and questions. Your own lawyer protects you on the agreement, the deposit and the title. The steps are the same in every province and territory; where a rule differs, we say so.',
   readTime: 'About a 10-minute read',
   steps: [
     {
@@ -333,17 +347,21 @@ export const BUYER_GUIDE: Guide = {
         {
           kind: 'list',
           items: [
-            'property transfer tax, paid when the home is registered in your name',
-            'legal or notary fees',
+            'land transfer tax or registration fees, paid when the home is registered in your name (they vary a lot by province)',
+            'legal fees',
             'a home inspection',
-            'home insurance from completion day',
-            'adjustments for property taxes or strata fees the seller has prepaid',
+            'home insurance from closing day',
+            'adjustments for property taxes or condo fees the seller has prepaid',
             'moving costs',
           ],
         },
         {
-          kind: 'bc',
-          text: 'First-time buyers and buyers of newly built homes may pay less property transfer tax, or none. Check the rules and amounts on the Government of BC website.',
+          kind: 'p',
+          text: 'Most provinces charge a land transfer tax, and some give first-time buyers a rebate. Alberta and Saskatchewan charge land title registration fees instead. Your lawyer can tell you the amount for your home.',
+        },
+        {
+          kind: 'p',
+          text: 'First-time buyers can also use the federal First Home Savings Account and the Home Buyers’ Plan to save or withdraw money tax-free for a down payment.',
         },
         {
           kind: 'p',
@@ -351,25 +369,27 @@ export const BUYER_GUIDE: Guide = {
         },
       ],
       links: [
-        { label: 'Property transfer tax (Government of BC)', url: 'https://www2.gov.bc.ca/gov/content/taxes/property-taxes/property-transfer-tax' },
+        { label: 'Costs of buying a home (Financial Consumer Agency of Canada)', url: 'https://www.canada.ca/en/financial-consumer-agency/services/buying-home.html' },
+        { label: 'First Home Savings Account (Canada Revenue Agency)', url: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/first-home-savings-account.html' },
         {
-          label: 'First-time home buyers’ exemption (Government of BC)',
-          url: 'https://www2.gov.bc.ca/gov/content/taxes/property-taxes/property-transfer-tax/exemptions/first-time-home-buyers',
+          label: 'Home Buyers’ Plan (Canada Revenue Agency)',
+          url: 'https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans/what-home-buyers-plan/participate-home-buyers-plan.html',
         },
       ],
     },
     {
       id: 'lawyer',
-      title: 'Choose your lawyer or notary early',
+      title: 'Choose your lawyer early',
       summary: 'Have someone ready to review an offer the same day you find the right home.',
       blocks: [
         {
           kind: 'p',
-          text: 'In a private sale there is no agent writing your offer, so your lawyer or notary matters even more. They prepare or review your offer, hold your deposit in trust, search the title, arrange your mortgage paperwork and register the home in your name.',
+          text: 'In a private sale there is no agent writing your offer, so your real estate lawyer matters even more. They prepare or review your offer, hold your deposit in trust, search the title, arrange your mortgage paperwork and register the home in your name. Ask for a fixed-fee quote and whether they have worked on private sales.',
         },
         {
-          kind: 'bc',
-          text: 'In BC, both lawyers and notaries public can handle a home purchase. Ask for a fixed-fee quote and whether they have worked on private sales.',
+          kind: 'province',
+          label: 'British Columbia',
+          text: 'A notary public can also handle your purchase instead of a lawyer.',
         },
       ],
       links: LAWYER_LINKS,
@@ -408,7 +428,7 @@ export const BUYER_GUIDE: Guide = {
             'Any known problems: leaks, pests, mould, an old oil tank?',
             'What do utilities and heating cost in a year?',
             'What is included in the sale (appliances, window coverings, sheds)?',
-            'For a strata home: what are the monthly fees, and are any special levies or big repairs planned?',
+            'For a condo: what are the monthly fees, and are any special assessments or big repairs planned?',
           ],
         },
       ],
@@ -420,35 +440,41 @@ export const BUYER_GUIDE: Guide = {
       blocks: [
         {
           kind: 'warning',
-          text: 'OwnersMarket reviews listings for spam and scams, but does not verify who owns a home. Confirm the owner yourself, or ask your lawyer or notary to, before you sign anything or pay any money.',
+          text: 'OwnersMarket reviews listings for spam and scams, but does not verify who owns a home. Confirm the owner yourself, or ask your lawyer to, before you sign anything or pay any money.',
         },
         {
           kind: 'list',
           items: [
-            'Title search: check that the seller’s name is on the title and see any mortgages or charges registered against it. You can order one online from the Land Title and Survey Authority, or your lawyer can.',
-            'Home inspection: hire a licensed home inspector. All home inspectors in BC must be licensed by Consumer Protection BC. An inspection is visual only, so it won’t find everything.',
+            'Title search: check that the seller’s name is on the title and see any mortgages or charges registered against it. Every province and territory has a land titles or land registry office; your lawyer can order the search for you.',
+            'Home inspection: hire a qualified home inspector, and ask about their training and insurance. An inspection is visual only, so it won’t find everything.',
             'Zoning and permits: check with the city if you plan to renovate or add a suite.',
-            'Strata homes: read the bylaws, recent minutes, financial statements and depreciation report.',
+            'Condos: read the bylaws, recent minutes, financial statements and reserve fund study, and make your offer conditional on reviewing them.',
           ],
+        },
+        {
+          kind: 'province',
+          label: 'British Columbia and Alberta',
+          text: 'Home inspectors must be licensed. You can check a licence with Consumer Protection BC or the Government of Alberta.',
         },
       ],
       links: [
-        LTSA_LINK,
-        { label: 'Check a home inspector’s licence (Consumer Protection BC)', url: 'https://www.consumerprotectionbc.ca/home-inspector-search/' },
+        { label: 'Check a BC home inspector’s licence (Consumer Protection BC)', url: 'https://www.consumerprotectionbc.ca/home-inspector-search/' },
+        { label: 'Hiring a home inspector in Alberta (Government of Alberta)', url: 'https://www.alberta.ca/hiring-home-inspector' },
       ],
     },
     {
       id: 'offer',
-      title: 'Make an offer through your lawyer or notary',
+      title: 'Make an offer through your lawyer',
       summary: 'Put it in writing, with the conditions you need.',
       blocks: [
         {
           kind: 'p',
-          text: 'Your offer is a written contract of purchase and sale. It usually includes the price, the deposit, your conditions (in BC called "subjects", such as financing, inspection and strata documents), and the completion and possession dates. Your lawyer or notary prepares or reviews it with you.',
+          text: 'Your offer is a written agreement of purchase and sale. It usually includes the price, the deposit, your conditions (such as financing, a home inspection and condo documents), and the closing and possession dates. Your lawyer prepares or reviews it with you before you sign.',
         },
         {
-          kind: 'bc',
-          text: 'After the seller accepts, you have 3 business days to cancel (the home buyer rescission period). Cancelling costs a fee of 0.25% of the price, paid to the seller. It is not a replacement for subjects: it doesn’t give you time for an inspection or financing.',
+          kind: 'province',
+          label: 'British Columbia',
+          text: 'Conditions are called "subjects". After the seller accepts, you have 3 business days to cancel (the home buyer rescission period), for a fee of 0.25% of the price paid to the seller. It doesn’t replace subjects: it gives you no time for an inspection or financing.',
         },
       ],
       links: [RESCISSION_LINK],
@@ -456,14 +482,14 @@ export const BUYER_GUIDE: Guide = {
     {
       id: 'deposit',
       title: 'Pay your deposit safely',
-      summary: 'Deposits go into a lawyer’s or notary’s trust account, never to a person.',
+      summary: 'Deposits go into a lawyer’s trust account, never to a person.',
       blocks: [
         {
           kind: 'list',
           items: [
-            'Pay the deposit only into the trust account named in your contract.',
+            'Pay the deposit only into the trust account named in your agreement.',
             'Never e-Transfer or wire money to the seller or anyone else directly.',
-            'Before sending money, phone your lawyer’s or notary’s office on a number you found yourself to confirm the account details. Fraudsters send fake payment instructions by email.',
+            'Before sending money, phone your lawyer’s office on a number you found yourself to confirm the account details. Fraudsters send fake payment instructions by email.',
           ],
         },
         {
@@ -473,17 +499,17 @@ export const BUYER_GUIDE: Guide = {
       ],
     },
     {
-      id: 'completion',
-      title: 'Remove subjects, complete and move in',
-      summary: 'Firm up the deal, and your lawyer or notary finishes it.',
+      id: 'closing',
+      title: 'Remove conditions, close and move in',
+      summary: 'Firm up the deal, and your lawyer finishes it.',
       blocks: [
         {
           kind: 'list',
           items: [
-            'Remove your subjects in writing before the deadlines in your contract, only once you are satisfied.',
-            'Arrange home insurance starting on completion day. Your lender will ask for proof.',
-            'Your lawyer or notary receives your mortgage funds, pays the property transfer tax and registers the home in your name.',
-            'Pick up the keys on possession day, as set out in the contract.',
+            'Remove (or waive) your conditions in writing before the deadlines in your agreement, only once you are satisfied.',
+            'Arrange home insurance starting on closing day. Your lender will ask for proof.',
+            'Your lawyer receives your mortgage funds, pays any land transfer tax and registers the home in your name.',
+            'Pick up the keys on possession day, as set out in the agreement.',
           ],
         },
       ],
@@ -492,12 +518,12 @@ export const BUYER_GUIDE: Guide = {
   checklistTitle: 'Buyer checklist',
   checklist: [
     'I have a mortgage pre-approval and a budget that includes closing costs',
-    'I have chosen a lawyer or notary',
+    'I have chosen a real estate lawyer',
     'I have viewed the home and asked my questions',
     'The seller’s name is on the title',
-    'I have booked a licensed home inspector',
-    'My offer goes through my lawyer or notary, with the subjects I need',
-    'My deposit goes only into a lawyer’s or notary’s trust account',
+    'I have booked a home inspector',
+    'My offer goes through my lawyer, with the conditions I need',
+    'My deposit goes only into a lawyer’s trust account',
   ],
   cta: {
     title: 'Find a home sold by its owner',
