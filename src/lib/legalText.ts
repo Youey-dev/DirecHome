@@ -15,10 +15,9 @@ export const CONTRACT_NOTICE =
   'OwnersMarket does not provide, draft or review contracts.';
 
 /**
- * TODO(founder): replace with your Supabase project's region.
- * Find it in Supabase -> Project Settings -> General ("Region"), or in the
- * database host shown under Project Settings -> Database.
+ * Where the Supabase project is hosted. Confirmed Oct 15, 2026: project "Directhome",
+ * region us-west-2 (Oregon). Update this if the project ever moves.
  */
 export const SUPABASE_REGION = 'United States (US West)';
 
-export const PRIVACY_VERSION = '2026-10-14';
+export const PRIVACY_VERSION = '2026-10-15';

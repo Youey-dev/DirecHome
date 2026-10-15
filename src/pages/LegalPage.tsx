@@ -301,7 +301,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               Privacy Policy
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Applies across Canada · Last updated: October 14, 2026
+              Applies across Canada · Last updated: October 15, 2026
             </p>
           </div>
 
@@ -326,6 +326,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Saved homes, reports</strong> you file about listings, and the <strong>notifications</strong> we show you.</li>
               <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by OwnersMarket.</strong></li>
               <li><strong>Technical information:</strong> our hosting and sign-in providers automatically log technical data such as IP address, browser type and sign-in times, for security and to keep the site working.</li>
+              <li><strong>Bot check:</strong> when you create an account, sign in or reset your password, Cloudflare Turnstile checks that you are a person and not an automated program. To do this, Cloudflare receives technical information from your browser and device, such as your IP address and browser characteristics. It is used only for security, never for advertising.</li>
               <li><strong>On your device:</strong> your browser stores your sign-in session, an unfinished listing draft, and your cookie and email preferences. We do not use advertising or analytics trackers.</li>
             </ul>
             <p className="text-xs text-slate-600">
@@ -340,6 +341,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li>To review listings for spam, scams and inappropriate content, and to handle reports.</li>
               <li>To bill sellers the monthly listing fee and keep the required financial records.</li>
               <li>To send account emails you need, such as sign-up confirmation and password resets.</li>
+              <li>To protect the site and its users from bots, spam, fake accounts and fraud.</li>
             </ul>
           </section>
 
@@ -350,6 +352,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Supabase</strong> stores our database, files and sign-in system (account data, listings, photos, messages).</li>
               <li><strong>Stripe</strong> processes listing-fee payments.</li>
               <li><strong>Netlify</strong> hosts the website.</li>
+              <li><strong>Cloudflare</strong> runs the Turnstile bot check on the sign-in, sign-up and password-reset forms.</li>
               <li><strong>The Government of British Columbia's address service</strong> (geocoder.api.gov.bc.ca) receives the address you type when creating a BC listing, to place it on the map.</li>
               <li><strong>OpenStreetMap's Nominatim address service</strong> (nominatim.openstreetmap.org) receives the address you type when creating a listing outside BC, or when the BC service cannot find it, to place it on the map.</li>
               <li><strong>OpenStreetMap</strong> map servers deliver the map images and receive your IP address when a map loads.</li>
@@ -362,7 +365,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">4. Where your data is stored</h2>
             <p>
-              Account data, listings, photos and messages are stored with <strong>Supabase</strong> (data region: <strong>{SUPABASE_REGION}</strong>). Payments are processed by <strong>Stripe</strong>, and the website is hosted by <strong>Netlify</strong>.
+              Account data, listings, photos and messages are stored with <strong>Supabase</strong> (data region: <strong>{SUPABASE_REGION}</strong>). Payments are processed by <strong>Stripe</strong>, the website is hosted by <strong>Netlify</strong>, and the bot check is run by <strong>Cloudflare</strong>.
             </p>
             <p>
               <strong>This data may be stored or processed outside Canada, including in the United States, and may be subject to the laws of those countries</strong>, which may allow governments, courts or law enforcement there to access it.
