@@ -23,6 +23,13 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ 
 type DashboardIntent = { tab: 'listings' | 'viewings' | 'messages'; threadId?: string; nonce: number };
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
+const GuideRoute = lazy(() =>
+  Promise.all([import('./pages/GuidePage'), import('./data/guides')]).then(([page, data]) => ({
+    default: ({ tab, onNavigate }: { tab: string; onNavigate: (tab: string) => void }) => (
+      <page.GuidePage guide={tab === 'guide-buying' ? data.BUYER_GUIDE : data.SELLER_GUIDE} onNavigate={onNavigate} />
+    ),
+  })),
+);
 
 // ---------------------------------------------------------------------------
 // Real page addresses (so links can be shared and the back button works)
@@ -41,6 +48,8 @@ const TAB_PATHS: Record<string, string> = {
   cashback: '/cashback',
   notifications: '/notifications',
   calculator: '/calculator',
+  'guide-selling': '/guides/selling-your-home',
+  'guide-buying': '/guides/buying-a-home',
 };
 
 const TAB_TITLES: Record<string, string> = {
@@ -57,6 +66,8 @@ const TAB_TITLES: Record<string, string> = {
   cashback: 'Cash-Back Policy · OwnersMarket',
   notifications: 'Notification Preferences · OwnersMarket',
   calculator: 'Savings estimator · OwnersMarket',
+  'guide-selling': 'How to sell your home yourself in Canada · OwnersMarket',
+  'guide-buying': 'How to buy a home sold by owner in Canada · OwnersMarket',
 };
 
 function parsePath(pathname: string): { tab: string; listingId: string | null } {
@@ -351,6 +362,10 @@ function MainApp() {
             ))}
 
           {currentTab === 'how-it-works' && <HowItWorksPage onNavigate={handleNavigate} />}
+
+          {(currentTab === 'guide-selling' || currentTab === 'guide-buying') && (
+            <GuideRoute key={currentTab} tab={currentTab} onNavigate={handleNavigate} />
+          )}
 
           {['terms', 'privacy', 'rules', 'cashback', 'notifications'].includes(currentTab) && (
             <LegalPage initialTab={currentTab as any} activeUser={activeUser} onNavigate={handleNavigate} />

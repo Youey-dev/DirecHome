@@ -355,6 +355,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
+      {/* Guides */}
+      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 flex flex-col gap-8">
+        <h2 className="font-display font-bold text-[40px] sm:text-[46px] leading-none text-slate-900 max-w-[18em]">
+          Free step-by-step guides
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[
+            {
+              tab: 'guide-selling',
+              title: 'How to sell your home yourself in Canada',
+              text: 'Nine steps from pricing research and paperwork to safe viewings, offers and handing over the keys.',
+            },
+            {
+              tab: 'guide-buying',
+              title: 'How to buy a home sold by owner in Canada',
+              text: 'Eight steps from pre-approval to moving in, including how to check the title and keep your deposit safe.',
+            },
+          ].map((g) => (
+            <button
+              key={g.tab}
+              onClick={() => onNavigate(g.tab)}
+              className="text-left rounded-[10px] border border-slate-200 hover:border-emerald-700 bg-white p-6 sm:p-7 flex flex-col gap-2.5 cursor-pointer transition-colors"
+            >
+              <span className="font-display font-bold text-[28px] leading-none text-slate-900">{g.title}</span>
+              <span className="text-base leading-relaxed text-slate-700">{g.text}</span>
+              <span className="mt-1 font-semibold text-base text-emerald-700 underline underline-offset-4">Read the guide</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Final call to action */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-20 sm:py-24 flex flex-col md:flex-row md:items-center gap-6">
         <h2 className="flex-1 font-display font-bold text-[48px] sm:text-[60px] leading-[0.98] text-slate-900">
