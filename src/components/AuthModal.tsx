@@ -92,7 +92,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         if (res.needsEmailConfirmation) {
           setSuccessMsg('Check your email');
         } else {
-          setSuccessMsg('Welcome to DirectHome Canada. Your account is ready.');
+          setSuccessMsg('Welcome to OwnersMarket. Your account is ready.');
           setTimeout(() => {
             onClose();
             onSuccess?.();
@@ -115,12 +115,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-              <Building2 className="w-4 h-4" />
-            </div>
+            <img src="/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
             <div>
-              <span className="font-bold text-slate-900 text-base leading-none block">
-                DirectHome<span className="text-emerald-700">BC</span>
+              <span className="font-display font-bold text-slate-900 text-[22px] leading-none block">
+                OwnersMarket
               </span>
               <span className="text-[10px] text-slate-400 font-medium">Homes for sale by owner across Canada</span>
             </div>
@@ -354,7 +352,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <span>{mode === 'signin' ? 'Sign In to DirectHome' : mode === 'signup' ? 'Create My Account' : 'Send reset link'}</span>
+                    <span>{mode === 'signin' ? 'Sign In to OwnersMarket' : mode === 'signup' ? 'Create My Account' : 'Send reset link'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

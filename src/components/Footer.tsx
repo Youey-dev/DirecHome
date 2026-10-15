@@ -21,10 +21,10 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               <span className="w-11 h-11 rounded-md bg-white flex items-center justify-center shrink-0">
                 <img src="/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
               </span>
-              <span className="font-display font-bold text-[28px] leading-none text-white">DirectHome Canada</span>
+              <span className="font-display font-bold text-[28px] leading-none text-white">OwnersMarket</span>
             </div>
             <p className="leading-relaxed max-w-[36em]">
-              DirectHome is an advertising platform, not a real estate brokerage, and does not give real estate advice. Every listing is reviewed before publishing; ownership is not verified. Buyers and sellers should talk to their own lawyer or notary before signing anything.
+              OwnersMarket is an advertising platform, not a real estate brokerage, and does not give real estate advice. Every listing is reviewed before publishing; ownership is not verified. Buyers and sellers should talk to their own lawyer or notary before signing anything.
             </p>
             <p className="leading-relaxed max-w-[36em]">
               No commission. A flat $25 a month per active listing. Exact addresses stay private until the owner confirms a viewing.
@@ -53,7 +53,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
         </div>
 
         <div className="mt-12 pt-6 border-t border-slate-700 text-xs text-slate-400">
-          © {new Date().getFullYear()} DirectHome Canada. Made in British Columbia.
+          © {new Date().getFullYear()} OwnersMarket. Made in British Columbia.
         </div>
       </div>
     </footer>

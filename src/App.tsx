@@ -44,19 +44,19 @@ const TAB_PATHS: Record<string, string> = {
 };
 
 const TAB_TITLES: Record<string, string> = {
-  landing: 'DirectHome Canada · Sell your home yourself, no commission',
-  browse: 'Browse homes for sale by owner · DirectHome Canada',
-  wizard: 'List your home · DirectHome Canada',
-  dashboard: 'Your dashboard · DirectHome Canada',
-  admin: 'Admin · DirectHome Canada',
-  saved: 'Saved homes · DirectHome Canada',
-  'how-it-works': 'How it works · DirectHome Canada',
-  terms: 'Terms of Use · DirectHome Canada',
-  privacy: 'Privacy Policy · DirectHome Canada',
-  rules: 'Listing Rules · DirectHome Canada',
-  cashback: 'Cash-Back Policy · DirectHome Canada',
-  notifications: 'Notification Preferences · DirectHome Canada',
-  calculator: 'Savings estimator · DirectHome Canada',
+  landing: 'OwnersMarket · Sell your home yourself, no commission',
+  browse: 'Browse homes for sale by owner · OwnersMarket',
+  wizard: 'List your home · OwnersMarket',
+  dashboard: 'Your dashboard · OwnersMarket',
+  admin: 'Admin · OwnersMarket',
+  saved: 'Saved homes · OwnersMarket',
+  'how-it-works': 'How it works · OwnersMarket',
+  terms: 'Terms of Use · OwnersMarket',
+  privacy: 'Privacy Policy · OwnersMarket',
+  rules: 'Listing Rules · OwnersMarket',
+  cashback: 'Cash-Back Policy · OwnersMarket',
+  notifications: 'Notification Preferences · OwnersMarket',
+  calculator: 'Savings estimator · OwnersMarket',
 };
 
 function parsePath(pathname: string): { tab: string; listingId: string | null } {
@@ -218,7 +218,7 @@ function MainApp() {
   const currentListing = selectedListingId ? db.getListingById(selectedListingId) : undefined;
 
   if (!isSupabaseConfigured) return <SetupNotice />;
-  if (initializing) return <Loading label="Loading DirectHome Canada…" />;
+  if (initializing) return <Loading label="Loading OwnersMarket…" />;
 
   const signedIn = !isGuestUser(activeUser);
   const needsSignIn = (
@@ -334,7 +334,7 @@ function MainApp() {
             (activeUser.role === 'admin' ? (
               <AdminPage activeUser={activeUser} onNavigate={handleNavigate} />
             ) : (
-              <Gate title="Restricted area" text="This page is only available to DirectHome administrators." />
+              <Gate title="Restricted area" text="This page is only available to OwnersMarket administrators." />
             ))}
 
           {currentTab === 'saved' &&

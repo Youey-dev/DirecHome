@@ -67,11 +67,11 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={() => handleNav('landing')}
           className="flex items-center gap-2 cursor-pointer shrink-0 text-left"
-          aria-label="DirectHome Canada home"
+          aria-label="OwnersMarket home"
         >
           <img src="/logo.png" alt="" width={40} height={40} className="w-10 h-10 -my-1" />
           <span className="font-display font-bold text-slate-900 text-[26px] leading-none">
-            DirectHome Canada
+            OwnersMarket
           </span>
         </button>
 
@@ -341,7 +341,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Building2 className="w-5 h-5 text-slate-400" />
-            <span>How DirectHome Works</span>
+            <span>How OwnersMarket Works</span>
           </button>
 
           <button

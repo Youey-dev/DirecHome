@@ -384,7 +384,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const handleFinalSubmit = async () => {
     if (submitting) return;
     if (!termsAccepted) {
-      setValidationError('Please accept the DirectHome Terms of Use and Privacy Policy to submit your listing.');
+      setValidationError('Please accept the OwnersMarket Terms of Use and Privacy Policy to submit your listing.');
       return;
     }
 
@@ -1023,7 +1023,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span>Optional: Offer a Buyer Cash-Back</span>
               </div>
               <p className="text-xs text-emerald-950/90 leading-relaxed">
-                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. DirectHome charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
+                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. OwnersMarket charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
               </p>
             </div>
 
@@ -1131,10 +1131,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-3 leading-relaxed">
               <div className="font-bold text-slate-900 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>DirectHome Legal Declaration & Representation</span>
+                <span>OwnersMarket Legal Declaration & Representation</span>
               </div>
               <p className="text-slate-600">
-                You confirm that you are the owner of this property or are legally authorized by the owner to advertise it for sale, that all information and photos are accurate, and that you are solely responsible for this listing. DirectHome does not verify property ownership, is an advertising marketplace only, and is not a licensed real estate brokerage.
+                You confirm that you are the owner of this property or are legally authorized by the owner to advertise it for sale, that all information and photos are accurate, and that you are solely responsible for this listing. OwnersMarket does not verify property ownership, is an advertising marketplace only, and is not a licensed real estate brokerage.
               </p>
 
               {/* Mandatory Acceptance Checkbox */}

@@ -71,7 +71,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `DirectHome_Data_Export_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `OwnersMarket_Data_Export_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -217,9 +217,9 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">1. What DirectHome is</h2>
+            <h2 className="text-base font-bold text-slate-900">1. What OwnersMarket is</h2>
             <p>
-              DirectHome is an online advertising service. Property owners in every Canadian province and territory except Quebec pay a flat fee to advertise their own homes for sale, and buyers can browse those ads and contact owners directly. DirectHome Canada ("DirectHome", "we", "us") is operated from British Columbia. DirectHome:
+              OwnersMarket is an online advertising service. Property owners in every Canadian province and territory except Quebec pay a flat fee to advertise their own homes for sale, and buyers can browse those ads and contact owners directly. OwnersMarket ("we", "us") is operated from British Columbia. OwnersMarket:
             </p>
             <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
               <li>Is <strong>NOT</strong> a real estate brokerage and is not licensed or registered to provide real estate services in any province or territory, including under British Columbia's <em>Real Estate Services Act</em>, Alberta's <em>Real Estate Act</em>, Ontario's <em>Trust in Real Estate Services Act, 2002</em>, or Quebec's <em>Real Estate Brokerage Act</em>.</li>
@@ -227,7 +227,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li>Does <strong>NOT</strong> provide real estate trading services, price valuations, appraisals, marketing advice, or negotiation assistance.</li>
               <li>Does <strong>NOT</strong> present, receive or negotiate offers on anyone's behalf.</li>
               <li>Does <strong>NOT</strong> provide, draft, review or fill in contracts or contract forms, and does <strong>NOT</strong> hold deposits or any other money for buyers or sellers.</li>
-              <li>Charges a flat advertising fee that does <strong>not</strong> depend on whether a property sells or on its sale price. DirectHome receives no commission, referral fee or other payment connected to any sale.</li>
+              <li>Charges a flat advertising fee that does <strong>not</strong> depend on whether a property sells or on its sale price. OwnersMarket receives no commission, referral fee or other payment connected to any sale.</li>
             </ul>
           </section>
 
@@ -235,7 +235,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <h2 className="text-base font-bold text-slate-900">2. Cash-Back Offer Terms & Conditions</h2>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2">
               <p>
-                <strong>Seller's Offer, Not a Platform Guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. DirectHome does not fund, pay, or guarantee cash-back payments.
+                <strong>Seller's Offer, Not a Platform Guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. OwnersMarket does not fund, pay, or guarantee cash-back payments.
               </p>
               <p>
                 <strong>Written Into the Contract by Your Lawyer or Notary:</strong> For a cash-back offer to take effect, it must be included in the purchase contract. {CONTRACT_NOTICE}
@@ -249,10 +249,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">3. Seller Representations; No Ownership Verification</h2>
             <p>
-              By submitting a listing, the seller represents and warrants that they are the registered owner of the property, or are legally authorized by all registered owners to advertise it for sale, and that the listing is accurate. <strong>DirectHome does not verify property ownership, title, or the seller's authority to sell.</strong>
+              By submitting a listing, the seller represents and warrants that they are the registered owner of the property, or are legally authorized by all registered owners to advertise it for sale, and that the listing is accurate. <strong>OwnersMarket does not verify property ownership, title, or the seller's authority to sell.</strong>
             </p>
             <p className="text-xs text-slate-600">
-              DirectHome reviews listings only for spam, scams and inappropriate content before they can be published; this review is not a check of ownership or title. Buyers are responsible for confirming who the registered owner is (for example, through a search at the land titles or land registry office in the property's province or territory) and should use their own lawyer, or a notary in provinces where notaries handle real estate, before signing any agreement or paying any money. Sellers are solely responsible for their listings and agree to indemnify DirectHome for claims arising from inaccurate or unauthorized listings.
+              OwnersMarket reviews listings only for spam, scams and inappropriate content before they can be published; this review is not a check of ownership or title. Buyers are responsible for confirming who the registered owner is (for example, through a search at the land titles or land registry office in the property's province or territory) and should use their own lawyer, or a notary in provinces where notaries handle real estate, before signing any agreement or paying any money. Sellers are solely responsible for their listings and agree to indemnify OwnersMarket for claims arising from inaccurate or unauthorized listings.
             </p>
           </section>
 
@@ -266,21 +266,21 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">5. Limitation of Liability</h2>
             <p className="text-xs text-slate-500 leading-relaxed">
-              DirectHome makes no warranties regarding the accuracy of seller-submitted descriptions, measurements, property conditions, or zoning compliance. Buyers are solely responsible for arranging independent building inspections, reviewing any seller disclosures, confirming zoning and permits with the local municipality, and verifying title.
+              OwnersMarket makes no warranties regarding the accuracy of seller-submitted descriptions, measurements, property conditions, or zoning compliance. Buyers are solely responsible for arranging independent building inspections, reviewing any seller disclosures, confirming zoning and permits with the local municipality, and verifying title.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">6. Fees</h2>
             <p>
-              DirectHome charges no commission. Sellers pay a flat listing fee of $25 CAD per month for each active listing, billed through Stripe, until cancelled. Any savings figures shown on the site are estimates only and use an example commission rate; actual commissions are negotiable and vary by brokerage.
+              OwnersMarket charges no commission. Sellers pay a flat listing fee of $25 CAD per month for each active listing, billed through Stripe, until cancelled. Any savings figures shown on the site are estimates only and use an example commission rate; actual commissions are negotiable and vary by brokerage.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">7. Where DirectHome is available</h2>
+            <h2 className="text-base font-bold text-slate-900">7. Where OwnersMarket is available</h2>
             <p>
-              DirectHome does not currently accept listings for properties in Quebec. We plan to open in Quebec once our site and terms are available in French. Any Quebec listing submitted in the meantime will be declined.
+              OwnersMarket does not currently accept listings for properties in Quebec. We plan to open in Quebec once our site and terms are available in French. Any Quebec listing submitted in the meantime will be declined.
             </p>
           </section>
 
@@ -311,7 +311,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>Which privacy laws apply</span>
             </div>
             <p>
-              DirectHome serves people across Canada. Our handling of personal information is governed by Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) and, where they apply, by British Columbia's and Alberta's <em>Personal Information Protection Act</em>s and Quebec's <em>Act respecting the protection of personal information in the private sector</em> (as updated by Law 25). We follow the same privacy practices for every user, wherever they live in Canada. Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) also applies when personal information is transferred across provincial or national borders, including to the service providers described below.
+              OwnersMarket serves people across Canada. Our handling of personal information is governed by Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) and, where they apply, by British Columbia's and Alberta's <em>Personal Information Protection Act</em>s and Quebec's <em>Act respecting the protection of personal information in the private sector</em> (as updated by Law 25). We follow the same privacy practices for every user, wherever they live in Canada. Canada's federal <em>Personal Information Protection and Electronic Documents Act</em> (PIPEDA) also applies when personal information is transferred across provincial or national borders, including to the service providers described below.
             </p>
           </div>
 
@@ -324,7 +324,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Viewing requests:</strong> the requesting buyer's name, email, phone number, preferred date and time, and any note.</li>
               <li><strong>Messages</strong> sent between buyers and sellers on the site.</li>
               <li><strong>Saved homes, reports</strong> you file about listings, and the <strong>notifications</strong> we show you.</li>
-              <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by DirectHome.</strong></li>
+              <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by OwnersMarket.</strong></li>
               <li><strong>Technical information:</strong> our hosting and sign-in providers automatically log technical data such as IP address, browser type and sign-in times, for security and to keep the site working.</li>
               <li><strong>On your device:</strong> your browser stores your sign-in session, an unfinished listing draft, and your cookie and email preferences. We do not use advertising or analytics trackers.</li>
             </ul>
@@ -447,7 +447,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-2 pt-2">
             <h2 className="text-base font-bold text-slate-900">8. Contact our privacy officer</h2>
             <p className="text-xs text-slate-600">
-              For privacy questions, access or correction requests, or complaints, contact our privacy officer at <code>privacy@directhome.ca</code>. If you are not satisfied with our response, you can complain to the Office of the Privacy Commissioner of Canada (priv.gc.ca). If you live in British Columbia, Alberta or Quebec, you can also contact your provincial privacy regulator: the Office of the Information and Privacy Commissioner for British Columbia, the Office of the Information and Privacy Commissioner of Alberta, or the Commission d'accès à l'information du Québec.
+              For privacy questions, access or correction requests, or complaints, contact our privacy officer at <code>privacy@ownersmarket.ca</code>. If you are not satisfied with our response, you can complain to the Office of the Privacy Commissioner of Canada (priv.gc.ca). If you live in British Columbia, Alberta or Quebec, you can also contact your provincial privacy regulator: the Office of the Information and Privacy Commissioner for British Columbia, the Office of the Information and Privacy Commissioner of Alberta, or the Commission d'accès à l'information du Québec.
             </p>
           </section>
         </article>
@@ -475,14 +475,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">2. Respectful Direct Communication</h2>
             <p>
-              DirectHome connects real community members. All in-app messages and viewing interactions must be respectful, civil, and free of harassment. Unsolicited commercial solicitation by licensed agents or mortgage originators is strictly prohibited and subject to immediate account suspension.
+              OwnersMarket connects real community members. All in-app messages and viewing interactions must be respectful, civil, and free of harassment. Unsolicited commercial solicitation by licensed agents or mortgage originators is strictly prohibited and subject to immediate account suspension.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">3. Zero Tolerance for Scams or Off-Platform Deposits</h2>
             <p>
-              Never wire money, send an e-Transfer or pay a deposit directly to a stranger. Deposits should be paid only into the trust account of a lawyer, or of a notary in provinces where notaries handle real estate, as set out in the purchase contract. DirectHome never asks for, holds or handles deposits or any other money between buyers and sellers.
+              Never wire money, send an e-Transfer or pay a deposit directly to a stranger. Deposits should be paid only into the trust account of a lawyer, or of a notary in provinces where notaries handle real estate, as set out in the purchase contract. OwnersMarket never asks for, holds or handles deposits or any other money between buyers and sellers.
             </p>
           </section>
         </article>
@@ -506,7 +506,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>The Basics</span>
             </div>
             <p>
-              DirectHome charges no commission — sellers pay a flat $25/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
+              OwnersMarket charges no commission — sellers pay a flat $25/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
             </p>
           </div>
 
@@ -532,7 +532,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">Legal Boundary Notice</h2>
             <p className="text-xs text-slate-600">
-              DirectHome is not a party to the purchase contract, does not provide, draft or review contracts, does not hold deposit trust monies, and does not fund, pay or guarantee cash-back payments. Any cash-back is a commitment made directly between the seller and buyer.
+              OwnersMarket is not a party to the purchase contract, does not provide, draft or review contracts, does not hold deposit trust monies, and does not fund, pay or guarantee cash-back payments. Any cash-back is a commitment made directly between the seller and buyer.
             </p>
           </section>
         </article>
@@ -556,7 +556,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <span>Strict Zero-Spam Policy (CASL Standard)</span>
             </div>
             <p>
-              DirectHome only sends transactional emails necessary for servicing your viewing requests, buyer messages, and listing review notifications. <strong>We never send marketing or promotional emails without your explicit, voluntary opt-in consent.</strong>
+              OwnersMarket only sends transactional emails necessary for servicing your viewing requests, buyer messages, and listing review notifications. <strong>We never send marketing or promotional emails without your explicit, voluntary opt-in consent.</strong>
             </p>
           </div>
 
@@ -585,7 +585,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <div>
                 <div className="font-semibold text-slate-900 text-sm">Product News & Feature Announcements</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Optional updates about new seller tools, savings estimators and DirectHome news across Canada.
+                  Optional updates about new seller tools, savings estimators and OwnersMarket news across Canada.
                 </div>
               </div>
               <input

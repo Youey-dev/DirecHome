@@ -1,5 +1,5 @@
 /**
- * Core type definitions for DirectHome Canada marketplace
+ * Core type definitions for OwnersMarket marketplace
  */
 
 export type PropertyType = 

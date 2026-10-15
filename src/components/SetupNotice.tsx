@@ -4,7 +4,7 @@ import React from 'react';
 export const SetupNotice: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
     <div className="max-w-lg rounded-2xl bg-white p-8 shadow-lg border border-slate-200">
-      <h1 className="text-xl font-bold text-slate-900">DirectHome Canada is not connected yet</h1>
+      <h1 className="text-xl font-bold text-slate-900">OwnersMarket is not connected yet</h1>
       <p className="mt-3 text-sm text-slate-600">
         The site could not find its database settings. In your hosting dashboard (Netlify or Vercel), add these two
         environment variables and redeploy:

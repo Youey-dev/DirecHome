@@ -67,7 +67,7 @@ const YardSign: React.FC = () => (
       <div className="bg-white border-[5px] border-emerald-700 rounded p-3.5 flex flex-col gap-1.5">
         <span className="font-display font-bold text-[34px] leading-[0.92] text-emerald-700">For sale by owner</span>
         <span className="text-[13px] leading-snug font-semibold text-slate-900">Message me to book a viewing</span>
-        <span className="text-[11px] text-slate-700">DirectHome Canada</span>
+        <span className="text-[11px] text-slate-700">OwnersMarket</span>
       </div>
       <div className="flex justify-between px-5 h-2.5">
         <span className="w-0.5 h-full bg-slate-900" />
@@ -147,7 +147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
           </div>
           <p className="text-sm text-slate-600">
-            Every listing is reviewed before it goes live. DirectHome is an advertising site, not a brokerage.
+            Every listing is reviewed before it goes live. OwnersMarket is an advertising site, not a brokerage.
           </p>
         </div>
 
@@ -317,7 +317,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </span>
           </div>
           <div className="flex justify-between items-baseline gap-4 border-b border-slate-700 pb-4">
-            <span className="text-base text-slate-300">DirectHome, listed for {EXAMPLE_MONTHS} months</span>
+            <span className="text-base text-slate-300">OwnersMarket, listed for {EXAMPLE_MONTHS} months</span>
             <span className="font-display font-semibold text-[34px]">{formatCAD(exampleFees)}</span>
           </div>
           <div className="flex justify-between items-baseline gap-4">

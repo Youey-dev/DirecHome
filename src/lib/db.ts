@@ -1,5 +1,5 @@
 /**
- * DirectHome Canada — data layer (Supabase)
+ * OwnersMarket — data layer (Supabase)
  *
  * Replaces the old browser-only localStorage store. Everything a person is allowed
  * to see is loaded from Supabase into a small in-memory cache that the pages read

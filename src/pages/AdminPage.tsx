@@ -97,13 +97,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-700">
             <ShieldCheck className="w-4 h-4" />
-            <span>DirectHome Compliance Portal</span>
+            <span>OwnersMarket Compliance Portal</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
             Listing Review & Moderation
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Quick content review before a listing can be activated. DirectHome does not verify property ownership.
+            Quick content review before a listing can be activated. OwnersMarket does not verify property ownership.
           </p>
         </div>
 

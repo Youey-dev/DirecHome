@@ -10,7 +10,7 @@
  * Figures are realistic estimates for illustrative comparison only.
  */
 
-/** DirectHome charges no commission; the listing fee is a flat monthly amount per active listing. */
+/** OwnersMarket charges no commission; the listing fee is a flat monthly amount per active listing. */
 export const LISTING_FEE_CAD_PER_MONTH = 25;
 
 export interface CommissionBreakdown {
