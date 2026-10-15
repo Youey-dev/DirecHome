@@ -1,5 +1,5 @@
 /**
- * Lawyer-approved wording that must appear word-for-word in several places.
+ * Shared legal wording that must appear word-for-word in several places.
  * Change it here only, so every page stays identical.
  */
 export const CASHBACK_LENDER_NOTICE =
@@ -21,4 +21,4 @@ export const CONTRACT_NOTICE =
  */
 export const SUPABASE_REGION = 'United States (US West)';
 
-export const PRIVACY_VERSION = '2026-v1.1-draft';
+export const PRIVACY_VERSION = '2026-10-14';

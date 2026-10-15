@@ -1,6 +1,6 @@
 /**
  * Security & Input Sanitization Utilities
- * DirectHome BC - Fraser Valley & Lower Mainland Marketplace
+ * DirectHome Canada - Canada-wide marketplace
  * 
  * Provides defense-in-depth against:
  * - Cross-Site Scripting (XSS): HTML entity escaping, tag stripping

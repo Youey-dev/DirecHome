@@ -1,5 +1,5 @@
 /**
- * Core type definitions for DirectHome BC marketplace
+ * Core type definitions for DirectHome Canada marketplace
  */
 
 export type PropertyType = 

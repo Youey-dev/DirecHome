@@ -1014,7 +1014,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span>Optional: Offer a Buyer Cash-Back</span>
               </div>
               <p className="text-xs text-emerald-950/90 leading-relaxed">
-                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. DirectHome charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer.
+                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. DirectHome charges no commission, just a flat $25/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
               </p>
             </div>
 

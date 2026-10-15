@@ -198,7 +198,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           <div className="flex items-start gap-2.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
             <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
             <p>
-              <strong>Example commission rate used for this estimate:</strong> 7% on the first $100k + 2.5% on the balance + 5% GST. This is an example only, not a standard or required rate. Commissions in Canada are negotiable, vary by brokerage and province, and are not set by law. Provinces with HST pay more tax than this example shows.
+              <strong>Example commission rate used for this estimate:</strong> 7% on the first $100k + 2.5% on the balance + 5% GST. This is an example only, not a standard or required rate. Commissions in Canada are negotiable, vary by brokerage and province, and are not set by law. Provinces with HST pay more tax than this example shows. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
             </p>
           </div>
         </div>
