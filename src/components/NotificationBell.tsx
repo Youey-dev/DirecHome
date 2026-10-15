@@ -35,6 +35,7 @@ export const notificationIcon = (type: string) => {
     case 'listing_rejected':
       return <FileWarning className="w-4 h-4 text-amber-600" />;
     case 'listing_in_review':
+    case 'listing_rereview':
       return <ShieldCheck className="w-4 h-4 text-violet-600" />;
     case 'new_report':
       return <Flag className="w-4 h-4 text-rose-600" />;
