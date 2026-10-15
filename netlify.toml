@@ -1,7 +1,8 @@
-# Netlify settings for DirectHome BC
+# Netlify settings for OwnersMarket
 
 [build]
-  command = "npm run build"
+  # Writes the public database address for the link-preview edge functions, then builds the site
+  command = "node scripts/write-edge-config.mjs && npm run build"
   publish = "dist"
 
 [build.environment]
