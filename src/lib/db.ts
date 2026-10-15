@@ -307,13 +307,7 @@ class DataStore {
     const me = this.user;
     const signedIn = !isGuestUser(me);
 
-    const listingRes = await supabase
-      .from('listings')
-      .select(`${LISTING_COLUMNS}, listing_photos(*)`)
-      .order('created_at', { ascending: false })
-      .limit(500);
-    if (listingRes.error) throw listingRes.error;
-    const listingRows: Row[] = listingRes.data ?? [];
+    const listingRows = await this.loadListings(me, signedIn);
 
     let privates: Row[] = [];
     let viewingRows: Row[] = [];
@@ -486,6 +480,51 @@ class DataStore {
     this.loaded = true;
     this.loadError = null;
     this.notify();
+  }
+
+  /**
+   * Loads every listing this person needs, without the old 500-listing cap:
+   *  - all public listings (live), page by page;
+   *  - all of the person's own listings, whatever their status (drafts, in review, sold...);
+   *  - for admins, every listing waiting for review.
+   * Merged by id, newest first.
+   */
+  private async loadListings(me: UserProfile, signedIn: boolean): Promise<Row[]> {
+    const select = `${LISTING_COLUMNS}, listing_photos(*)`;
+    const PAGE = 500;
+    const MAX_PUBLIC = 10_000; // a safety stop; past this, browsing needs server-side search
+
+    const loadPublic = async (): Promise<Row[]> => {
+      const rows: Row[] = [];
+      for (let from = 0; from < MAX_PUBLIC; from += PAGE) {
+        const { data, error } = await supabase
+          .from('listings')
+          .select(select)
+          .eq('status', 'live')
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        rows.push(...((data as Row[]) ?? []));
+        if (!data || data.length < PAGE) break;
+      }
+      return rows;
+    };
+    const loadWhere = async (column: string, value: string): Promise<Row[]> => {
+      const { data, error } = await supabase.from('listings').select(select).eq(column, value).limit(1000);
+      if (error) throw error;
+      return (data as Row[]) ?? [];
+    };
+
+    const [publicRows, ownRows, queueRows] = await Promise.all([
+      loadPublic(),
+      signedIn ? loadWhere('user_id', me.id) : Promise.resolve([] as Row[]),
+      signedIn && me.role === 'admin' ? loadWhere('status', 'in_review') : Promise.resolve([] as Row[]),
+    ]);
+
+    const byId = new Map<string, Row>();
+    for (const row of [...publicRows, ...ownRows, ...queueRows]) byId.set(row.id, row);
+    return [...byId.values()].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
   }
 
   private addressLine(l: Listing): string {
@@ -986,6 +1025,46 @@ class DataStore {
   }
 
   // ---------------------------------------------------------------------------
+  // Email preferences (CASL): saved on the profile with the date they changed
+  // ---------------------------------------------------------------------------
+  private static readonly LEGACY_PREFS_KEY = 'directhome_casl_prefs_v1';
+
+  async getEmailPreferences(): Promise<{ marketing: boolean; digest: boolean }> {
+    const me = this.requireUser();
+    const { data, error } = await supabase
+      .from('users')
+      .select('email_marketing_opt_in, email_digest_opt_in')
+      .eq('id', me.id)
+      .maybeSingle();
+    if (!error && data) return { marketing: !!data.email_marketing_opt_in, digest: !!data.email_digest_opt_in };
+    // Before migration 012 the columns don't exist yet: fall back to what this device saved
+    try {
+      const raw = JSON.parse(localStorage.getItem(DataStore.LEGACY_PREFS_KEY) ?? '{}');
+      return { marketing: !!raw.marketing, digest: !!raw.digest };
+    } catch {
+      return { marketing: false, digest: false };
+    }
+  }
+
+  /** Returns 'account' when saved to the profile, 'device' when only this browser could keep it. */
+  async saveEmailPreferences(prefs: { marketing: boolean; digest: boolean }): Promise<'account' | 'device'> {
+    const me = this.requireUser();
+    const { error } = await supabase
+      .from('users')
+      .update({ email_marketing_opt_in: prefs.marketing, email_digest_opt_in: prefs.digest })
+      .eq('id', me.id);
+    if (!error) {
+      try { localStorage.removeItem(DataStore.LEGACY_PREFS_KEY); } catch { /* ignore */ }
+      return 'account';
+    }
+    if (error.code !== '42703' && error.code !== 'PGRST204') fail(error, 'Your preferences could not be saved.');
+    try {
+      localStorage.setItem(DataStore.LEGACY_PREFS_KEY, JSON.stringify({ ...prefs, updatedAt: new Date().toISOString() }));
+    } catch { /* ignore */ }
+    return 'device';
+  }
+
+  // ---------------------------------------------------------------------------
   // Terms, privacy tools
   // ---------------------------------------------------------------------------
   async recordTerms(): Promise<void> {
@@ -1000,15 +1079,21 @@ class DataStore {
   async exportUserData(): Promise<Record<string, unknown>> {
     const me = this.requireUser();
     await this.refresh();
-    const profile = await supabase.from('users').select('*').eq('id', me.id).single();
+    const [profile, checklists] = await Promise.all([
+      supabase.from('users').select('*').eq('id', me.id).single(),
+      supabase.from('seller_checklists').select('listing_id, done, updated_at'),
+    ]);
     return {
       exportedAt: new Date().toISOString(),
+      // Includes your email preferences (marketing / digest) and when you last changed them
       profile: profile.data ?? null,
       listings: this.listings.filter((l) => l.userId === me.id),
+      sellerChecklists: checklists.data ?? [],
       viewingRequests: this.viewings,
       conversations: this.threads,
       notifications: this.notifications,
       savedListingIds: this.savedIds,
+      note: 'Reports you filed about listings are kept by our review team; email privacy@ownersmarket.ca to request a copy.',
     };
   }
 

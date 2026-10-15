@@ -25,6 +25,11 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains"
+    # What the site may load, and from where. Only these outside services are allowed:
+    # Supabase (data, photos, live updates), Cloudflare Turnstile (bot check), Google Fonts,
+    # OpenStreetMap or MapTiler map tiles, and the BC / OpenStreetMap address lookups.
+    # If you add a new outside service (analytics, chat widget...), add its address here.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.tile.openstreetmap.org https://api.maptiler.com; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co https://*.tile.openstreetmap.org https://api.maptiler.com https://geocoder.api.gov.bc.ca https://nominatim.openstreetmap.org https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 
 [[headers]]
   for = "/assets/*"

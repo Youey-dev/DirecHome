@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Scale, 
   ShieldCheck, 
@@ -47,16 +47,38 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   const [emailWeeklyDigest, setEmailWeeklyDigest] = useState(false);
   const [prefSavedMessage, setPrefSavedMessage] = useState(false);
 
-  const handleSavePreferences = (e: React.FormEvent) => {
+  const [prefError, setPrefError] = useState<string | null>(null);
+
+  // Load the saved choices for the signed-in person (they live on their profile)
+  useEffect(() => {
+    if (isGuestUser(activeUser)) return;
+    let cancelled = false;
+    db.getEmailPreferences()
+      .then((p) => {
+        if (cancelled) return;
+        setEmailMarketing(p.marketing);
+        setEmailWeeklyDigest(p.digest);
+      })
+      .catch(() => { /* keep the unticked defaults */ });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeUser.id]);
+
+  const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('directhome_casl_prefs_v1', JSON.stringify({
-      transactional: emailTransactional,
-      marketing: emailMarketing,
-      digest: emailWeeklyDigest,
-      updatedAt: new Date().toISOString()
-    }));
-    setPrefSavedMessage(true);
-    setTimeout(() => setPrefSavedMessage(false), 3000);
+    setPrefError(null);
+    if (isGuestUser(activeUser)) {
+      setPrefError('Please sign in to save your email preferences.');
+      return;
+    }
+    try {
+      await db.saveEmailPreferences({ marketing: emailMarketing, digest: emailWeeklyDigest });
+      setPrefSavedMessage(true);
+      setTimeout(() => setPrefSavedMessage(false), 3000);
+    } catch (err: any) {
+      setPrefError(err?.message || 'Your preferences could not be saved. Please try again.');
+    }
   };
 
   const handleExportData = async () => {
@@ -615,10 +637,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               />
             </div>
 
+            {prefError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl text-xs">{prefError}</div>
+            )}
+
             {prefSavedMessage && (
               <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>CASL notification preferences saved successfully!</span>
+                <span>Your email preferences are saved.</span>
               </div>
             )}
 
