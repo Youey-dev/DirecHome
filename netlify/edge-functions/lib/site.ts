@@ -17,8 +17,8 @@ const runtimeEnv = (name: string): string => {
     return '';
   }
 };
-const SUPABASE_URL = BUILD_URL || runtimeEnv('VITE_SUPABASE_URL');
-const SUPABASE_ANON_KEY = BUILD_KEY || runtimeEnv('VITE_SUPABASE_ANON_KEY');
+const SUPABASE_URL = (BUILD_URL || runtimeEnv('VITE_SUPABASE_URL')).trim().replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, ''); // same clean-up as src/lib/supabase.ts
+const SUPABASE_ANON_KEY = (BUILD_KEY || runtimeEnv('VITE_SUPABASE_ANON_KEY')).trim();
 
 export const SITE_URL = 'https://ownersmarket.ca';
 export const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
