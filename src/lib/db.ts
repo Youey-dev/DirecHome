@@ -47,6 +47,8 @@ export interface ListingSubmission {
   unitNumber?: string;
   postalCode: string;
   city: string;
+  /** Two-letter province or territory code, e.g. 'BC', 'ON'. */
+  province: string;
   neighborhood: string;
   lat: number;
   lng: number;
@@ -476,7 +478,7 @@ class DataStore {
       postalCode: priv?.postal_code ?? undefined,
       postalFsa: row.postal_fsa ?? undefined,
       city: row.city,
-      province: 'BC',
+      province: row.province ?? 'BC',
       neighborhood: row.neighborhood,
       lat: Number(row.lat),
       lng: Number(row.lng),
@@ -550,6 +552,7 @@ class DataStore {
     const fsa = input.postalCode.replace(/\s+/g, '').toUpperCase().slice(0, 3);
     const payload = {
       city: input.city,
+      province: input.province,
       neighborhood: input.neighborhood,
       postal_fsa: fsa,
       lat: input.lat,

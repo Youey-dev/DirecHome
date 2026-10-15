@@ -32,15 +32,16 @@ export const MapLibreMap: React.FC<MapLibreMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const fittedKeyRef = useRef<string>('');
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Default center: Fraser Valley / Lower Mainland, BC
+    // Default view: the single home, or all of Canada until the homes are fitted below
     const defaultCenter: [number, number] = singleListing
       ? [singleListing.lng, singleListing.lat]
-      : [-122.75, 49.15];
-    const defaultZoom = singleListing ? 13 : 9.8;
+      : [-96, 56];
+    const defaultZoom = singleListing ? 13 : 2.6;
 
     // Free OpenStreetMap Raster Tile Style for MapLibre (no paid API key required)
     const osmStyle: maplibregl.StyleSpecification = {
@@ -157,6 +158,20 @@ export const MapLibreMap: React.FC<MapLibreMapProps> = ({
 
       markersRef.current.push(marker);
     });
+
+    // Zoom to the homes being shown, only when that set changes (not on every selection)
+    const setKey = listings.map((l) => l.id).sort().join(',');
+    if (setKey !== fittedKeyRef.current) {
+      fittedKeyRef.current = setKey;
+      const points = listings.filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lng));
+      if (points.length === 1) {
+        map.jumpTo({ center: [points[0].lng, points[0].lat], zoom: 11 });
+      } else if (points.length > 1) {
+        const bounds = new maplibregl.LngLatBounds();
+        points.forEach((p) => bounds.extend([p.lng, p.lat]));
+        map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 0 });
+      }
+    }
   }, [listings, selectedListingId, approximateMode, singleListing, onSelectListing]);
 
   return (

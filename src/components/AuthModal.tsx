@@ -92,7 +92,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         if (res.needsEmailConfirmation) {
           setSuccessMsg('Check your email');
         } else {
-          setSuccessMsg('Welcome to DirectHome BC! Your account is ready.');
+          setSuccessMsg('Welcome to DirectHome Canada. Your account is ready.');
           setTimeout(() => {
             onClose();
             onSuccess?.();
@@ -122,7 +122,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <span className="font-bold text-slate-900 text-base leading-none block">
                 DirectHome<span className="text-emerald-700">BC</span>
               </span>
-              <span className="text-[10px] text-slate-400 font-medium">Fraser Valley & Lower Mainland</span>
+              <span className="text-[10px] text-slate-400 font-medium">Homes for sale by owner across Canada</span>
             </div>
           </div>
 

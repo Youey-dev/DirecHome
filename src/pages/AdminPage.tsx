@@ -97,7 +97,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-700">
             <ShieldCheck className="w-4 h-4" />
-            <span>DirectHome BC Compliance Portal</span>
+            <span>DirectHome Compliance Portal</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
             Listing Review & Moderation
@@ -169,7 +169,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                     <h3 className="text-lg font-bold text-slate-900">{listing.headline}</h3>
                     
                     <div className="text-xs text-slate-600">
-                      <strong>Address:</strong> {listing.streetAddress ?? '—'}{listing.unitNumber ? ` #${listing.unitNumber}` : ''}, {listing.city}, BC {listing.postalCode ?? ''}
+                      <strong>Address:</strong> {listing.streetAddress ?? '—'}{listing.unitNumber ? ` #${listing.unitNumber}` : ''}, {listing.city}, {listing.province} {listing.postalCode ?? ''}
                     </div>
 
                     <div className="text-xs text-slate-600">

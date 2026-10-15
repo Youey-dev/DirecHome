@@ -89,7 +89,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer min-h-[44px] py-1"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to all homes</span>
+          <span>Back to homes</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -124,14 +124,12 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         <div className="lg:col-span-8 space-y-8">
           
           {/* Title, Address & Price Header */}
-          <div className="space-y-2 border-b border-slate-200 pb-6">
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span className="font-semibold text-emerald-800">{listing.propertyType}</span>
-              <span aria-hidden="true">·</span>
-              <span>Built in {listing.yearBuilt}</span>
+          <div className="space-y-3">
+            <div className="font-display font-bold text-[52px] sm:text-[64px] leading-[0.95] text-slate-900 tabular-nums">
+              {formatCAD(listing.price)}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-2xl font-bold text-slate-900 leading-snug">
               {listing.headline}
             </h1>
 
@@ -140,26 +138,23 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
                 <span>
                   {hasApprovedViewing 
-                    ? `${listing.streetAddress}${listing.unitNumber ? ` #${listing.unitNumber}` : ''}, ${listing.neighborhood}, ${listing.city}, BC ${listing.postalCode ?? ''}`
-                    : `${listing.neighborhood}, ${listing.city}, BC ${listing.postalFsa ?? ''} ***`}
+                    ? `${listing.streetAddress}${listing.unitNumber ? ` #${listing.unitNumber}` : ''}, ${listing.neighborhood}, ${listing.city}, ${listing.province} ${listing.postalCode ?? ''}`
+                    : `${listing.neighborhood}, ${listing.city}, ${listing.province}`}
                 </span>
               </div>
 
               {hasApprovedViewing ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 w-fit">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 w-fit">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  Exact Civic Address Unlocked
+                  Exact address shared with you
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200 w-fit" title="Exact street number is unlocked upon seller viewing confirmation">
-                  <span>🔒 Civic number hidden until viewing confirmed</span>
+                <span className="text-sm text-slate-600">
+                  Exact address shared once a viewing is confirmed.
                 </span>
               )}
             </div>
 
-            <div className="pt-2 text-3xl sm:text-4xl font-extrabold text-slate-900 tabular-nums">
-              {formatCAD(listing.price)}
-            </div>
           </div>
 
           {/* Cash-Back Seller's Offer Explainer Banner */}
@@ -184,36 +179,24 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           )}
 
           {/* Key Facts Metric Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <div className="text-xs text-slate-500 font-medium">Bedrooms</div>
-              <div className="text-xl font-bold text-slate-900 mt-1 tabular-nums">{listing.bedrooms}</div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <div className="text-xs text-slate-500 font-medium">Bathrooms</div>
-              <div className="text-xl font-bold text-slate-900 mt-1 tabular-nums">{listing.bathrooms}</div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <div className="text-xs text-slate-500 font-medium">Interior Size</div>
-              <div className="text-xl font-bold text-slate-900 mt-1 tabular-nums">{listing.sqft.toLocaleString()} sqft</div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <div className="text-xs text-slate-500 font-medium">
-                {listing.lotAcres ? 'Lot Size (Acres)' : 'Lot Size (SqFt)'}
+          <dl className="grid grid-cols-2 sm:grid-cols-4 border-y border-slate-300">
+            {[
+              { label: 'Bedrooms', value: String(listing.bedrooms) },
+              { label: 'Bathrooms', value: String(listing.bathrooms) },
+              { label: 'Square feet', value: listing.sqft.toLocaleString() },
+              { label: 'Built', value: String(listing.yearBuilt) },
+            ].map((fact) => (
+              <div key={fact.label} className="py-4 flex flex-col-reverse gap-0.5">
+                <dt className="text-sm text-slate-600">{fact.label}</dt>
+                <dd className="font-display font-bold text-[34px] leading-none text-slate-900 tabular-nums">{fact.value}</dd>
               </div>
-              <div className="text-xl font-bold text-slate-900 mt-1 tabular-nums">
-                {listing.lotAcres ? `${listing.lotAcres} ac` : listing.lotSqft ? `${listing.lotSqft.toLocaleString()} sqft` : 'N/A'}
-              </div>
-            </div>
-          </div>
+            ))}
+          </dl>
 
           {/* Secondary Property Details Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Property Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-6 text-xs">
+          <div className="space-y-3">
+            <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">Details</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 text-[15px]">
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Property Type</span>
                 <span className="font-semibold text-slate-900">{listing.propertyType}</span>
@@ -224,7 +207,13 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Parking</span>
-                <span className="font-semibold text-slate-900">{listing.parkingSpaces} stalls</span>
+                <span className="font-semibold text-slate-900">{listing.parkingSpaces} {listing.parkingSpaces === 1 ? 'spot' : 'spots'}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
+                <span className="text-slate-500">Lot size</span>
+                <span className="font-semibold text-slate-900 tabular-nums">
+                  {listing.lotAcres ? `${listing.lotAcres} acres` : listing.lotSqft ? `${listing.lotSqft.toLocaleString()} sq ft` : 'Not listed'}
+                </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Annual Property Taxes</span>
@@ -239,16 +228,16 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 </div>
               ) : null}
               <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">Listing Status</span>
-                <span className="font-semibold text-emerald-800 uppercase tracking-wider">Active Direct</span>
+                <span className="text-slate-500">Listed by</span>
+                <span className="font-semibold text-emerald-800">The owner</span>
               </div>
             </div>
           </div>
 
           {/* Description Prose */}
           <div className="space-y-3">
-            <h3 className="text-base font-bold text-slate-900">About this Home</h3>
-            <p className="text-sm sm:text-base text-slate-700 leading-relaxed whitespace-pre-line">
+            <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">From the owner</h2>
+            <p className="text-[17px] text-slate-800 leading-[1.7] whitespace-pre-line max-w-[40em]">
               {listing.description}
             </p>
           </div>
@@ -291,7 +280,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           {/* Neighborhood Highlights */}
           {listing.neighborhoodHighlights && (
             <div className="space-y-2">
-              <h3 className="text-base font-bold text-slate-900">Neighborhood & Community</h3>
+              <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">The neighbourhood</h2>
               <p className="text-sm text-slate-600 leading-relaxed">
                 {listing.neighborhoodHighlights}
               </p>
@@ -301,7 +290,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           {/* Approximate Location Map */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Location & Area</h3>
+              <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">Around the home</h2>
               <span className="text-xs text-slate-500">
                 {listing.neighborhood}, {listing.city}
               </span>
@@ -329,7 +318,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
 
         {/* Right Column: Sticky Contact & Viewing Booking Card (Desktop) */}
         <div className="hidden lg:block lg:col-span-4 sticky top-20">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-md space-y-6">
+          <div className="bg-white rounded-[10px] border border-slate-200 p-6 space-y-5">
             
             {/* Homeowner Profile Card */}
             <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
@@ -337,19 +326,15 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 {(listing.sellerName || 'H').charAt(0).toUpperCase()}
               </div>
               <div>
-                <div className="text-sm font-bold text-slate-900">{listing.sellerName}</div>
-                <div className="text-xs text-emerald-800 font-medium flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Listed by owner</span>
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">Typically replies in under 1 hour</div>
+                <div className="text-base font-bold text-slate-900">{listing.sellerName}</div>
+                <div className="text-sm text-slate-600">The owner</div>
               </div>
             </div>
 
             {/* Price & Cash-Back Summary */}
             <div className="space-y-1">
-              <div className="text-xs text-slate-500 font-medium">Asking Price</div>
-              <div className="text-3xl font-extrabold text-slate-900 tabular-nums">
+              <div className="text-sm text-slate-600">Asking price</div>
+              <div className="font-display font-bold text-[40px] leading-none text-slate-900 tabular-nums">
                 {formatCAD(listing.price)}
               </div>
               {listing.offersCashback && (
@@ -367,20 +352,22 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               </div>
             ) : (
             <div className="space-y-3">
+              <h2 className="font-display font-bold text-[30px] leading-none text-slate-900">Request a viewing</h2>
+              <p className="text-sm text-slate-600">Pick a time that suits you. The owner confirms, then the exact address is shared with you.</p>
               <button
                 onClick={handleOpenViewing}
-                className="w-full py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-sm rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
+                className="w-full py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-base rounded-md flex items-center justify-center gap-2 cursor-pointer min-h-[52px]"
               >
                 <Calendar className="w-4 h-4" />
-                <span>Request a Private Viewing</span>
+                <span>Request a viewing</span>
               </button>
 
               <button
                 onClick={handleOpenMessage}
-                className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-800 font-semibold text-sm rounded-xl transition-all border border-slate-200 flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
+                className="w-full py-3.5 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-[15px] rounded-md border-[1.5px] border-slate-900 flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
               >
-                <MessageSquare className="w-4 h-4 text-slate-600" />
-                <span>Message Homeowner</span>
+                <MessageSquare className="w-4 h-4" />
+                <span>Ask the owner a question</span>
               </button>
             </div>
             )}
@@ -402,8 +389,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
       {/* Mobile Sticky Bottom CTA Bar (< lg) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs text-slate-500">Asking Price</div>
-          <div className="text-lg font-bold text-slate-900 truncate tabular-nums">
+          <div className="text-xs text-slate-600">Asking price</div>
+          <div className="font-display text-2xl font-bold leading-none text-slate-900 truncate tabular-nums">
             {formatCAD(listing.price)}
           </div>
         </div>
@@ -412,18 +399,18 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleOpenMessage}
-            className="p-3 bg-slate-100 text-slate-700 rounded-xl font-semibold text-xs border border-slate-200 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
-            aria-label="Message Homeowner"
+            className="p-3 bg-white text-slate-900 rounded-md font-semibold text-xs border-[1.5px] border-slate-900 min-h-[48px] min-w-[48px] flex items-center justify-center cursor-pointer"
+            aria-label="Ask the owner a question"
           >
             <MessageSquare className="w-5 h-5" />
           </button>
 
           <button
             onClick={handleOpenViewing}
-            className="px-5 py-3 bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm min-h-[44px] flex items-center gap-1.5 cursor-pointer"
+            className="px-5 py-3 bg-emerald-700 text-white rounded-md font-bold text-sm min-h-[48px] flex items-center gap-1.5 cursor-pointer"
           >
             <Calendar className="w-4 h-4" />
-            <span>Request Viewing</span>
+            <span>Request a viewing</span>
           </button>
         </div>
         )}

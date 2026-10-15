@@ -42,7 +42,7 @@ export const SavedPage: React.FC<SavedPageProps> = ({
           </div>
           <h3 className="text-lg font-bold text-slate-900">No saved homes yet</h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Click the heart icon on any listing in the Fraser Valley & Lower Mainland to save it to your shortlist.
+            Tap the heart on any listing to save it to your shortlist.
           </p>
           <button
             onClick={() => onNavigate('browse')}

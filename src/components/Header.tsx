@@ -61,25 +61,18 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200">
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-6">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-[68px] flex items-center justify-between gap-4 sm:gap-6">
         
         {/* Zone 1: Brand Wordmark */}
         <button
           onClick={() => handleNav('landing')}
           className="flex items-center gap-2 cursor-pointer shrink-0 text-left"
-          aria-label="DirectHome BC Home"
+          aria-label="DirectHome Canada home"
         >
-          <div className="w-8 h-8 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="font-extrabold text-slate-900 text-lg tracking-tight">
-              DirectHome<span className="text-emerald-700">BC</span>
-            </span>
-            <span className="text-[10px] text-slate-400 block -mt-1 font-medium hidden sm:block">
-              No commission · $25/mo listing
-            </span>
-          </div>
+          <img src="/logo.png" alt="" width={40} height={40} className="w-10 h-10 -my-1" />
+          <span className="font-display font-bold text-slate-900 text-[26px] leading-none">
+            DirectHome Canada
+          </span>
         </button>
 
         {/* Zone 2: Navigation Links */}
@@ -90,16 +83,16 @@ export const Header: React.FC<HeaderProps> = ({
               currentTab === 'browse' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
-            Browse Homes
+            Browse homes
           </button>
-          
+
           <button
             onClick={() => handleNav('calculator')}
             className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
               currentTab === 'calculator' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
-            Cash-Back Estimator
+            Savings estimator
           </button>
 
           <button
@@ -108,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
               currentTab === 'how-it-works' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
-            How It Works
+            How it works
           </button>
 
           <button
@@ -118,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <span className="inline-flex items-center gap-1.5">
-              My Dashboard
+              My dashboard
               {dashboardBadge > 0 && (
                 <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold inline-flex items-center justify-center">
                   {dashboardBadge > 9 ? '9+' : dashboardBadge}
@@ -273,10 +266,9 @@ export const Header: React.FC<HeaderProps> = ({
                 handleNav('wizard');
               }
             }}
-            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] rounded-xl transition-all shadow-sm whitespace-nowrap shrink-0 min-h-[40px] cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 text-xs sm:text-[15px] font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] rounded-md transition-all whitespace-nowrap shrink-0 min-h-[44px] cursor-pointer"
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>{hasDraft ? 'Resume Listing' : 'List Your Home'}</span>
+            <span>{hasDraft ? 'Resume listing' : 'List your home'}</span>
           </button>
 
           {/* Mobile Menu Hamburger */}
@@ -333,7 +325,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Compass className="w-5 h-5 text-slate-400" />
-            <span>Browse Homes (Fraser Valley & Lower Mainland)</span>
+            <span>Browse homes</span>
           </button>
 
           <button
@@ -341,7 +333,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Calculator className="w-5 h-5 text-slate-400" />
-            <span>Commission & Cash-Back Estimator</span>
+            <span>Savings estimator</span>
           </button>
 
           <button
