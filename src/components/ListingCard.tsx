@@ -44,6 +44,11 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           />
         ) : null}
 
+        {listing.isExample ? (
+          <div className="absolute top-3 left-3 bg-sign text-slate-900 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
+            Example · not for sale
+          </div>
+        ) : (
         <button
           type="button"
           onClick={(e) => {
@@ -55,8 +60,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         >
           <Heart className={`w-5 h-5 ${isFavorited ? 'fill-rose-500 text-rose-500' : 'text-slate-700'}`} />
         </button>
+        )}
 
-        {listing.status !== 'live' && (
+        {listing.status !== 'live' && !listing.isExample && (
           <div className="absolute top-3 left-3 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1 rounded">
             {listing.status === 'in_review' ? 'In review' : listing.status}
           </div>
@@ -86,7 +92,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         <span className="text-[15px] text-slate-600 truncate">{place}</span>
         <h3 className="text-sm font-semibold text-emerald-700 pt-1 line-clamp-1 group-hover:underline underline-offset-4">
           <a
-            href={`/listing/${listing.id}`}
+            href={listing.isExample ? `/example/${listing.id.replace(/^example-/, '')}` : `/listing/${listing.id}`}
             onClick={(e) => {
               // Let the card's own click open the listing in the app; ctrl/cmd-click opens a new tab.
               if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) e.preventDefault();

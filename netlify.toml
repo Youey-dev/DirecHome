@@ -41,3 +41,7 @@
   for = "/assets/*.mjs"
   [headers.values]
     Content-Type = "text/javascript; charset=utf-8"
+
+# Example listing photos (Unsplash) are resized and served from our own domain
+[images]
+  remote_images = ["https://images.unsplash.com/.*"]

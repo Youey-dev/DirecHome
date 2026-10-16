@@ -17,6 +17,7 @@ import { PasswordRecoveryModal } from './components/PasswordRecoveryModal';
 import { SetupNotice } from './components/SetupNotice';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TAB_PATHS, pathFor } from './lib/routes';
+import { findExample } from './data/exampleListings';
 
 // Heavier pages load only when visited (keeps the first page load fast)
 const WizardPage = lazy(() => import('./pages/WizardPage').then((m) => ({ default: m.WizardPage })));
@@ -51,6 +52,7 @@ const TAB_TITLES: Record<string, string> = {
   notifications: 'Notification Preferences · OwnersMarket',
   calculator: 'Real Estate Commission Calculator · OwnersMarket',
   'not-found': 'Page not found · OwnersMarket',
+  example: 'Example listing (not for sale) · OwnersMarket',
   'guide-selling': 'How to Sell Your House Without a Realtor in Canada · OwnersMarket',
   'guide-bc': 'How to Sell Your House Without a Realtor in BC · OwnersMarket',
   'guide-buying': 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
@@ -60,6 +62,8 @@ function parsePath(pathname: string): { tab: string; listingId: string | null } 
   const clean = pathname.replace(/\/+$/, '') || '/';
   const detail = clean.match(/^\/listing\/([0-9a-fA-F-]{36})$/);
   if (detail) return { tab: 'detail', listingId: detail[1] };
+  const example = clean.match(/^\/example\/([a-z0-9-]{1,60})$/);
+  if (example) return { tab: 'example', listingId: `example-${example[1]}` };
   const found = Object.entries(TAB_PATHS).find(([, p]) => p === clean);
   return { tab: found ? found[0] : 'not-found', listingId: null };
 }
@@ -160,7 +164,7 @@ function MainApp() {
   }, [showToast]);
 
   const handleNavigate = useCallback((tab: string, listingId?: string) => {
-    const nextListing = tab === 'detail' ? listingId ?? null : null;
+    const nextListing = tab === 'detail' || tab === 'example' ? listingId ?? null : null;
     setSelectedListingId(nextListing);
     setEditListing(null); // every normal "List your home" starts a NEW listing
     setCurrentTab(tab);
@@ -206,7 +210,7 @@ function MainApp() {
     }
   };
 
-  const handleSelectListing = (id: string) => handleNavigate('detail', id);
+  const handleSelectListing = (id: string) => handleNavigate(id.startsWith('example-') ? 'example' : 'detail', id);
 
   const currentListing = selectedListingId ? db.getListingById(selectedListingId) : undefined;
 
@@ -289,6 +293,25 @@ function MainApp() {
               />
             ) : (
               <Loading label="Loading home…" />
+            ))}
+
+          {currentTab === 'example' &&
+            (selectedListingId && findExample(selectedListingId) ? (
+              <ListingDetailPage
+                listing={findExample(selectedListingId)!}
+                activeUser={activeUser}
+                isFavorited={false}
+                onToggleFavorite={handleToggleFavorite}
+                onBack={() => handleNavigate('browse')}
+                onOpenAuth={handleOpenAuth}
+                onListYourHome={() => handleNavigate('wizard')}
+              />
+            ) : (
+              <Gate
+                title="This example isn’t available"
+                text="Browse homes for sale by owner instead."
+                action={{ label: 'Browse homes', onClick: () => handleNavigate('browse') }}
+              />
             ))}
 
           {currentTab === 'wizard' &&

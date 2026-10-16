@@ -22,6 +22,8 @@ type ListingRow = {
 };
 
 const LISTING_PATH = /^\/listing\/([0-9a-fA-F-]{36})$/;
+// Example listings (not for sale): shown on the site, never indexed by search engines.
+const EXAMPLE_PATH = /^\/example\/[a-z0-9-]{1,60}$/;
 
 const money = (n: number) =>
   new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n);
@@ -110,6 +112,13 @@ export default async (request: Request, context: { next: () => Promise<Response>
   const listingMatch = path.match(LISTING_PATH);
   let meta: PageMeta | undefined;
   if (listingMatch) meta = await listingMeta(listingMatch[1]);
+  else if (EXAMPLE_PATH.test(path))
+    meta = {
+      ...PAGES['/'],
+      title: 'Example listing (not for sale) · OwnersMarket',
+      description: 'An example of what a for-sale-by-owner listing looks like on OwnersMarket. Not a real home for sale.',
+      noindex: true,
+    };
   else if (PAGES[path]) meta = { ...PAGES[path], jsonLd: structuredData(path, PAGES[path]) };
   else if (PRIVATE_PATHS.includes(path)) meta = { ...PAGES['/'], noindex: true };
   // Any other address doesn't exist: say so with a real 404, so search engines don't index it.
@@ -128,5 +137,5 @@ export default async (request: Request, context: { next: () => Promise<Response>
 
 export const config = {
   path: '/*',
-  excludedPath: ['/assets/*', '/signs/*', '/sitemap.xml', '/robots.txt', '/*.png', '/*.ico', '/*.svg', '/*.jpg', '/*.webp', '/*.js', '/*.css', '/*.mjs', '/*.json', '/*.txt'],
+  excludedPath: ['/.netlify/*', '/assets/*', '/signs/*', '/sitemap.xml', '/robots.txt', '/*.png', '/*.ico', '/*.svg', '/*.jpg', '/*.webp', '/*.js', '/*.css', '/*.mjs', '/*.json', '/*.txt'],
 };

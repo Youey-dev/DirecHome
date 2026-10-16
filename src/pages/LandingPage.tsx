@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
+import { examplesToShow } from '../data/exampleListings';
 import { OPEN_PROVINCES, ALL_PROVINCES } from '../data/cities';
 import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH, LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import type { BrowseFilters } from './BrowsePage';
@@ -97,6 +98,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSearch
 }) => {
   const liveListings = listings.filter((l) => isListingLive(l));
+  // Until there are 6 real homes, fill the row with clearly labelled examples (not for sale).
+  const examples = examplesToShow(liveListings.length);
+  const shownListings = [...liveListings.slice(0, 6), ...examples];
 
   const [query, setQuery] = useState('');
   const [province, setProvince] = useState(ALL_PROVINCES);
@@ -236,9 +240,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </NavLink>
           )}
         </div>
-        {liveListings.length > 0 ? (
+        {examples.length > 0 && (
+          <p className="-mt-2 mb-6 text-base text-slate-600">
+            Listings marked <span className="bg-sign text-slate-900 text-xs font-bold px-2 py-0.5 rounded">Example · not for sale</span>{' '}
+            show what a listing looks like. They aren’t real homes for sale.
+          </p>
+        )}
+        {shownListings.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-            {liveListings.slice(0, 6).map((listing) => (
+            {shownListings.map((listing) => (
               <ListingCard
                 key={listing.id}
                 listing={listing}
@@ -248,8 +258,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               />
             ))}
           </div>
-        ) : (
-          <div className="bg-white rounded-[10px] border border-slate-200 p-8 sm:p-10 flex flex-col sm:flex-row sm:items-center gap-5">
+        )}
+        {liveListings.length < 6 && (
+          <div className="mt-8 bg-white rounded-[10px] border border-slate-200 p-8 sm:p-10 flex flex-col sm:flex-row sm:items-center gap-5">
             <p className="text-lg text-slate-700 flex-1">
               The first homes are going up now. List yours and it will be one of the first buyers see.
             </p>

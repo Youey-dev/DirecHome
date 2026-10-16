@@ -33,6 +33,8 @@ interface ListingDetailPageProps {
   onToggleFavorite: (e: React.MouseEvent, id: string) => void;
   onBack: () => void;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  /** Example listings only: where "List your home" goes. */
+  onListYourHome?: () => void;
 }
 
 export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
@@ -41,8 +43,11 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
   isFavorited,
   onToggleFavorite,
   onBack,
-  onOpenAuth
+  onOpenAuth,
+  onListYourHome
 }) => {
+  // Example listings show how a home looks on OwnersMarket; they are not for sale.
+  const isExample = !!listing.isExample;
   const [viewingModalOpen, setViewingModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -55,7 +60,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
   const hasApprovedViewing = addressUnlocked;
 
   useEffect(() => {
-    if (listing.status === 'live' && !isOwner) db.incrementViews(listing.id);
+    if (listing.status === 'live' && !isOwner && !isExample) db.incrementViews(listing.id);
   }, [listing.id]);
 
   const handleOpenMessage = () => {
@@ -92,6 +97,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           <span>Back to homes</span>
         </button>
 
+        {!isExample && (
         <div className="flex items-center gap-2">
           {/* Share Button */}
           <button
@@ -112,10 +118,33 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <span>{isFavorited ? 'Saved' : 'Save'}</span>
           </button>
         </div>
+        )}
       </div>
+
+      {isExample && (
+        <div role="note" className="rounded-xl border-2 border-sign bg-amber-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1">
+            <div className="text-base font-extrabold text-slate-900">Example listing: not a real home, not for sale</div>
+            <p className="text-sm text-slate-700 mt-1">
+              This page shows how a home looks on OwnersMarket. The home, price and details are made up, and the photos are stock photos.
+            </p>
+          </div>
+          <button
+            onClick={onListYourHome}
+            className="shrink-0 px-5 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-md min-h-[48px] cursor-pointer"
+          >
+            List your home
+          </button>
+        </div>
+      )}
 
       {/* Photo Gallery (Desktop Grid & Mobile Carousel) */}
       <ListingGallery photos={listing.photos} title={listing.headline} />
+      {isExample && listing.photoCredits && (
+        <p className="-mt-6 text-xs text-slate-500">
+          Example photos from Unsplash by {listing.photoCredits.join(', ')}.
+        </p>
+      )}
 
       {/* Main Content Split: Details Left (8 cols) & Action Card Right (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -287,7 +316,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             </div>
           )}
 
-          {/* Approximate Location Map */}
+          {/* Approximate Location Map (examples have no location) */}
+          {!isExample && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">Around the home</h2>
@@ -302,8 +332,10 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               heightClass="h-[340px]"
             />
           </div>
+          )}
 
           {/* Report Listing Link */}
+          {!isExample && (
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
             <span>Listing ID: {listing.id}</span>
             <button
@@ -314,6 +346,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               <span>Report this listing</span>
             </button>
           </div>
+          )}
         </div>
 
         {/* Right Column: Sticky Contact & Viewing Booking Card (Desktop) */}
@@ -321,6 +354,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           <div className="bg-white rounded-[10px] border border-slate-200 p-6 space-y-5">
             
             {/* Homeowner Profile Card */}
+            {!isExample && (
             <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
               <div className="w-12 h-12 rounded-full bg-emerald-800 text-white font-bold flex items-center justify-center text-base shadow-sm">
                 {(listing.sellerName || 'H').charAt(0).toUpperCase()}
@@ -330,10 +364,11 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <div className="text-sm text-slate-600">The owner</div>
               </div>
             </div>
+            )}
 
             {/* Price & Cash-Back Summary */}
             <div className="space-y-1">
-              <div className="text-sm text-slate-600">Asking price</div>
+              <div className="text-sm text-slate-600">{isExample ? 'Example price' : 'Asking price'}</div>
               <div className="font-display font-bold text-[40px] leading-none text-slate-900 tabular-nums">
                 {formatCAD(listing.price)}
               </div>
@@ -345,7 +380,21 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             </div>
 
             {/* Actions */}
-            {isOwner ? (
+            {isExample ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border-2 border-sign bg-amber-50 p-4 text-sm text-slate-900">
+                  <b>Example listing.</b> Not a real home and not for sale, so it can’t be viewed or messaged.
+                </div>
+                <h2 className="font-display font-bold text-[30px] leading-none text-slate-900">Selling a home like this?</h2>
+                <p className="text-sm text-slate-600">List yours for $24.99 a month, no commission. Buyers message you directly to book a viewing.</p>
+                <button
+                  onClick={onListYourHome}
+                  className="w-full py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-base rounded-md cursor-pointer min-h-[52px]"
+                >
+                  List your home
+                </button>
+              </div>
+            ) : isOwner ? (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-950 space-y-1.5">
                 <div className="font-bold text-sm">This is your listing</div>
                 <p>Buyer messages and viewing requests for this home appear in your dashboard.</p>
@@ -389,13 +438,21 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
       {/* Mobile Sticky Bottom CTA Bar (< lg) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs text-slate-600">Asking price</div>
+          <div className="text-xs text-slate-600">{isExample ? 'Example · not for sale' : 'Asking price'}</div>
           <div className="font-display text-2xl font-bold leading-none text-slate-900 truncate tabular-nums">
             {formatCAD(listing.price)}
           </div>
         </div>
 
-        {!isOwner && (
+        {isExample && (
+          <button
+            onClick={onListYourHome}
+            className="px-5 py-3 bg-emerald-700 text-white rounded-md font-bold text-sm min-h-[48px] cursor-pointer shrink-0"
+          >
+            List your home
+          </button>
+        )}
+        {!isOwner && !isExample && (
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleOpenMessage}
@@ -416,7 +473,9 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         )}
       </div>
 
-      {/* Modals */}
+      {/* Modals (never for examples) */}
+      {!isExample && (
+      <>
       <ViewingModal
         listing={listing}
         activeUser={activeUser}
@@ -437,6 +496,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         isOpen={reportModalOpen}
         onClose={() => setReportModalOpen(false)}
       />
+      </>
+      )}
     </div>
   );
 };
