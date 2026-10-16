@@ -17,6 +17,7 @@ import { PasswordRecoveryModal } from './components/PasswordRecoveryModal';
 import { SetupNotice } from './components/SetupNotice';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TAB_PATHS, pathFor } from './lib/routes';
+import { initAnalytics, trackPageView } from './lib/analytics';
 import { findExample } from './data/exampleListings';
 
 // Heavier pages load only when visited (keeps the first page load fast)
@@ -152,6 +153,12 @@ function MainApp() {
     const base = TAB_TITLES[currentTab] ?? TAB_TITLES.landing;
     document.title = unreadCount > 0 ? `(${unreadCount}) ${base}` : base;
   }, [currentTab, unreadCount]);
+
+  // Google Analytics: starts only if the visitor already accepted; counts each page change
+  useEffect(() => { initAnalytics(); }, []);
+  useEffect(() => {
+    trackPageView(pathFor(currentTab, selectedListingId), TAB_TITLES[currentTab] ?? TAB_TITLES.landing);
+  }, [currentTab, selectedListingId]);
 
   const showToast = useCallback((message: string) => {
     setToast(message);

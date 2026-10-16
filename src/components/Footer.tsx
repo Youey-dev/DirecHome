@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from './NavLink';
+import { analyticsAvailable, openCookieSettings } from '../lib/analytics';
 
 const FooterLink: React.FC<{ to: string; onNavigate: (tab: string) => void; children: React.ReactNode }> = ({
   to,
@@ -57,6 +58,13 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               <FooterLink to="rules" onNavigate={onNavigate}>Community and listing rules</FooterLink>
               <FooterLink to="cashback" onNavigate={onNavigate}>How cash back works</FooterLink>
               <FooterLink to="notifications" onNavigate={onNavigate}>Email preferences (CASL)</FooterLink>
+              {analyticsAvailable && (
+                <li>
+                  <button type="button" onClick={openCookieSettings} className="text-sm text-slate-300 hover:text-white underline-offset-2 hover:underline">
+                    Cookie settings
+                  </button>
+                </li>
+              )}
             </ul>
           </nav>
         </div>
