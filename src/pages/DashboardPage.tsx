@@ -3,6 +3,7 @@ import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfi
 import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { SellerChecklist } from '../components/SellerChecklist';
+import { DeleteListingDialog } from '../components/DeleteListingDialog';
 
 // The feature sheet (and its QR code library) loads only when a seller opens it
 const FeatureSheet = React.lazy(() => import('../components/FeatureSheet'));
@@ -162,15 +163,25 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     void run(() => db.markListingSold(id), '🎉 Congratulations on selling your home! Marked as sold. Remember to take down your for-sale sign.');
   };
 
+  // The listing waiting for delete confirmation (shown in a full-size dialog)
+  const [deleteTarget, setDeleteTarget] = useState<Listing | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const handleDelete = (id: string) => {
     const l = listings.find((x) => x.id === id);
-    const paying = !!l && ['active', 'past_due'].includes(l.paymentStatus ?? '');
-    const question = paying
-      ? 'Delete this listing? Its subscription stops now and the rest of this month is not refunded. This cannot be undone.'
-      : 'Are you sure you want to delete this listing? This cannot be undone.';
-    if (confirm(question)) {
-      void run(() => db.deleteListing(id), 'Listing removed.');
-    }
+    if (l) setDeleteTarget(l);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const paying = ['active', 'past_due'].includes(deleteTarget.paymentStatus ?? '');
+    setDeleting(true);
+    await run(
+      () => db.deleteListing(deleteTarget.id),
+      paying ? 'Listing deleted. Its subscription has stopped and you won’t be charged again for it.' : 'Listing deleted.'
+    );
+    setDeleting(false);
+    setDeleteTarget(null);
   };
 
   const handleViewingStatus = (id: string, status: ViewingRequest['status']) => {
@@ -226,6 +237,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <React.Suspense fallback={null}>
           <FeatureSheet listing={sheetListing} onClose={() => setSheetListing(null)} />
         </React.Suspense>
+      )}
+
+      {deleteTarget && (
+        <DeleteListingDialog
+          listing={deleteTarget}
+          busy={deleting}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => void confirmDelete()}
+          onMarkSold={() => {
+            const id = deleteTarget.id;
+            setDeleteTarget(null);
+            handleMarkSold(id);
+          }}
+        />
       )}
 
       {/* Toast Notification */}
