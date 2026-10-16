@@ -7,7 +7,8 @@
 //  - takedown: admins only, with a reason the owner sees. The listing goes to "needs changes";
 //              the owner must edit and resubmit for review. Billing stops at the end of the paid
 //              month (no refund).
-//  - delete:   owner or admin. Billing stops now (no refund); photos are removed.
+//  - delete:   owner or admin. Billing stops now (no refund); photos are removed. When an admin
+//              deletes someone else's listing, a reason is required and the owner is notified.
 import Stripe from "npm:stripe@17.7.0";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { endModeFor, isRunning } from "../_shared/billing-rules.ts";
@@ -52,16 +53,19 @@ Deno.serve(async (req) => {
     const isAdmin = me?.role === "admin";
 
     const { data: listing } = await admin
-      .from("listings").select("id, user_id, status").eq("id", listingId).maybeSingle();
+      .from("listings").select("id, user_id, status, headline").eq("id", listingId).maybeSingle();
     if (!listing) return json({ error: "Listing not found." }, 404);
     const isOwner = listing.user_id === u.user.id;
 
     if (action === "takedown" && !isAdmin) return json({ error: "Only administrators can take a listing down." }, 403);
     if (!isOwner && !isAdmin) return json({ error: "Listing not found." }, 404);
 
-    let reason = "";
+    const reason = String(body?.reason ?? "").replace(/<[^>]*>?/g, "").replace(/[\u0000-\u001F\u007F]/g, " ").trim().slice(0, 500);
+    const adminDeletingOthers = action === "delete" && isAdmin && !isOwner;
+    if (adminDeletingOthers && reason.length < 5) {
+      return json({ error: "Please give the owner a reason (at least 5 characters)." }, 400);
+    }
     if (action === "takedown") {
-      reason = String(body?.reason ?? "").replace(/<[^>]*>?/g, "").replace(/[\u0000-\u001F\u007F]/g, " ").trim().slice(0, 500);
       if (reason.length < 5) return json({ error: "Please give the owner a reason (at least 5 characters)." }, 400);
       if (!["live", "paused", "in_review"].includes(listing.status)) {
         return json({ error: "Only listings that are up, paused or in review can be taken down." }, 400);
@@ -90,6 +94,15 @@ Deno.serve(async (req) => {
       await removeFolder(admin, `${listing.user_id}/${listing.id}`);
       const { error } = await admin.from("listings").delete().eq("id", listing.id);
       if (error) throw error;
+      if (adminDeletingOthers) {
+        const { error: nErr } = await admin.from("notifications").insert({
+          user_id: listing.user_id,
+          type: "listing_deleted_admin",
+          title: "OwnersMarket removed your listing",
+          body: `"${listing.headline ?? "Your listing"}": ${reason}`,
+        });
+        if (nErr) console.warn("owner notice not saved", nErr);
+      }
     }
     return json({ ok: true });
   } catch (e) {

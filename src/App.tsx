@@ -129,7 +129,7 @@ function MainApp() {
         .filter((v) => me.includes(v.listingId) && v.buyerId !== activeUser.id && v.status === 'pending').length;
       const updates = db
         .getNotifications()
-        .filter((n) => !n.read && ['viewing_confirmed', 'viewing_declined', 'viewing_cancelled', 'viewing_rescheduled', 'listing_live', 'listing_rejected', 'listing_rereview'].includes(n.type)).length;
+        .filter((n) => !n.read && ['viewing_confirmed', 'viewing_declined', 'viewing_cancelled', 'viewing_rescheduled', 'listing_live', 'listing_rejected', 'listing_rereview', 'listing_paused_admin', 'listing_deleted_admin'].includes(n.type)).length;
       setDashboardBadge(db.getUnreadMessageCount() + pendingForMe + updates);
     };
     sync();
@@ -187,7 +187,7 @@ function MainApp() {
     } else if (n.type.startsWith('viewing_')) {
       setDashboardIntent({ tab: 'viewings', nonce });
       handleNavigate('dashboard');
-    } else if (n.type === 'listing_live' || n.type === 'listing_rejected' || n.type === 'listing_rereview') {
+    } else if (['listing_live', 'listing_rejected', 'listing_rereview', 'listing_paused_admin', 'listing_deleted_admin'].includes(n.type)) {
       setDashboardIntent({ tab: 'listings', nonce });
       handleNavigate('dashboard');
     } else if (n.type === 'listing_in_review' || n.type === 'new_report') {

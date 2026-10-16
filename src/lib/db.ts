@@ -111,8 +111,21 @@ const LISTING_COLUMNS = [
   'parking_spaces', 'strata_fee', 'property_taxes_annual',
   'offers_cashback', 'cashback_type', 'cashback_amount', 'estimated_commission_saved',
   'headline', 'description', 'neighborhood_highlights', 'recent_upgrades', 'inclusions',
-  'views_count', 'saves_count', 'inquiries_count', 'created_at', 'updated_at',
+  'views_count', 'saves_count', 'inquiries_count', 'created_at', 'updated_at', 'admin_hold',
 ].join(',');
+
+/** The name sellers see on messages from the OwnersMarket admin. */
+export const ADMIN_DISPLAY_NAME = 'Charles - Admin';
+
+export interface AdminUserRow {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: 'buyer' | 'seller' | 'admin';
+  createdAt: string;
+  marketingOptIn: boolean;
+}
 
 const OWNER_FIELDS =
   'id,payment_status,past_due_since,cancel_at_period_end,next_billing_at,subscription_tier,billing_cycle,monthly_fee_cad,review_notes';
@@ -414,13 +427,16 @@ class DataStore {
       const buyer = people.get(c.buyer_id);
       const seller = people.get(c.seller_id);
       const msgs: Row[] = (c.messages ?? []).slice().sort((a: Row, b: Row) => a.created_at.localeCompare(b.created_at));
+      // In an admin thread the admin is the "buyer" side and always shows as Charles - Admin
+      const isAdminThread = !!c.is_admin_thread;
       return {
+        isAdminThread,
         id: c.id,
         buyerId: c.buyer_id,
         listingId: c.listing_id,
         listingTitle: l?.headline ?? 'Home listing',
         listingCoverUrl: l?.photos[0]?.thumbnailUrl ?? l?.photos[0]?.url ?? '',
-        buyerName: buyer?.full_name ?? 'Buyer',
+        buyerName: isAdminThread ? ADMIN_DISPLAY_NAME : buyer?.full_name ?? 'Buyer',
         buyerEmail: buyer?.email ?? '',
         sellerId: c.seller_id,
         sellerName: seller?.full_name ?? 'Homeowner',
@@ -430,7 +446,7 @@ class DataStore {
           return {
             id: m.id,
             senderId: m.sender_id,
-            senderName: sender?.full_name ?? (isBuyer ? 'Buyer' : 'Homeowner'),
+            senderName: isAdminThread && isBuyer ? ADMIN_DISPLAY_NAME : sender?.full_name ?? (isBuyer ? 'Buyer' : 'Homeowner'),
             senderRole: isBuyer ? 'buyer' : 'seller',
             content: m.content,
             timestamp: m.created_at,
@@ -516,10 +532,28 @@ class DataStore {
       return (data as Row[]) ?? [];
     };
 
+    // Admins manage every listing, whatever its status
+    const loadAllForAdmin = async (): Promise<Row[]> => {
+      const rows: Row[] = [];
+      for (let from = 0; from < MAX_PUBLIC; from += PAGE) {
+        const { data, error } = await supabase
+          .from('listings')
+          .select(select)
+          .neq('status', 'live')
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        rows.push(...((data as Row[]) ?? []));
+        if (!data || data.length < PAGE) break;
+      }
+      return rows;
+    };
+
     const [publicRows, ownRows, queueRows] = await Promise.all([
       loadPublic(),
       signedIn ? loadWhere('user_id', me.id) : Promise.resolve([] as Row[]),
-      signedIn && me.role === 'admin' ? loadWhere('status', 'in_review') : Promise.resolve([] as Row[]),
+      signedIn && me.role === 'admin' ? loadAllForAdmin() : Promise.resolve([] as Row[]),
     ]);
 
     const byId = new Map<string, Row>();
@@ -589,6 +623,7 @@ class DataStore {
       recentUpgrades: Array.isArray(row.recent_upgrades) ? row.recent_upgrades : [],
       inclusions: Array.isArray(row.inclusions) ? row.inclusions : [],
       reviewNotes: row.review_notes ?? undefined,
+      adminHold: !!row.admin_hold,
       viewsCount: Number(row.views_count),
       savesCount: Number(row.saves_count),
       inquiriesCount: Number(row.inquiries_count),
@@ -826,6 +861,17 @@ class DataStore {
     await this.refresh();
   }
 
+  /** Admin: delete any listing for good, telling the owner why. Billing stops now (no refund). */
+  async adminDeleteListing(id: string, reason: string): Promise<void> {
+    this.requireUser();
+    await this.callFunction(
+      'listing-action',
+      { listingId: id, action: 'delete', reason: stripHtml(reason).slice(0, 500) },
+      'We could not delete this listing. Please try again.'
+    );
+    await this.refresh();
+  }
+
   /** Marks a listing sold. Its subscription ends at the close of the paid month (no refund). */
   async markListingSold(id: string): Promise<void> {
     this.requireUser();
@@ -854,7 +900,7 @@ class DataStore {
   async approveListing(listingId: string): Promise<void> {
     const { data, error } = await supabase
       .from('listings')
-      .update({ status: 'live', review_notes: null })
+      .update({ status: 'live', review_notes: null, admin_hold: false })
       .eq('id', listingId)
       .eq('status', 'in_review')
       .select('id');
@@ -874,6 +920,70 @@ class DataStore {
     if (error) fail(error);
     if (!data?.length) throw new Error('This listing is no longer waiting for review.');
     await this.refresh();
+  }
+
+  /** Admin: pause any listing with a reason the owner sees. Only an admin can put it back up. */
+  async adminPauseListing(listingId: string, reason: string): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase
+      .from('listings')
+      .update({ status: 'paused', admin_hold: true, review_notes: stripHtml(reason).slice(0, 500) })
+      .eq('id', listingId)
+      .in('status', ['live', 'paused'])
+      .select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('Only listings that are up or paused can be paused.');
+    await this.refresh();
+  }
+
+  /** Admin: lift a pause and put the listing back up (it shows to buyers if its billing is in order). */
+  async adminResumeListing(listingId: string): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase
+      .from('listings')
+      .update({ status: 'live', admin_hold: false, review_notes: null })
+      .eq('id', listingId)
+      .eq('status', 'paused')
+      .select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('This listing is no longer paused.');
+    await this.refresh();
+  }
+
+  /** Admin: message the owner of any listing, as "Charles - Admin". */
+  async adminMessageSeller(listingId: string, content: string): Promise<string> {
+    this.requireUser();
+    const { data, error } = await supabase.rpc('admin_start_conversation', { _listing_id: listingId });
+    if (error) fail(error, 'We could not start the conversation. Has the admin database update been run?');
+    const conversationId = data as string;
+    await this.replyToThread(conversationId, content);
+    return conversationId;
+  }
+
+  /** Admin: everyone with an account. */
+  async adminLoadUsers(): Promise<AdminUserRow[]> {
+    const rows: AdminUserRow[] = [];
+    for (let from = 0; from < 20_000; from += 1000) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email, phone, role, created_at, email_marketing_opt_in')
+        .order('created_at', { ascending: false })
+        .range(from, from + 999);
+      if (error) fail(error);
+      rows.push(
+        ...((data as Row[]) ?? []).map((u) => ({
+          id: u.id,
+          fullName: u.full_name ?? '',
+          email: u.email ?? '',
+          phone: u.phone ?? '',
+          role: u.role,
+          createdAt: u.created_at,
+          marketingOptIn: !!u.email_marketing_opt_in,
+        }))
+      );
+      if (!data || data.length < 1000) break;
+    }
+    return rows;
   }
 
   async resolveReport(reportId: string, action: 'dismissed' | 'resolved'): Promise<void> {

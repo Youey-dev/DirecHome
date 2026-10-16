@@ -252,7 +252,7 @@ export const Header: React.FC<HeaderProps> = ({
                         className="w-full px-2 py-2 text-left rounded-lg hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium"
                       >
                         <ShieldCheck className="w-4 h-4 text-slate-400" />
-                        <span>Review queue (admin)</span>
+                        <span>Admin console</span>
                       </button>
                     </div>
                   )}

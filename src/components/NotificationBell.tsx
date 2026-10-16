@@ -33,6 +33,8 @@ export const notificationIcon = (type: string) => {
     case 'viewing_cancelled':
       return <CalendarX className="w-4 h-4 text-rose-600" />;
     case 'listing_rejected':
+    case 'listing_paused_admin':
+    case 'listing_deleted_admin':
       return <FileWarning className="w-4 h-4 text-amber-600" />;
     case 'listing_in_review':
     case 'listing_rereview':
