@@ -2,14 +2,15 @@
  * Google Analytics 4, loaded ONLY after a visitor says yes to analytics.
  *
  *  - Nothing is downloaded from Google and no Google cookie is set before consent.
- *  - If VITE_GA_MEASUREMENT_ID is not set, everything here does nothing.
  *  - Choosing "essential only" later switches it off and removes the Google cookies.
  *  - Ad features are off (no Google signals, no ad personalisation).
  *  - The admin pages are never tracked. Only the page path is sent: no names, emails or
  *    search text. Event names/values must never contain personal information.
  */
 
-export const GA_ID = String(import.meta.env.VITE_GA_MEASUREMENT_ID ?? '').trim();
+// A Measurement ID is public (it appears in every page's network traffic), so it is safe in the code.
+// VITE_GA_MEASUREMENT_ID can override it (e.g. a separate property for previews).
+export const GA_ID = String(import.meta.env.VITE_GA_MEASUREMENT_ID ?? '').trim() || 'G-7KJQNZ591C';
 const CONSENT_KEY = 'directhome_cookie_consent_v1';
 const CHANGE_EVENT = 'om-consent-changed';
 const OPEN_EVENT = 'om-open-cookie-settings';
