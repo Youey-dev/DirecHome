@@ -258,7 +258,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               ) : null}
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Listed by</span>
-                <span className="font-semibold text-emerald-800">The owner</span>
+                <span className="font-semibold text-emerald-800">{isExample ? "Example (no seller)" : "The owner"}</span>
               </div>
             </div>
           </div>
