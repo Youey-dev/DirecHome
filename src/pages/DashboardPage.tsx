@@ -103,7 +103,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const VIEWING_UPDATE_TYPES = ['viewing_confirmed', 'viewing_declined', 'viewing_cancelled', 'viewing_rescheduled'];
   const unreadViewingUpdates = notifications.filter((n) => !n.read && VIEWING_UPDATE_TYPES.includes(n.type)).length;
   const unreadMessages = threads.reduce((sum, t) => sum + t.unreadCount, 0);
-  const unreadListingNews = notifications.filter((n) => !n.read && (n.type === 'listing_live' || n.type === 'listing_rejected')).length;
+  const unreadListingNews = notifications.filter((n) => !n.read && ['listing_live', 'listing_rejected', 'listing_paused_admin', 'listing_deleted_admin'].includes(n.type)).length;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -219,7 +219,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     if (activeTab === 'viewings') {
       void db.markNotificationsReadByType(['viewing_requested', ...VIEWING_UPDATE_TYPES]);
     } else if (activeTab === 'listings') {
-      void db.markNotificationsReadByType(['listing_live', 'listing_rejected']);
+      void db.markNotificationsReadByType(['listing_live', 'listing_rejected', 'listing_paused_admin', 'listing_deleted_admin']);
     }
   }, [activeTab, notifications.length]);
 
@@ -520,6 +520,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     </div>
                   </div>
 
+                  {/* Paused by OwnersMarket */}
+                  {listing.adminHold && listing.status === 'paused' && (
+                    <div className="px-5 py-3 border-t border-amber-200 bg-amber-50 text-xs text-amber-950">
+                      <strong>Paused by OwnersMarket:</strong> {listing.reviewNotes || 'Please message us.'}{' '}
+                      Buyers can’t see it right now. Reply in <strong>Messages</strong> and we’ll put it back up once it’s sorted.
+                    </div>
+                  )}
+
                   {/* Sent back by the review team */}
                   {listing.status === 'rejected' && (
                     <div className="px-5 py-3 border-t border-rose-100 bg-rose-50 text-xs text-rose-900">
@@ -652,7 +660,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <div className="flex items-center gap-2">
                       {listing.status !== 'sold' && (
                         <>
-                          <button
+                          {!listing.adminHold && <button
                             onClick={() => handleTogglePause(listing.id, listing.status)}
                             className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-medium rounded-lg border border-slate-200 flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                             title={listing.status === 'live' ? 'Hide from buyers' : 'Make live'}
@@ -668,7 +676,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                                 <span>Unpause</span>
                               </>
                             )}
-                          </button>
+                          </button>}
 
                           <button
                             onClick={() => handleMarkSold(listing.id)}
@@ -868,6 +876,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <span className="font-bold text-sm text-slate-900 truncate flex items-center gap-1.5">
                       {thread.unreadCount > 0 && <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" aria-label="Unread" />}
                       {otherName(thread)}
+                      {thread.isAdminThread && thread.buyerId !== activeUser.id && (
+                        <span className="text-[10px] font-bold bg-amber-200 text-amber-950 px-1.5 py-0.5 rounded">OwnersMarket</span>
+                      )}
                     </span>
                     <span className="text-[10px] text-slate-400">
                       {new Date(thread.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}

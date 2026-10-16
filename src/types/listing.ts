@@ -67,6 +67,8 @@ export interface ConversationThread {
   messages: Message[];
   updatedAt: string;
   unreadCount: number;
+  /** A conversation started by the OwnersMarket admin (shown as "Charles - Admin"). */
+  isAdminThread?: boolean;
 }
 
 export interface ListingReport {
@@ -138,6 +140,8 @@ export interface Listing {
   // Verification
   /** Reason given by the review team when a listing is sent back (status 'rejected'). */
   reviewNotes?: string;
+  /** Paused by an OwnersMarket admin: the owner can't put it back up themselves. */
+  adminHold?: boolean;
 
   // Analytics
   viewsCount: number;
@@ -237,6 +241,8 @@ export interface AppNotification {
     | 'listing_rejected'
     | 'listing_in_review'
     | 'listing_rereview'
+    | 'listing_paused_admin'
+    | 'listing_deleted_admin'
     | 'new_report'
     | string;
   title: string;
