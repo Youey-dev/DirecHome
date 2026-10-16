@@ -155,6 +155,14 @@ export interface Listing {
   // Terms & Privacy Acceptance (Audit Log)
   termsAcceptedAt?: string;
   termsVersion?: string; // e.g. "2026-v1.0-draft"
+
+  /**
+   * Example listing (src/data/exampleListings.ts): shows how a home looks on OwnersMarket.
+   * Not a real home and not for sale; never stored in the database.
+   */
+  isExample?: boolean;
+  /** Photo credits for example listings, e.g. "Jason Briscoe / Unsplash". */
+  photoCredits?: string[];
 }
 
 export interface UserProfile {

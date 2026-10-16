@@ -23,5 +23,6 @@ export const TAB_PATHS: Record<string, string> = {
 
 export function pathFor(tab: string, listingId?: string | null): string {
   if (tab === 'detail' && listingId) return `/listing/${listingId}`;
+  if (tab === 'example' && listingId) return `/example/${listingId.replace(/^example-/, '')}`;
   return TAB_PATHS[tab] ?? '/';
 }
