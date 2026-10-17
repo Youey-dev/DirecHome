@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Cookie, X } from 'lucide-react';
-import { analyticsAvailable, onOpenCookieSettings, readConsent, saveConsent } from '../lib/analytics';
+import { analyticsAllowed, analyticsAvailable, onOpenCookieSettings, readConsent, saveConsent } from '../lib/analytics';
 
 interface CookieConsentBannerProps {
   onNavigateLegal: (tab: string) => void;
@@ -42,7 +42,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
               {analyticsAvailable ? 'Cookies and privacy' : 'Essential Storage Only'}
             </h4>
             <button
-              onClick={() => choose(readConsent()?.analytics ?? false)}
+              onClick={() => choose(analyticsAllowed())}
               className="text-slate-400 hover:text-white p-1 rounded-lg"
               aria-label="Dismiss"
             >
@@ -52,7 +52,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
 
           {analyticsAvailable ? (
             <p className="text-xs text-slate-300 leading-relaxed">
-              We use essential browser storage to keep you signed in and remember your listing draft. With your OK we also use Google Analytics to count visits and see which pages help people, so we can improve the site. It is off unless you accept, and we never use it for advertising or sell your personal data. You can change your mind any time from "Cookie settings" at the bottom of the page.
+              We use essential browser storage to keep you signed in and remember your listing draft. We also use Google Analytics to count visits and see which pages help people, so we can improve the site. We never use it for advertising or sell your personal data. You can turn analytics off here, or any time from "Cookie settings" at the bottom of the page.
             </p>
           ) : (
             <p className="text-xs text-slate-300 leading-relaxed">
@@ -64,17 +64,26 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
             {analyticsAvailable ? (
               <>
                 <button
-                  onClick={() => choose(true)}
+                  onClick={() => choose(analyticsAllowed())}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
                 >
-                  Accept analytics
+                  {readConsent()?.analytics === false ? 'Keep analytics off' : 'OK'}
                 </button>
-                <button
-                  onClick={() => choose(false)}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
-                >
-                  Essential only
-                </button>
+                {analyticsAllowed() ? (
+                  <button
+                    onClick={() => choose(false)}
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
+                  >
+                    Turn off analytics
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => choose(true)}
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
+                  >
+                    Turn analytics on
+                  </button>
+                )}
               </>
             ) : (
               <button

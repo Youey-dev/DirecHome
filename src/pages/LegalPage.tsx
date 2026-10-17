@@ -324,7 +324,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               Privacy Policy
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Applies across Canada · Last updated: October 15, 2026
+              Applies across Canada · Last updated: October 17, 2026
             </p>
           </div>
 
@@ -350,9 +350,9 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by OwnersMarket.</strong></li>
               <li><strong>Technical information:</strong> our hosting and sign-in providers automatically log technical data such as IP address, browser type and sign-in times, for security and to keep the site working.</li>
               <li><strong>Bot check:</strong> when you create an account, sign in or reset your password, Cloudflare Turnstile checks that you are a person and not an automated program. To do this, Cloudflare receives technical information from your browser and device, such as your IP address and browser characteristics. It is used only for security, never for advertising.</li>
-              <li><strong>On your device:</strong> your browser stores your sign-in session, an unfinished listing draft, and your cookie and email preferences. {analyticsAvailable ? 'If you choose "Accept analytics", Google Analytics also stores small identifiers (cookies named _ga and _ga_…) in your browser. They are not set unless you accept, and are removed if you later choose "Essential only". ' : ''}We do not use advertising trackers.</li>
+              <li><strong>On your device:</strong> your browser stores your sign-in session, an unfinished listing draft, and your cookie and email preferences. {analyticsAvailable ? 'Google Analytics also stores small identifiers (cookies named _ga and _ga_…) in your browser. They are removed if you turn analytics off. ' : ''}We do not use advertising trackers.</li>
               {analyticsAvailable && (
-                <li><strong>Website analytics (only if you accept):</strong> we use Google Analytics 4 to count visits and see which pages are used, so we can improve the site. Google receives the page you view, your approximate location (from your IP address, which Google does not store in full), and your browser and device type. We do not send your name, email, messages or listing details, we switch off Google\'s advertising features, and we do not track the admin area. Google may process this information in the United States or other countries outside Canada. Change your choice any time with "Cookie settings" at the bottom of every page.</li>
+                <li><strong>Website analytics (on unless you turn it off):</strong> we use Google Analytics 4 to count visits and see which pages are used, so we can improve the site. Google receives the page you view, your approximate location (from your IP address, which Google does not store in full), and your browser and device type. We do not send your name, email, messages or listing details, we switch off Google\'s advertising features, and we do not track the admin area. Google may process this information in the United States or other countries outside Canada. Analytics is on by default. You can turn it off any time with "Turn off analytics" in the cookie notice or "Cookie settings" at the bottom of every page, and it stops right away. If your browser sends a Global Privacy Control signal, we treat that as turning it off.</li>
               )}
             </ul>
             <p className="text-xs text-slate-600">
@@ -379,7 +379,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Stripe</strong> processes listing-fee payments.</li>
               <li><strong>Netlify</strong> hosts the website.</li>
               <li><strong>Cloudflare</strong> runs the Turnstile bot check on the sign-in, sign-up and password-reset forms.</li>
-              {analyticsAvailable && <li><strong>Google</strong> provides Google Analytics, but only for visitors who accept analytics.</li>}
+              {analyticsAvailable && <li><strong>Google</strong> provides Google Analytics, for visitors who have not turned analytics off.</li>}
               <li><strong>The Government of British Columbia's address service</strong> (geocoder.api.gov.bc.ca) receives the address you type when creating a BC listing, to place it on the map.</li>
               <li><strong>OpenStreetMap's Nominatim address service</strong> (nominatim.openstreetmap.org) receives the address you type when creating a listing outside BC, or when the BC service cannot find it, to place it on the map.</li>
               <li><strong>OpenStreetMap</strong> map servers deliver the map images and receive your IP address when a map loads.</li>
