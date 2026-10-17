@@ -51,6 +51,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   const [minBeds, setMinBeds] = useState<number>(0);
   const [minBaths, setMinBaths] = useState<number>(0);
   const [cashbackOnly, setCashbackOnly] = useState<boolean>(false);
+  const [agentsOnly, setAgentsOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc' | 'cashback_desc'>('newest');
   
   // Mobile filter drawer state
@@ -100,6 +101,9 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
           return false;
         }
 
+        // Owner welcomes buyer's agents (pays a buyer's agent commission)
+        if (agentsOnly && !l.agentsWelcome) return false;
+
         return true;
       })
       .sort((a, b) => {
@@ -118,6 +122,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
     minBeds,
     minBaths,
     cashbackOnly,
+    agentsOnly,
     sortBy
   ]);
 
@@ -130,6 +135,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
     setMinBeds(0);
     setMinBaths(0);
     setCashbackOnly(false);
+    setAgentsOnly(false);
     setSortBy('newest');
   };
 
@@ -141,6 +147,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
     minBeds > 0 ||
     minBaths > 0 ||
     cashbackOnly ||
+    agentsOnly ||
     searchQuery.trim() !== '';
 
   return (
@@ -225,6 +232,17 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             >
               <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
               <span>Cash back offered only</span>
+            </button>
+            <button
+              onClick={() => setAgentsOnly(!agentsOnly)}
+              aria-pressed={agentsOnly}
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                agentsOnly
+                  ? 'bg-emerald-50 text-emerald-900 border-emerald-300 ring-1 ring-emerald-600'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              <span>Agents welcome</span>
             </button>
           </div>
 
@@ -500,6 +518,20 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
                 type="checkbox"
                 checked={cashbackOnly}
                 onChange={(e) => setCashbackOnly(e.target.checked)}
+                className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
+              />
+            </div>
+
+            {/* Agents welcome Toggle */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-slate-900">Agents welcome</div>
+                <div className="text-xs text-slate-500">Owner pays a buyer's agent commission</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={agentsOnly}
+                onChange={(e) => setAgentsOnly(e.target.checked)}
                 className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
               />
             </div>

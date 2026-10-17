@@ -79,6 +79,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               {formatCAD(listing.cashbackAmount)} cash back
             </span>
           )}
+          {listing.agentsWelcome && (
+            <span className="bg-emerald-700 text-white text-xs font-semibold px-2.5 py-1 rounded">Agents welcome</span>
+          )}
         </div>
       </div>
 

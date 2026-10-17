@@ -226,7 +226,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               Terms of use and advertising agreement
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Last updated: October 14, 2026 · Applies across Canada
+              Last updated: October 17, 2026 · Applies across Canada
             </p>
           </div>
 
@@ -253,6 +253,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li>Does <strong>NOT</strong> present, receive or negotiate offers on anyone's behalf.</li>
               <li>Does <strong>NOT</strong> provide, draft, review or fill in contracts or contract forms, and does <strong>NOT</strong> hold deposits or any other money for buyers or sellers.</li>
               <li>Charges a flat advertising fee that does <strong>not</strong> depend on whether a property sells or on its sale price. OwnersMarket receives no commission, referral fee or other payment connected to any sale.</li>
+              <li><strong>Buyer's agent commission offers.</strong> A seller may state on their listing ("Agents welcome") that they are willing to pay a commission to a buyer's real estate brokerage. That is the seller's own offer. Any commission must be agreed in writing between the seller and the brokerage, and is paid as set out in that agreement. OwnersMarket is not a party to it, does not arrange, collect or hold it, receives no part of it, and pays no referral fees to anyone.</li>
             </ul>
           </section>
 

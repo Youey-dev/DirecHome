@@ -227,7 +227,7 @@ export const SELLER_GUIDE: Guide = {
         },
         {
           kind: 'p',
-          text: 'Decide now what you will do if a buyer comes with their own agent. That agent may ask you to pay their commission. You can say yes, negotiate an amount, or say no. Whatever you decide, agree it in writing before the viewing, and keep in mind that it reduces what you save.',
+          text: 'Decide now what you will do if a buyer comes with their own agent. That agent will usually ask you to pay their commission. You can say yes, negotiate an amount, or say no. If you’re open to it, tick “Agents welcome” on your OwnersMarket listing and say what you would pay: agents can then find your home and bring their buyers. Whatever you decide, agree it in writing with the agent’s brokerage before the viewing, have your lawyer or notary look at it, and keep in mind that it reduces what you save.',
         },
       ],
     },
@@ -414,7 +414,7 @@ export const BUYER_GUIDE: Guide = {
         },
         {
           kind: 'p',
-          text: 'You can still use your own agent if you want one. Ask the seller up front whether they will pay your agent’s commission. Many private sellers won’t, so you may need to pay it yourself.',
+          text: 'You can still use your own agent if you want one. On OwnersMarket, look for the “Agents welcome” badge: those owners have said what commission they will pay a buyer’s agent. If a listing doesn’t have it, ask the owner up front. Some private sellers won’t pay, so you may need to pay your agent yourself.',
         },
       ],
     },

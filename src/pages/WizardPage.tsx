@@ -8,6 +8,7 @@ import { geocodeAddress } from '../lib/geocode';
 import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
 import { calculateBCCommission, formatCAD } from '../lib/commissionCalc';
+import { AGENT_FIXED_RANGE, AGENT_OFFER_NOTICE, AGENT_PERCENT_RANGE, describeAgentCommission, validateAgentOffer, type AgentCommissionType } from '../lib/agentCommission';
 import { 
   Building2, 
   MapPin, 
@@ -40,12 +41,12 @@ interface WizardPageProps {
 }
 
 const STEPS = [
-  { id: 1, title: 'Address & Type', subtitle: 'Where is your home located?' },
-  { id: 2, title: 'Details & Price', subtitle: 'Size, rooms, and asking price' },
-  { id: 3, title: 'Photos', subtitle: 'Upload clear photos (resized on device)' },
+  { id: 1, title: 'Address and type', subtitle: 'Where is your home located?' },
+  { id: 2, title: 'Details and price', subtitle: 'Size, rooms and asking price' },
+  { id: 3, title: 'Photos', subtitle: 'Upload clear photos (resized on your device)' },
   { id: 4, title: 'Description', subtitle: 'What makes your home special?' },
-  { id: 5, title: 'Cash-Back Offer', subtitle: 'Optional credit to your buyer' },
-  { id: 6, title: 'Review & Submit', subtitle: 'Confirm and send your listing for review' }
+  { id: 5, title: 'Buyers and agents', subtitle: 'Optional: cash back for the buyer, and whether agents are welcome' },
+  { id: 6, title: 'Review and submit', subtitle: 'Confirm and send your listing for review' }
 ];
 
 
@@ -108,6 +109,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const [offersCashback, setOffersCashback] = useState(false);
   const [cashbackType, setCashbackType] = useState<'fixed' | 'percentage'>('fixed');
   const [cashbackAmount, setCashbackAmount] = useState(10000);
+  // "Agents welcome": the seller's own buyer's agent commission offer
+  const [agentsWelcome, setAgentsWelcome] = useState(false);
+  const [agentCommissionType, setAgentCommissionType] = useState<AgentCommissionType>('negotiable');
+  const [agentCommissionValue, setAgentCommissionValue] = useState<number | ''>('');
 
 
   // Restore an unfinished draft (or a listing opened with "Edit") saved on this device
@@ -159,6 +164,9 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (typeof draft.offersCashback === 'boolean') setOffersCashback(draft.offersCashback);
     if (draft.cashbackType) setCashbackType(draft.cashbackType);
     if (draft.cashbackAmount) setCashbackAmount(draft.cashbackAmount);
+    if (typeof draft.agentsWelcome === 'boolean') setAgentsWelcome(draft.agentsWelcome);
+    if (draft.agentCommissionType) setAgentCommissionType(draft.agentCommissionType);
+    if (draft.agentCommissionValue) setAgentCommissionValue(Number(draft.agentCommissionValue));
     // Only photos that are already uploaded come back; new photos are not stored on the device
     if (Array.isArray(draft.photos)) {
       setPhotos(draft.photos.filter((p: PhotoItem) => typeof p.url === 'string' && p.url.startsWith('http')));
@@ -199,7 +207,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         photos: photos.filter((p) => p.url.startsWith('http')),
         offersCashback,
         cashbackType,
-        cashbackAmount
+        cashbackAmount,
+        agentsWelcome,
+        agentCommissionType,
+        agentCommissionValue
       });
       setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }, 600);
@@ -209,7 +220,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     streetAddress, unitNumber, city, province, postalCode, neighborhood, propertyType, lat, lng,
     price, bedrooms, bathrooms, sqft, lotSqft, lotAcres, yearBuilt, parkingSpaces, strataFee, propertyTaxesAnnual,
     headline, description, neighborhoodHighlights, upgradesInput, inclusionsInput, photos,
-    offersCashback, cashbackType, cashbackAmount, editingId, isSubmittedSuccess
+    offersCashback, cashbackType, cashbackAmount, agentsWelcome, agentCommissionType, agentCommissionValue, editingId, isSubmittedSuccess
   ]);
 
   // Live Commission calculations
@@ -396,6 +407,14 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       }
     }
 
+    if (currentStep === 5) {
+      const agentError = validateAgentOffer({ agentsWelcome, agentCommissionType, agentCommissionValue: Number(agentCommissionValue) || undefined });
+      if (agentError) {
+        setValidationError(agentError);
+        return;
+      }
+    }
+
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -453,6 +472,9 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         cashbackType,
         cashbackAmount: finalCashback,
         estimatedCommissionSaved: commissionBreakdown.traditionalTotalCommission,
+        agentsWelcome,
+        agentCommissionType: agentsWelcome ? agentCommissionType : undefined,
+        agentCommissionValue: agentsWelcome && agentCommissionType !== 'negotiable' ? Number(agentCommissionValue) : undefined,
         headline: stripHtml(headline),
         description: stripHtmlKeepLines(description),
         neighborhoodHighlights: neighborhoodHighlights ? stripHtmlKeepLines(neighborhoodHighlights) : undefined,
@@ -1144,6 +1166,84 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Agents welcome */}
+            <div className="pt-4 border-t border-slate-200 space-y-4">
+              <div className="flex items-start justify-between gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <label htmlFor="wizard-agents-welcome" className="cursor-pointer">
+                  <div className="text-sm font-bold text-slate-900">Agents welcome: pay a buyer's agent commission?</div>
+                  <div className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                    Many buyers work with a real estate agent. Tick this to show agents that you'll pay their commission if their client buys
+                    your home. Your listing gets an "Agents welcome" badge, and agents can find it with a filter.
+                  </div>
+                </label>
+                <input
+                  id="wizard-agents-welcome"
+                  type="checkbox"
+                  checked={agentsWelcome}
+                  onChange={(e) => setAgentsWelcome(e.target.checked)}
+                  className="w-5 h-5 accent-emerald-700 rounded cursor-pointer mt-1 shrink-0"
+                />
+              </div>
+
+              {agentsWelcome && (
+                <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <fieldset className="space-y-2">
+                    <legend className="text-xs font-semibold text-slate-700 mb-1">Commission you would pay the buyer's agent's brokerage</legend>
+                    {([
+                      ['percent', 'A percentage of the sale price'],
+                      ['fixed', 'A fixed amount'],
+                      ['negotiable', 'To be negotiated with the agent'],
+                    ] as [AgentCommissionType, string][]).map(([value, label]) => (
+                      <label key={value} className="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="agent-commission-type"
+                          value={value}
+                          checked={agentCommissionType === value}
+                          onChange={() => setAgentCommissionType(value)}
+                          className="accent-emerald-700"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </fieldset>
+
+                  {agentCommissionType !== 'negotiable' && (
+                    <label className="block">
+                      <span className="block text-xs font-semibold text-slate-700 mb-1">
+                        {agentCommissionType === 'percent' ? 'Percentage of the sale price (%)' : 'Amount ($ CAD)'}
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min={agentCommissionType === 'percent' ? AGENT_PERCENT_RANGE.min : AGENT_FIXED_RANGE.min}
+                        max={agentCommissionType === 'percent' ? AGENT_PERCENT_RANGE.max : AGENT_FIXED_RANGE.max}
+                        step={agentCommissionType === 'percent' ? 0.25 : 500}
+                        value={agentCommissionValue}
+                        onChange={(e) => setAgentCommissionValue(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-full sm:w-56 px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm"
+                      />
+                      {agentCommissionType === 'percent' && Number(agentCommissionValue) > 0 && (
+                        <span className="block text-xs text-slate-500 mt-1">
+                          About {formatCAD((price * Number(agentCommissionValue)) / 100)} on your asking price, plus GST/HST if it applies.
+                        </span>
+                      )}
+                    </label>
+                  )}
+
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 leading-relaxed space-y-1">
+                    <div className="font-semibold text-slate-800">Good to know:</div>
+                    <p>{AGENT_OFFER_NOTICE}</p>
+                    <p>
+                      The amount is your choice and is negotiable; there is no standard rate. Paying a buyer's agent reduces what you keep, and
+                      you can still sell to buyers who don't have an agent. Before you sign anything with a brokerage, have your lawyer or notary
+                      look at it.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -1177,6 +1277,12 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 </div>
               </div>
 
+              {agentsWelcome && (
+                <div className="bg-white p-3 rounded-xl text-xs text-slate-800 border border-slate-200 flex items-center justify-between gap-3">
+                  <span>Agents welcome. Buyer's agent commission:</span>
+                  <span className="font-bold text-slate-900 text-right">{describeAgentCommission({ agentsWelcome, agentCommissionType, agentCommissionValue: Number(agentCommissionValue) || undefined })}</span>
+                </div>
+              )}
               {offersCashback && (
                 <div className="bg-emerald-100/70 p-3 rounded-xl text-xs text-emerald-950 flex items-center justify-between">
                   <span>Buyer cash back incentive offered:</span>

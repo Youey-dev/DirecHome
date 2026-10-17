@@ -19,7 +19,7 @@ export const SELLER_STEPS: ChecklistStep[] = [
   { key: 'price', label: 'Research your price with your assessment and recent sales nearby', help: { label: 'How', tab: 'guide-selling' } },
   { key: 'documents', label: 'Gather your tax bill, mortgage details and records of work done' },
   { key: 'disclosure', label: 'Know what you must disclose about your home', help: { label: 'Guide', tab: 'guide-selling' } },
-  { key: 'agent-decision', label: 'Decide what you’ll do if a buyer brings an agent' },
+  { key: 'agent-decision', label: 'Decide what you’ll do if a buyer brings an agent (you can mark your listing “Agents welcome”)' },
   { key: 'sign', label: 'Put up your for-sale sign' },
   { key: 'feature-sheet', label: 'Print feature sheets to hand out at viewings' },
   { key: 'share', label: 'Share your listing with friends and local groups' },
