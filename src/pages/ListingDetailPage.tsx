@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { AGENT_OFFER_NOTICE, describeAgentCommission } from '../lib/agentCommission';
 import { FormattedText } from '../components/FormattedText';
 import { Listing, UserProfile } from '../types/listing';
 import { ListingGallery } from '../components/ListingGallery';
@@ -25,7 +26,7 @@ import {
   Car,
   Layers,
   FileCheck
-} from 'lucide-react';
+, Handshake } from 'lucide-react';
 
 interface ListingDetailPageProps {
   listing: Listing;
@@ -192,7 +193,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <div className="p-5 sm:p-6 rounded-2xl bg-emerald-50 border border-emerald-200/90 space-y-2.5">
               <div className="flex items-center gap-2 text-emerald-900 font-bold text-base">
                 <Sparkles className="w-5 h-5 text-emerald-700 shrink-0" />
-                <span>Seller's Cash-Back Offer: {formatCAD(listing.cashbackAmount)}</span>
+                <span>Seller's cash-back offer: {formatCAD(listing.cashbackAmount)}</span>
               </div>
               <p className="text-xs sm:text-sm text-emerald-950/90 leading-relaxed">
                 The homeowner is offering a <strong>{formatCAD(listing.cashbackAmount)}</strong> credit to the buyer at completion. This is the seller's own voluntary offer. 
@@ -205,6 +206,24 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <p className="text-[11px] leading-relaxed text-slate-700">{CASHBACK_SELLER_OFFER_NOTICE} To apply, it must be included in the purchase contract. {CONTRACT_NOTICE}</p>
                 <p className="text-[11px] leading-relaxed text-slate-900 font-medium">{CASHBACK_LENDER_NOTICE}</p>
               </div>
+            </div>
+          )}
+
+          {/* Agents welcome: the seller's buyer's agent commission offer */}
+          {listing.agentsWelcome && !isExample && (
+            <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-300 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-base text-slate-900">
+                <Handshake className="w-5 h-5 text-emerald-700 shrink-0" />
+                <span>Agents welcome</span>
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                The owner will pay a buyer's agent commission of <strong>{describeAgentCommission(listing)}</strong> to the agent's brokerage if
+                the agent's client buys this home.
+              </p>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Agents: message the owner to confirm the commission in writing before you book a showing. The owner is selling without an agent of
+                their own, so follow your regulator's rules for dealing with an unrepresented seller. {AGENT_OFFER_NOTICE}
+              </p>
             </div>
           )}
 

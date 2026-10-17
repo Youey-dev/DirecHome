@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   EyeOff,
   FileText,
+  Handshake,
   Globe2,
   KeyRound,
   LayoutGrid,
@@ -87,7 +88,7 @@ const STEPS: { title: string; text: string; icon: React.ReactNode }[] = [
   },
   {
     title: 'Show your home',
-    text: 'Buyers message you and request viewing times. You accept the ones that suit you. Your exact address is only shared once you confirm a viewing.',
+    text: 'Buyers, and agents bringing a buyer if you welcome them, message you and request viewing times. You accept the ones that suit you. Your exact address is only shared once you confirm a viewing.',
     icon: <KeyRound className="w-5 h-5" />,
   },
   {
@@ -125,7 +126,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: 'What if a buyer has their own agent?',
-    a: 'That agent may ask you to pay their commission. You can agree, negotiate an amount, or only deal with buyers who don’t have an agent. It’s your choice, and it’s best to decide before your first viewing.',
+    a: 'That agent will usually ask you to pay their commission. You can decide up front: tick “Agents welcome” on your listing and say what you’d pay (a percentage, a fixed amount or “to be negotiated”), or leave it unticked and deal with buyers directly. Either way, agree any commission in writing with the agent’s brokerage before the showing, and have your lawyer or notary look at it.',
   },
   {
     q: 'Can I cancel?',
@@ -144,7 +145,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         </h1>
         <p className="text-lg text-slate-700 leading-relaxed max-w-[38em]">
           Your home gets its own listing on OwnersMarket, signs and a feature sheet with a QR code that sends people straight to it, and the tools
-          to handle buyers yourself. No commission, and you stay in charge from first photo to keys.
+          to handle buyers yourself. No commission to us, agents welcome if you choose, and you stay in charge from first photo to keys.
         </p>
         <div className="flex flex-wrap gap-3 pt-1">
           <button
@@ -275,6 +276,10 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               You can offer part of what you save on commission as cash back at closing. It’s your choice and paid by you, and it’s written into
               the contract by the lawyers.
             </Feature>
+            <Feature icon={<Handshake className="w-5 h-5" />} title="Agents welcome, if you choose">
+              Tick “Agents welcome” and say what you’d pay a buyer’s agent: a percentage, a fixed amount or “to be negotiated”. Your listing gets
+              a badge, and agents can filter for it, so buyers who work with an agent can find your home too.
+            </Feature>
             <Feature icon={<ShieldCheck className="w-5 h-5" />} title="Reviewed listings and a report button">
               Every listing is reviewed before it goes live, and anyone can report a listing that looks wrong.
             </Feature>
@@ -312,6 +317,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
             {[
               'Set or advise on your price. Your assessment and recent sales nearby are the place to start; our seller guide shows how.',
               'Negotiate with buyers or handle offers, contracts or deposits. Your lawyer or notary does that.',
+              'Arrange, collect or share in agent commissions. Any buyer’s agent commission is between you and the agent’s brokerage.',
               'Put your home on MLS, the agents’ system.',
               'Verify ownership. Buyers should confirm the title with their lawyer or notary before any deal.',
               'Promise a number of buyers or a sale date.',
@@ -340,7 +346,8 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {[
                 ['What you pay', 'A commission when it sells. It varies by brokerage and is negotiable', `${LISTING_FEE_LABEL} a month per active listing, no commission`],
-                ['Where buyers find it', 'MLS and the sites that show MLS listings', 'OwnersMarket, search engines, your signs, feature sheet and shared link'],
+                ['Where buyers find it', 'MLS and the sites that show MLS listings', 'OwnersMarket, search engines, your signs, feature sheet and shared link, and agents with buyers if you welcome them'],
+                ['Buyer’s agents', 'Usually paid out of the listing commission', 'Your choice: tick “Agents welcome” and say what you’d pay, or deal only with buyers directly'],
                 ['Contact with the owner', 'Usually through the listing agent', 'Buyers message the owner directly'],
                 ['Viewings', 'Booked and hosted by the agent', 'You choose the times and show the home'],
                 ['For-sale sign', 'The brokerage’s sign, with the agent’s name and number', 'Free printable lawn and window signs with a QR code to your listing'],
@@ -360,6 +367,48 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         <p className="text-sm text-slate-600">
           If your buyer uses an agent, that agent may ask you to pay their commission. Commissions vary by province and are always negotiable.
         </p>
+      </section>
+
+      {/* For agents */}
+      <section className="bg-fern">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-10">
+          <div className="flex flex-col gap-4">
+            <p className="text-sm font-bold text-emerald-700">For real estate agents</p>
+            <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Bring your buyers</h2>
+            <p className="text-[17px] text-slate-700 leading-relaxed">
+              Owners on OwnersMarket can mark their listing “Agents welcome” and say up front what commission they’ll pay a buyer’s agent.
+            </p>
+            <NavLink
+              to="browse"
+              onNavigate={onNavigate}
+              className="self-start px-6 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-md min-h-[48px] inline-flex items-center"
+            >
+              Browse homes
+            </NavLink>
+          </div>
+          <ol className="flex flex-col gap-5 text-[16px] text-slate-700 leading-relaxed list-decimal pl-5">
+            <li>
+              <b className="text-slate-900">Look for the “Agents welcome” badge,</b> or turn on the “Agents welcome” filter when you browse. The
+              listing shows the commission the owner has offered.
+            </li>
+            <li>
+              <b className="text-slate-900">Message the owner through the listing</b> to confirm the commission in writing with your brokerage
+              before you book a showing.
+            </li>
+            <li>
+              <b className="text-slate-900">Book the viewing through OwnersMarket.</b> The owner accepts a time and the address is shared once it’s
+              confirmed.
+            </li>
+            <li>
+              <b className="text-slate-900">The owner has no agent of their own,</b> so follow your regulator’s rules for dealing with an
+              unrepresented seller. The owner’s lawyer or notary handles their side of the contract.
+            </li>
+          </ol>
+          <p className="lg:col-start-2 text-sm text-slate-600">
+            OwnersMarket is an advertising site. We aren’t part of any commission agreement and don’t receive any part of it, and we don’t pay
+            referral fees.
+          </p>
+        </div>
       </section>
 
       {/* FAQ */}

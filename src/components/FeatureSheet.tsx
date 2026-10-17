@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { describeAgentCommission } from '../lib/agentCommission';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { Printer, X } from 'lucide-react';
@@ -70,6 +71,7 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
     ['Parking', listing.parkingSpaces ? `${listing.parkingSpaces} ${listing.parkingSpaces === 1 ? 'space' : 'spaces'}` : ''],
     ['Property taxes', listing.propertyTaxesAnnual ? `${formatCAD(listing.propertyTaxesAnnual)} / yr` : ''],
     ['Strata fee', listing.strataFee ? `${formatCAD(listing.strataFee)} / mo` : ''],
+    ['Buyer\'s agents', listing.agentsWelcome ? `Welcome: ${describeAgentCommission(listing)}` : ''],
   ].filter(([, v]) => v) as [string, string][];
 
   const cashback =

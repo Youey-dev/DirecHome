@@ -127,6 +127,11 @@ export interface Listing {
   cashbackAmount: number; // e.g. $15,000 or 1.5%
   estimatedCommissionSaved: number;
 
+  // "Agents welcome": the seller's buyer's agent commission offer (paid to the agent's brokerage)
+  agentsWelcome?: boolean;
+  agentCommissionType?: 'percent' | 'fixed' | 'negotiable';
+  agentCommissionValue?: number;
+
   // Media
   photos: PhotoItem[];
 

@@ -14,6 +14,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
 import { stripHtml, stripHtmlKeepLines } from './security';
 import { editNeedsReview } from './reviewRules';
+import { agentOfferColumns } from './agentCommission';
 import type {
   AppNotification,
   Listing,
@@ -68,6 +69,9 @@ export interface ListingSubmission {
   cashbackType: 'fixed' | 'percentage';
   cashbackAmount: number;
   estimatedCommissionSaved: number;
+  agentsWelcome?: boolean;
+  agentCommissionType?: 'percent' | 'fixed' | 'negotiable';
+  agentCommissionValue?: number;
   headline: string;
   description: string;
   neighborhoodHighlights?: string;
@@ -112,6 +116,7 @@ const LISTING_COLUMNS = [
   'offers_cashback', 'cashback_type', 'cashback_amount', 'estimated_commission_saved',
   'headline', 'description', 'neighborhood_highlights', 'recent_upgrades', 'inclusions',
   'views_count', 'saves_count', 'inquiries_count', 'created_at', 'updated_at', 'admin_hold',
+  'agents_welcome', 'agent_commission_type', 'agent_commission_value',
 ].join(',');
 
 /** The name sellers see on messages from the OwnersMarket admin. */
@@ -615,6 +620,9 @@ class DataStore {
       offersCashback: !!row.offers_cashback,
       cashbackType: row.cashback_type,
       cashbackAmount: Number(row.cashback_amount),
+      agentsWelcome: !!row.agents_welcome,
+      agentCommissionType: row.agent_commission_type ?? undefined,
+      agentCommissionValue: num(row.agent_commission_value),
       estimatedCommissionSaved: Number(row.estimated_commission_saved),
       photos,
       headline: row.headline,
@@ -692,6 +700,7 @@ class DataStore {
       cashback_type: input.cashbackType,
       cashback_amount: input.cashbackAmount,
       estimated_commission_saved: input.estimatedCommissionSaved,
+      ...agentOfferColumns(input),
       headline: input.headline,
       description: input.description,
       neighborhood_highlights: input.neighborhoodHighlights ?? null,

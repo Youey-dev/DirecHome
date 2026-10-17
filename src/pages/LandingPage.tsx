@@ -315,7 +315,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             On a {formatCAD(EXAMPLE_PRICE)} home, an example commission of 7% on the first $100,000 and 2.5% on the rest, plus 5% GST, comes to about {formatCAD(example.traditionalTotalCommission)}. Rates vary by province and are always negotiable, and HST provinces pay more tax, so treat this as an estimate.
           </p>
           <p className="text-[17px] leading-relaxed text-slate-700 max-w-[32em]">
-            If you like, you can offer part of what you save to the buyer as cash back at closing. That is your choice, and it is paid by you.
+            If you like, you can offer part of what you save to the buyer as cash back at closing, or mark your listing “Agents welcome” and say what you would pay a buyer’s agent. Both are your choice, and paid by you.
           </p>
           <NavLink
             to="calculator"
