@@ -1,8 +1,10 @@
 /**
- * Google Analytics 4, loaded ONLY after a visitor says yes to analytics.
+ * Google Analytics 4, ON by default (notice and opt-out).
  *
- *  - Nothing is downloaded from Google and no Google cookie is set before consent.
- *  - Choosing "essential only" later switches it off and removes the Google cookies.
+ *  - Runs for every visitor unless they turn it off ("Turn off analytics" in the banner or
+ *    "Cookie settings" in the footer), or their browser sends Global Privacy Control.
+ *  - Turning it off stops it right away and removes the Google cookies.
+ *  - The privacy policy describes this, including how to opt out.
  *  - Ad features are off (no Google signals, no ad personalisation).
  *  - The admin pages are never tracked. Only the page path is sent: no names, emails or
  *    search text. Event names/values must never contain personal information.
@@ -96,9 +98,25 @@ function stopAnalytics(): void {
   }
 }
 
-/** Call once when the site opens: starts GA only if the visitor already said yes. */
+/** True when the browser asks sites not to track (Global Privacy Control). We honour it as an opt-out. */
+const browserOptsOut = (): boolean => {
+  try {
+    return (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true;
+  } catch {
+    return false;
+  }
+};
+
+/** Analytics runs unless the visitor turned it off (or their browser opts out). */
+export function analyticsAllowed(): boolean {
+  const c = readConsent();
+  if (c) return c.analytics;
+  return !browserOptsOut();
+}
+
+/** Call once when the site opens. */
 export function initAnalytics(): void {
-  if (readConsent()?.analytics) startAnalytics();
+  if (analyticsAllowed()) startAnalytics();
 }
 
 const NEVER_TRACK = /^\/(admin)(\/|$)/;
@@ -107,7 +125,7 @@ const NEVER_TRACK = /^\/(admin)(\/|$)/;
 export function trackPageView(path: string, title: string): void {
   lastPath = path;
   if (!analyticsAvailable || NEVER_TRACK.test(path)) return;
-  if (!readConsent()?.analytics) return;
+  if (!analyticsAllowed()) return;
   sendPageView(path, title);
 }
 
@@ -122,6 +140,6 @@ function sendPageView(path: string, title = document.title): void {
 
 /** Optional named events, e.g. trackEvent('start_listing'). Never pass personal details. */
 export function trackEvent(name: string, params: Record<string, string | number | boolean> = {}): void {
-  if (!analyticsAvailable || !window.gtag || !readConsent()?.analytics) return;
+  if (!analyticsAvailable || !window.gtag || !analyticsAllowed()) return;
   window.gtag('event', name, params);
 }
