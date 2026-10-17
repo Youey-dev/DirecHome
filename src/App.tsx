@@ -109,7 +109,12 @@ function MainApp() {
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
   // The listing being edited. Null means the wizard creates a brand-new listing.
   const [editListing, setEditListing] = useState<Listing | null>(null);
-  const [dashboardIntent, setDashboardIntent] = useState<DashboardIntent | null>(null);
+  // Email links can open a dashboard section directly: /dashboard?tab=messages
+  const [dashboardIntent, setDashboardIntent] = useState<DashboardIntent | null>(() => {
+    if (typeof window === 'undefined' || initial.tab !== 'dashboard') return null;
+    const t = new URLSearchParams(window.location.search).get('tab');
+    return t === 'listings' || t === 'viewings' || t === 'messages' ? { tab: t, nonce: Date.now() } : null;
+  });
   const [unreadCount, setUnreadCount] = useState(0);
   // Filters from the homepage search box, handed to the browse page
   const [browseFilters, setBrowseFilters] = useState<BrowseFilters | undefined>(undefined);

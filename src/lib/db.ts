@@ -1139,30 +1139,43 @@ class DataStore {
   // ---------------------------------------------------------------------------
   private static readonly LEGACY_PREFS_KEY = 'directhome_casl_prefs_v1';
 
-  async getEmailPreferences(): Promise<{ marketing: boolean; digest: boolean }> {
+  async getEmailPreferences(): Promise<{ marketing: boolean; digest: boolean; notify: boolean }> {
     const me = this.requireUser();
     const { data, error } = await supabase
       .from('users')
-      .select('email_marketing_opt_in, email_digest_opt_in')
+      .select('email_marketing_opt_in, email_digest_opt_in, email_notify')
       .eq('id', me.id)
       .maybeSingle();
-    if (!error && data) return { marketing: !!data.email_marketing_opt_in, digest: !!data.email_digest_opt_in };
+    if (!error && data) {
+      return { marketing: !!data.email_marketing_opt_in, digest: !!data.email_digest_opt_in, notify: data.email_notify !== false };
+    }
+    if (error && (error.code === '42703' || error.code === 'PGRST204')) {
+      // Before migration 014 there is no email_notify column yet
+      const old = await supabase.from('users').select('email_marketing_opt_in, email_digest_opt_in').eq('id', me.id).maybeSingle();
+      if (!old.error && old.data) return { marketing: !!old.data.email_marketing_opt_in, digest: !!old.data.email_digest_opt_in, notify: true };
+    }
     // Before migration 012 the columns don't exist yet: fall back to what this device saved
     try {
       const raw = JSON.parse(localStorage.getItem(DataStore.LEGACY_PREFS_KEY) ?? '{}');
-      return { marketing: !!raw.marketing, digest: !!raw.digest };
+      return { marketing: !!raw.marketing, digest: !!raw.digest, notify: true };
     } catch {
-      return { marketing: false, digest: false };
+      return { marketing: false, digest: false, notify: true };
     }
   }
 
   /** Returns 'account' when saved to the profile, 'device' when only this browser could keep it. */
-  async saveEmailPreferences(prefs: { marketing: boolean; digest: boolean }): Promise<'account' | 'device'> {
+  async saveEmailPreferences(prefs: { marketing: boolean; digest: boolean; notify?: boolean }): Promise<'account' | 'device'> {
     const me = this.requireUser();
-    const { error } = await supabase
-      .from('users')
-      .update({ email_marketing_opt_in: prefs.marketing, email_digest_opt_in: prefs.digest })
-      .eq('id', me.id);
+    const update: Record<string, boolean> = { email_marketing_opt_in: prefs.marketing, email_digest_opt_in: prefs.digest };
+    if (prefs.notify !== undefined) update.email_notify = prefs.notify;
+    let { error } = await supabase.from('users').update(update).eq('id', me.id);
+    if (error && prefs.notify !== undefined && (error.code === '42703' || error.code === 'PGRST204')) {
+      // Before migration 014: save the rest
+      ({ error } = await supabase
+        .from('users')
+        .update({ email_marketing_opt_in: prefs.marketing, email_digest_opt_in: prefs.digest })
+        .eq('id', me.id));
+    }
     if (!error) {
       try { localStorage.removeItem(DataStore.LEGACY_PREFS_KEY); } catch { /* ignore */ }
       return 'account';

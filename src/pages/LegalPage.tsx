@@ -43,7 +43,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   const [exportSuccess, setExportSuccess] = useState(false);
 
   // CASL Notification Preferences State
-  const [emailTransactional, setEmailTransactional] = useState(true); // Always on for essential service
+  // Emails about the person's own messages, viewings and listings (on by default; they can turn them off)
+  const [emailTransactional, setEmailTransactional] = useState(true);
   const [emailMarketing, setEmailMarketing] = useState(false); // Default false: CASL explicit opt-in required
   const [emailWeeklyDigest, setEmailWeeklyDigest] = useState(false);
   const [prefSavedMessage, setPrefSavedMessage] = useState(false);
@@ -59,6 +60,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         if (cancelled) return;
         setEmailMarketing(p.marketing);
         setEmailWeeklyDigest(p.digest);
+        setEmailTransactional(p.notify);
       })
       .catch(() => { /* keep the unticked defaults */ });
     return () => {
@@ -74,7 +76,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       return;
     }
     try {
-      await db.saveEmailPreferences({ marketing: emailMarketing, digest: emailWeeklyDigest });
+      await db.saveEmailPreferences({ marketing: emailMarketing, digest: emailWeeklyDigest, notify: emailTransactional });
       setPrefSavedMessage(true);
       setTimeout(() => setPrefSavedMessage(false), 3000);
     } catch (err: any) {
@@ -593,22 +595,22 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <form onSubmit={handleSavePreferences} className="space-y-4 pt-2">
             <h2 className="text-base font-bold text-slate-900">Notification Preferences for {activeUser.email}</h2>
 
-            {/* Transactional (Mandatory for account) */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-start justify-between gap-4">
+            {/* Account notices: messages, viewings, listing updates */}
+            <label className="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-4 hover:border-slate-300 transition-colors cursor-pointer">
               <div>
-                <div className="font-semibold text-slate-900 text-sm">Essential Transactional Alerts (Required)</div>
+                <div className="font-semibold text-slate-900 text-sm">Messages, viewings and listing updates</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Viewing confirmations, seller approvals, direct message replies, and listing review status updates.
+                  An email when someone messages you, a viewing is requested or changes, or your listing is approved, sent back or paused.
+                  Recommended: if this is off, you only see these on the site. Sign-in and password emails always send.
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={emailTransactional}
-                disabled
-                className="w-5 h-5 accent-emerald-700 rounded cursor-not-allowed mt-1"
-                title="Transactional emails are required for platform transactions"
+                onChange={(e) => setEmailTransactional(e.target.checked)}
+                className="w-5 h-5 accent-emerald-700 rounded cursor-pointer mt-1"
               />
-            </div>
+            </label>
 
             {/* Marketing / Platform Updates (Explicit CASL Opt-In) */}
             <div className="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-4 hover:border-slate-300 transition-colors">
