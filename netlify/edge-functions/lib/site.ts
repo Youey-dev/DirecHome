@@ -49,7 +49,7 @@ export const PAGES: Record<string, PageMeta> = {
   },
   '/how-it-works': {
     title: 'How Selling Your Home Privately Works · OwnersMarket',
-    description: 'How selling and buying a home privately works on OwnersMarket: a flat $24.99 a month per listing, viewings you control, and your own lawyer for the sale.',
+    description: 'What you get for $24.99 a month: a photo-first listing buyers can find, free printable lawn and window signs and a feature sheet with a QR code, and tools to handle viewings yourself.',
   },
   '/calculator': {
     title: 'Real Estate Commission Calculator · OwnersMarket',
