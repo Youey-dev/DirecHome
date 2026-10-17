@@ -762,7 +762,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     {viewing.notes && (
                       <div className="p-3 bg-slate-50 rounded-xl space-y-1">
                         <div className="font-semibold text-slate-700">Buyer notes:</div>
-                        <div className="text-slate-600 italic">"{viewing.notes}"</div>
+                        <div className="text-slate-600 italic whitespace-pre-wrap">"{viewing.notes}"</div>
                       </div>
                     )}
                   </div>
@@ -928,7 +928,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           {msg.senderName} · {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                         <div
-                          className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-sm leading-relaxed ${
+                          className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm shadow-sm leading-relaxed whitespace-pre-wrap break-words ${
                             isSellerMe
                               ? 'bg-emerald-700 text-white rounded-br-none'
                               : 'bg-white text-slate-900 border border-slate-200 rounded-bl-none'

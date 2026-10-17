@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { FormattedText } from '../components/FormattedText';
 import { Listing, UserProfile } from '../types/listing';
 import { ListingGallery } from '../components/ListingGallery';
 import { MapLibreMap } from '../components/LazyMap';
@@ -266,9 +267,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           {/* Description Prose */}
           <div className="space-y-3">
             <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">From the owner</h2>
-            <p className="text-[17px] text-slate-800 leading-[1.7] whitespace-pre-line max-w-[40em]">
-              {listing.description}
-            </p>
+            <FormattedText text={listing.description} className="text-[17px] text-slate-800 leading-[1.7] max-w-[40em] break-words" />
           </div>
 
           {/* Recent Upgrades & Inclusions */}
@@ -310,9 +309,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           {listing.neighborhoodHighlights && (
             <div className="space-y-2">
               <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">The neighbourhood</h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                {listing.neighborhoodHighlights}
-              </p>
+              <FormattedText text={listing.neighborhoodHighlights} className="text-[16px] text-slate-700 leading-relaxed max-w-[40em] break-words" />
             </div>
           )}
 

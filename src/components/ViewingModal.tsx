@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Listing, UserProfile } from '../types/listing';
 import { db } from '../lib/db';
 import { Calendar, Clock, X, CheckCircle2, ShieldCheck, Mail, AlertCircle } from 'lucide-react';
-import { stripHtml, validateEmail, validatePhone } from '../lib/security';
+import { stripHtml, stripHtmlKeepLines, validateEmail, validatePhone } from '../lib/security';
 
 interface ViewingModalProps {
   listing: Listing;
@@ -53,7 +53,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
     const cleanName = stripHtml(buyerName);
     const cleanEmail = stripHtml(buyerEmail);
     const cleanPhone = stripHtml(buyerPhone);
-    const cleanNotes = stripHtml(notes);
+    const cleanNotes = stripHtmlKeepLines(notes);
 
     if (!cleanName || !cleanEmail || !cleanPhone) {
       setErrorMsg('Please complete all contact fields.');
