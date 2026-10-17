@@ -12,7 +12,7 @@
  */
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
-import { stripHtml } from './security';
+import { stripHtml, stripHtmlKeepLines } from './security';
 import { editNeedsReview } from './reviewRules';
 import type {
   AppNotification,
@@ -1063,7 +1063,7 @@ class DataStore {
     const me = this.requireUser();
     const { error } = await supabase
       .from('messages')
-      .insert({ conversation_id: conversationId, sender_id: me.id, content: stripHtml(content).slice(0, 5000) });
+      .insert({ conversation_id: conversationId, sender_id: me.id, content: stripHtmlKeepLines(content).slice(0, 5000) });
     if (error) fail(error);
     await this.refresh();
   }

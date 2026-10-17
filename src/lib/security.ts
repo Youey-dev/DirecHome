@@ -37,6 +37,25 @@ export function stripHtml(input: string): string {
 }
 
 /**
+ * Like stripHtml, but keeps line breaks and blank lines (for descriptions, messages and notes),
+ * so paragraphs and lists survive. Windows line endings become \n, trailing spaces are trimmed,
+ * and more than one blank line in a row becomes one.
+ */
+export function stripHtmlKeepLines(input: string): string {
+  if (!input) return '';
+  return input
+    .replace(/<[^>]*>?/gm, '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/\t/g, ' ')
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, '')
+    .split('\n')
+    .map((line) => line.replace(/\s+$/, ''))
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
  * Validates and standardizes a Canadian postal code (e.g., "V2Y 3K9", "M5V 2T6").
  * Canada Post never uses D, F, I, O, Q or U, and W and Z never start a code.
  * When a province is given, the first letter must belong to that province

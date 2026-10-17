@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Listing, UserProfile, ConversationThread } from '../types/listing';
 import { db } from '../lib/db';
 import { Send, X, ShieldAlert, Sparkles, AlertCircle } from 'lucide-react';
-import { stripHtml } from '../lib/security';
+import { stripHtml, stripHtmlKeepLines } from '../lib/security';
 
 interface MessageModalProps {
   listing: Listing;
@@ -47,7 +47,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanText = stripHtml(inputText);
+    const cleanText = stripHtmlKeepLines(inputText);
     if (!cleanText || sending) return;
 
     setSending(true);
@@ -137,7 +137,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                     {msg.senderName} · {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
+                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words ${
                       isMe
                         ? 'bg-emerald-700 text-white rounded-br-none'
                         : 'bg-white text-slate-900 border border-slate-200 rounded-bl-none'

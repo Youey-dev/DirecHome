@@ -179,7 +179,7 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
                   whiteSpace: 'pre-line',
                 }}
               >
-                {listing.description}
+                {listing.description.replace(/\*\*/g, '')}
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
                 <List title="Recent upgrades" items={listing.recentUpgrades ?? []} />

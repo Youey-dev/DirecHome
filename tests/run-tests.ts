@@ -15,6 +15,7 @@ import { runBillingTests } from './billing.test';
 import { runReviewTests } from './review.test';
 import { runExampleTests } from './examples.test';
 import { runEmailTests } from './email.test';
+import { runTextTests } from './text.test';
 
 async function main() {
   console.log('====================================================');
@@ -31,6 +32,7 @@ async function main() {
     runReviewTests();
     runExampleTests();
     runEmailTests();
+    runTextTests();
 
     console.log('====================================================');
     console.log('✨ SUCCESS: ALL TEST SUITES PASSED WITHOUT ERRORS!');

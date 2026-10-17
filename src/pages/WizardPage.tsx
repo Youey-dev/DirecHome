@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { FormattedText } from '../components/FormattedText';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, TERMS_VERSION } from '../lib/db';
@@ -28,7 +29,7 @@ import {
   Eye,
   ShieldAlert
 } from 'lucide-react';
-import { sanitizeHtml, stripHtml, validateCanadianPostalCode } from '../lib/security';
+import { sanitizeHtml, stripHtml, stripHtmlKeepLines, validateCanadianPostalCode } from '../lib/security';
 interface WizardPageProps {
   activeUser: UserProfile;
   onListingCreated: () => void;
@@ -453,8 +454,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         cashbackAmount: finalCashback,
         estimatedCommissionSaved: commissionBreakdown.traditionalTotalCommission,
         headline: stripHtml(headline),
-        description: stripHtml(description),
-        neighborhoodHighlights: neighborhoodHighlights ? stripHtml(neighborhoodHighlights) : undefined,
+        description: stripHtmlKeepLines(description),
+        neighborhoodHighlights: neighborhoodHighlights ? stripHtmlKeepLines(neighborhoodHighlights) : undefined,
         recentUpgrades: upgradesList,
         inclusions: inclusionsList,
         photos,
@@ -1002,14 +1003,26 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               <label htmlFor="wizard-full-description" className="block text-sm font-semibold text-slate-900 mb-1">
                 Full description
               </label>
+              <p id="wizard-description-tip" className="text-xs text-slate-500 mb-2">
+                Leave a blank line between paragraphs. Start a line with a dash (-) to make a bulleted list, for example for room sizes.
+              </p>
               <textarea
                 id="wizard-full-description"
-                rows={5}
-                placeholder="Describe your home, living spaces, sunlight, outdoor living, and why you loved living here..."
+                rows={10}
+                aria-describedby="wizard-description-tip"
+                placeholder={'Describe your home, living spaces, sunlight, outdoor living, and why you loved living here.\n\nMain floor:\n- Living room: 16 × 14 ft\n- Kitchen: 12 × 11 ft'}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm leading-relaxed"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm leading-relaxed resize-y min-h-[220px]"
               />
+              {/\n|^\s*[-*•]\s/m.test(description) && (
+                <details className="mt-2 text-sm">
+                  <summary className="cursor-pointer text-emerald-700 font-semibold">Preview how buyers will see it</summary>
+                  <div className="mt-2 p-4 bg-white border border-slate-200 rounded-xl">
+                    <FormattedText text={description} className="text-[15px] text-slate-800 leading-relaxed break-words" />
+                  </div>
+                </details>
+              )}
             </div>
 
             {/* Prompt helpers */}

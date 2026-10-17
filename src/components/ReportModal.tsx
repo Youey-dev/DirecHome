@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Listing, ListingReport } from '../types/listing';
 import { db } from '../lib/db';
 import { X, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
-import { stripHtml } from '../lib/security';
+import { stripHtml, stripHtmlKeepLines } from '../lib/security';
 
 interface ReportModalProps {
   listing: Listing;
@@ -23,7 +23,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
     e.preventDefault();
     setErrorMsg(null);
 
-    const cleanDetails = stripHtml(details);
+    const cleanDetails = stripHtmlKeepLines(details);
     if (!cleanDetails || cleanDetails.length < 10) {
       setErrorMsg('Please provide a short explanation (at least 10 characters).');
       return;
