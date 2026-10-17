@@ -111,7 +111,7 @@ export const MapLibreMap: React.FC<MapLibreMapProps> = ({
           <div class="absolute w-4 h-4 rounded-full bg-emerald-700 border-2 border-white shadow-md"></div>
         </div>
         <div class="mt-1 bg-white/95 backdrop-blur-sm text-slate-800 text-[11px] font-semibold px-2 py-0.5 rounded shadow-sm border border-slate-200">
-          Approximate Location
+          Approximate location
         </div>
       `;
 
@@ -183,13 +183,13 @@ export const MapLibreMap: React.FC<MapLibreMapProps> = ({
       {approximateMode ? (
         <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-slate-200 shadow-sm text-xs text-slate-600 flex items-center justify-between">
           <span>
-            📍 <strong>Privacy & Safety:</strong> Neighborhood center is shown. Precise address is unlocked upon seller viewing confirmation.
+            📍 <strong>Privacy and safety:</strong> Neighborhood center is shown. Precise address is unlocked upon seller viewing confirmation.
           </span>
         </div>
       ) : singleListing ? (
         <div className="absolute bottom-3 left-3 right-3 bg-emerald-950/90 backdrop-blur-md text-emerald-100 px-3.5 py-2 rounded-xl border border-emerald-700/60 shadow-sm text-xs flex items-center justify-between">
           <span>
-            ✓ <strong>Confirmed Viewing:</strong> Exact property coordinates and street pin unlocked.
+            ✓ <strong>Confirmed viewing:</strong> Exact property coordinates and street pin unlocked.
           </span>
         </div>
       ) : null}

@@ -158,7 +158,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           }`}
         >
           <Scale className="w-4 h-4" />
-          <span>Terms of Use</span>
+          <span>Terms of use</span>
         </button>
 
         <button
@@ -170,7 +170,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           }`}
         >
           <Lock className="w-4 h-4" />
-          <span>Privacy Policy</span>
+          <span>Privacy policy</span>
         </button>
 
         <button
@@ -182,7 +182,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>Community & Listing Rules</span>
+          <span>Community and listing rules</span>
         </button>
 
         <button
@@ -194,7 +194,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>How Cash-Back Works</span>
+          <span>How cash back works</span>
         </button>
 
         <button
@@ -206,7 +206,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           }`}
         >
           <Bell className="w-4 h-4" />
-          <span>Email & CASL Preferences</span>
+          <span>Email preferences</span>
         </button>
       </div>
 
@@ -223,7 +223,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Terms of Use & Advertising Agreement
+              Terms of use and advertising agreement
             </h1>
             <p className="text-xs text-slate-400 mt-1">
               Last updated: October 14, 2026 · Applies across Canada
@@ -257,13 +257,13 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">2. Cash-Back Offer Terms & Conditions</h2>
+            <h2 className="text-base font-bold text-slate-900">2. Cash-back offer terms and conditions</h2>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2">
               <p>
-                <strong>Seller's Offer, Not a Platform Guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. OwnersMarket does not fund, pay, or guarantee cash-back payments.
+                <strong>Seller's offer, not a platform guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. OwnersMarket does not fund, pay, or guarantee cash-back payments.
               </p>
               <p>
-                <strong>Written Into the Contract by Your Lawyer or Notary:</strong> For a cash-back offer to take effect, it must be included in the purchase contract. {CONTRACT_NOTICE}
+                <strong>Written into the contract by your lawyer or notary:</strong> For a cash-back offer to take effect, it must be included in the purchase contract. {CONTRACT_NOTICE}
               </p>
               <p className="font-semibold text-slate-900">
                 Lender disclosure: {CASHBACK_LENDER_NOTICE}
@@ -272,7 +272,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">3. Seller Representations; No Ownership Verification</h2>
+            <h2 className="text-base font-bold text-slate-900">3. Seller representations; no ownership verification</h2>
             <p>
               By submitting a listing, the seller represents and warrants that they are the registered owner of the property, or are legally authorized by all registered owners to advertise it for sale, and that the listing is accurate. <strong>OwnersMarket does not verify property ownership, title, or the seller's authority to sell.</strong>
             </p>
@@ -282,14 +282,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">4. Independent Legal Representation Requirement</h2>
+            <h2 className="text-base font-bold text-slate-900">4. You need your own lawyer or notary</h2>
             <p>
               {CONTRACT_NOTICE} Each party should hire their own independent lawyer, or a notary in provinces where notaries handle real estate transactions (such as British Columbia), to prepare the contract and handle the closing, title transfer and money adjustments.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">5. Limitation of Liability</h2>
+            <h2 className="text-base font-bold text-slate-900">5. Limitation of liability</h2>
             <p className="text-xs text-slate-500 leading-relaxed">
               OwnersMarket makes no warranties regarding the accuracy of seller-submitted descriptions, measurements, property conditions, or zoning compliance. Buyers are solely responsible for arranging independent building inspections, reviewing any seller disclosures, confirming zoning and permits with the local municipality, and verifying title.
             </p>
@@ -323,7 +323,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Privacy Policy
+              Privacy policy
             </h1>
             <p className="text-xs text-slate-400 mt-1">
               Applies across Canada · Last updated: October 17, 2026
@@ -410,7 +410,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">6. Approximate location & security</h2>
+            <h2 className="text-base font-bold text-slate-900">6. Approximate location and security</h2>
             <p>
               To protect homeowners and their families, the map shows only an approximate location. The exact address and unit number stay hidden until the homeowner confirms a viewing. Access to data is restricted by account, and connections to the site are encrypted.
             </p>
@@ -441,7 +441,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                   className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm min-h-[44px] shrink-0"
                 >
                   <FileCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Download My Data (JSON)</span>
+                  <span>Download my data (JSON)</span>
                 </button>
               </div>
               {exportSuccess && (
@@ -456,7 +456,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <div className="p-5 bg-rose-50 border border-rose-200/90 rounded-2xl space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="font-bold text-slate-900 text-sm">Self-Serve Account & Data Erasure</div>
+                  <div className="font-bold text-slate-900 text-sm">Delete your account and data</div>
                   <div className="text-xs text-slate-600 mt-0.5">
                     Logged in as: <strong>{activeUser.name}</strong> ({activeUser.email})
                   </div>
@@ -467,7 +467,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                   className="px-4 py-2.5 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm min-h-[44px] shrink-0"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Delete Account & Erase All Data</span>
+                  <span>Delete my account and data</span>
                 </button>
               </div>
               <p className="text-[11px] text-rose-800 leading-relaxed">
@@ -490,7 +490,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Community & Listing Rules
+              Community and listing rules
             </h1>
             <p className="text-xs text-slate-400 mt-1">
               Standards for sellers and buyers across Canada · Last updated: October 14, 2026
@@ -498,21 +498,21 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">1. Accurate Representation Standard</h2>
+            <h2 className="text-base font-bold text-slate-900">1. Describe your home accurately</h2>
             <p>
               All property descriptions, square footage, inclusions and photos must be accurate and truthful. Sellers must not hide or misrepresent known problems with the property, and must give buyers any disclosure the law of their province or territory requires. These duties vary across Canada. In most provinces, sellers must disclose known hidden defects that make a home dangerous or unfit to live in, and some provinces use standard disclosure forms (such as British Columbia's Property Condition Disclosure Statement). Sellers should ask their lawyer or notary what they are required to disclose.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">2. Respectful Direct Communication</h2>
+            <h2 className="text-base font-bold text-slate-900">2. Be respectful when you message</h2>
             <p>
               OwnersMarket connects real community members. All in-app messages and viewing interactions must be respectful, civil, and free of harassment. Unsolicited commercial solicitation by licensed agents or mortgage originators is strictly prohibited and subject to immediate account suspension.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">3. Zero Tolerance for Scams or Off-Platform Deposits</h2>
+            <h2 className="text-base font-bold text-slate-900">3. No scams and no deposits outside the legal process</h2>
             <p>
               Never wire money, send an e-Transfer or pay a deposit directly to a stranger. Deposits should be paid only into the trust account of a lawyer, or of a notary in provinces where notaries handle real estate, as set out in the purchase contract. OwnersMarket never asks for, holds or handles deposits or any other money between buyers and sellers.
             </p>
@@ -525,7 +525,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              How Buyer Cash-Back Works
+              How buyer cash back works
             </h1>
             <p className="text-xs text-slate-400 mt-1">
               General information only, not legal or financial advice · Last updated: October 14, 2026
@@ -535,7 +535,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs sm:text-sm text-emerald-950 space-y-1.5">
             <div className="font-bold text-emerald-900 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-emerald-700" />
-              <span>The Basics</span>
+              <span>The basics</span>
             </div>
             <p>
               OwnersMarket charges no commission — sellers pay a flat $24.99/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
@@ -543,7 +543,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">How It Works at Closing</h2>
+            <h2 className="text-base font-bold text-slate-900">How it works at closing</h2>
             <ol className="list-decimal pl-5 space-y-2 text-xs sm:text-sm">
               <li>
                 <strong>Agreed in writing:</strong> If the buyer and seller agree to a cash-back, it must be included in the purchase contract. {CONTRACT_NOTICE}
@@ -555,14 +555,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">Mortgage Lender & Insurer Disclosure</h2>
+            <h2 className="text-base font-bold text-slate-900">Mortgage lender and insurer disclosure</h2>
             <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs sm:text-sm text-amber-950 font-medium">
               {CASHBACK_LENDER_NOTICE}
             </div>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">Legal Boundary Notice</h2>
+            <h2 className="text-base font-bold text-slate-900">What OwnersMarket does not do</h2>
             <p className="text-xs text-slate-600">
               OwnersMarket is not a party to the purchase contract, does not provide, draft or review contracts, does not hold deposit trust monies, and does not fund, pay or guarantee cash-back payments. Any cash-back is a commitment made directly between the seller and buyer.
             </p>
@@ -575,25 +575,25 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
           <div className="border-b border-slate-100 pb-4">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Email Notifications & CASL Compliance
+              Email notifications and CASL
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Canada’s Anti-Spam Legislation (CASL) Preferences & Unsubscribe Center
+              Email preferences and unsubscribe
             </p>
           </div>
 
           <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs sm:text-sm text-emerald-950 space-y-1.5">
             <div className="font-bold text-emerald-900 flex items-center gap-1.5">
               <Mail className="w-4 h-4 text-emerald-700" />
-              <span>Strict Zero-Spam Policy (CASL Standard)</span>
+              <span>How we email you</span>
             </div>
             <p>
-              OwnersMarket only sends transactional emails necessary for servicing your viewing requests, buyer messages, and listing review notifications. <strong>We never send marketing or promotional emails without your explicit, voluntary opt-in consent.</strong>
+              We email you about your own account: messages, viewing requests and updates on your listing. You can turn those off below. <strong>We only send news or promotions if you tick the box for them, and every email has a way to stop them.</strong>
             </p>
           </div>
 
           <form onSubmit={handleSavePreferences} className="space-y-4 pt-2">
-            <h2 className="text-base font-bold text-slate-900">Notification Preferences for {activeUser.email}</h2>
+            <h2 className="text-base font-bold text-slate-900">Email preferences for {activeUser.email}</h2>
 
             {/* Account notices: messages, viewings, listing updates */}
             <label className="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-4 hover:border-slate-300 transition-colors cursor-pointer">
@@ -615,7 +615,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             {/* Marketing / Platform Updates (Explicit CASL Opt-In) */}
             <div className="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-4 hover:border-slate-300 transition-colors">
               <div>
-                <div className="font-semibold text-slate-900 text-sm">Product News & Feature Announcements</div>
+                <div className="font-semibold text-slate-900 text-sm">Product news and feature announcements</div>
                 <div className="text-xs text-slate-500 mt-0.5">
                   Optional updates about new seller tools, savings estimators and OwnersMarket news across Canada.
                 </div>
@@ -631,7 +631,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             {/* Weekly Digest */}
             <div className="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-4 hover:border-slate-300 transition-colors">
               <div>
-                <div className="font-semibold text-slate-900 text-sm">Weekly Market Digest & Newly Listed Homes</div>
+                <div className="font-semibold text-slate-900 text-sm">Weekly market digest and newly listed homes</div>
                 <div className="text-xs text-slate-500 mt-0.5">
                   A once-per-week summary of homes matching your saved searches.
                 </div>
@@ -663,7 +663,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 type="submit"
                 className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer min-h-[44px]"
               >
-                Save Notification Preferences
+                Save notification preferences
               </button>
             </div>
           </form>
@@ -679,7 +679,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             </div>
 
             <div className="text-center space-y-1">
-              <h3 className="text-lg font-bold text-slate-900">Permanently Delete Account & Data?</h3>
+              <h3 className="text-lg font-bold text-slate-900">Delete your account and data for good?</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
                 This will permanently erase your account profile, saved homes, messages, listings and photos. Any listing subscriptions are cancelled first, so you will not be billed again (the current month is not refunded).
               </p>

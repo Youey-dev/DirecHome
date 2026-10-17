@@ -67,10 +67,10 @@ export const PAGES: Record<string, PageMeta> = {
     title: 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
     description: 'A free 8-step guide to buying a house for sale by owner in Canada: budgeting, checking the title, inspections, making an offer through your lawyer and keeping your deposit safe.',
   },
-  '/terms': { title: 'Terms of Use · OwnersMarket', description: 'The terms for using OwnersMarket, a Canadian advertising site for homes for sale by owner.' },
-  '/privacy': { title: 'Privacy Policy · OwnersMarket', description: 'How OwnersMarket collects, uses and protects your personal information.' },
-  '/rules': { title: 'Listing Rules · OwnersMarket', description: 'Standards for sellers and buyers on OwnersMarket across Canada.' },
-  '/cashback': { title: 'Cash-Back Policy · OwnersMarket', description: 'How a seller’s optional buyer cash-back offer works, and what buyers must tell their lender.' },
+  '/terms': { title: 'Terms of use · OwnersMarket', description: 'The terms for using OwnersMarket, a Canadian advertising site for homes for sale by owner.' },
+  '/privacy': { title: 'Privacy policy · OwnersMarket', description: 'How OwnersMarket collects, uses and protects your personal information.' },
+  '/rules': { title: 'Listing rules · OwnersMarket', description: 'Standards for sellers and buyers on OwnersMarket across Canada.' },
+  '/cashback': { title: 'Cash-back policy · OwnersMarket', description: 'How a seller’s optional buyer cash-back offer works, and what buyers must tell their lender.' },
 };
 
 /** Pages for the sitemap (only those worth finding in search). */

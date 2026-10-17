@@ -121,7 +121,7 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
           {/* If fewer than 5 photos, fill with subtle fallback slots */}
           {photos.length < 5 && Array.from({ length: 4 - (photos.length - 1) }).map((_, i) => (
             <div key={`empty-${i}`} className="h-[214px] bg-slate-50 border border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-300 text-xs">
-              OwnersMarket Photography
+              OwnersMarket
             </div>
           ))}
         </div>

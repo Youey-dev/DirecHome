@@ -98,7 +98,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
               onClick={() => onNavigateLegal('privacy')}
               className="text-xs text-slate-400 hover:text-emerald-400 underline transition-colors ml-1"
             >
-              Privacy Policy
+              Privacy policy
             </button>
           </div>
         </div>

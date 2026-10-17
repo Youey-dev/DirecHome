@@ -31,12 +31,12 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
     <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm ${compact ? 'p-5' : 'p-6 sm:p-8'}`}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Commission and cash-back estimator (estimates only)</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
-            See What You Could Keep — and Offer to Buyers
+            See what you could keep, and what you could offer buyers
           </h3>
           <p className="text-sm text-slate-500 mt-0.5">
             Without a listing brokerage, you could avoid a large commission. You may offer part of it as a cash-back to buyers. All figures are estimates.
@@ -70,7 +70,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           <div>
             <div className="flex justify-between items-center mb-2">
               <label htmlFor="calculator-asking-price" className="text-sm font-semibold text-slate-900">
-                Your Estimated Home Asking Price
+                Your estimated home asking price
               </label>
               <span className="text-lg font-bold text-slate-900 tabular-nums">
                 {formatCAD(price)}
@@ -98,7 +98,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
             <div className="flex items-center justify-between mb-3">
               <div>
                 <span className="text-sm font-semibold text-slate-900 block">
-                  Offer a Buyer Cash-Back at Closing?
+                  Offer a buyer cash back at closing?
                 </span>
                 <span className="text-xs text-slate-500">
                   Paid by you, the seller, at closing. OwnersMarket does not fund or guarantee it.
@@ -133,7 +133,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
                         cashbackType === 'fixed' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600'
                       }`}
                     >
-                      Fixed Dollar ($)
+                      Fixed amount ($)
                     </button>
                     <button
                       type="button"
@@ -205,7 +205,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
 
         {/* Right: Results Comparison Panel */}
         <div className="lg:col-span-6 bg-slate-50 rounded-2xl p-6 border border-slate-200">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+          <div className="text-xs font-semibold text-slate-400 mb-4">
             Estimated Comparison for {formatCAD(price)}
           </div>
 
@@ -260,7 +260,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
             <div className="flex items-center justify-between py-2.5 border-b border-slate-200 text-sm">
               <span className="text-slate-600 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-                <span>Offered Cash-Back to Buyer at Closing</span>
+                <span>Offered cash back to buyer at closing</span>
               </span>
               <span className="font-bold text-slate-900 tabular-nums">
                 -{formatCAD(breakdown.offeredCashback)}
@@ -272,7 +272,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           <div className="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200/80">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs uppercase tracking-wider font-bold text-emerald-900 block">
+                <span className="text-xs font-bold text-emerald-900 block">
                   Estimated amount you could keep
                 </span>
                 <span className="text-[11px] text-emerald-700">
@@ -286,7 +286,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
 
             {offersCashback && (
               <div className="mt-3 pt-3 border-t border-emerald-200/60 flex items-center justify-between text-xs text-emerald-900">
-                <span>Buyer Closing Incentive:</span>
+                <span>Buyer closing incentive:</span>
                 <span className="font-bold text-emerald-800 tabular-nums">
                   +{formatCAD(breakdown.buyerBenefit)} closing credit
                 </span>
@@ -296,7 +296,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
 
           {/* Legal / Not a quote note */}
           <div className="mt-4 p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 leading-relaxed space-y-1">
-            <div className="font-semibold text-slate-800">Legal Terms & Assumptions:</div>
+            <div className="font-semibold text-slate-800">Legal terms and assumptions:</div>
             <p>
               * All figures are estimates, not quotes. Your actual costs and any commission you would otherwise pay depend on your situation and are negotiable.
             </p>
@@ -311,7 +311,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
               onClick={() => onApplyToListing(price, breakdown.offeredCashback)}
               className="mt-4 w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Apply These Numbers to My Listing</span>
+              <span>Use these numbers in my listing</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           )}

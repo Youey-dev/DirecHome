@@ -76,7 +76,7 @@ export const SELLER_GUIDE: Guide = {
       title: 'Decide if selling yourself is right for you',
       summary: 'Selling privately works best when the home is ready and you can be there for viewings.',
       blocks: [
-        { kind: 'p', text: 'Selling without an agent means you keep the commission, and you also take on the jobs an agent would do. It tends to go well when:' },
+        { kind: 'p', text: 'Selling without an agent means you don’t pay a listing commission, and you also take on the jobs an agent would do. It tends to go well when:' },
         {
           kind: 'list',
           items: [
