@@ -194,11 +194,11 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               onChange={(e) => setPropertyType(e.target.value)}
               className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
             >
-              <option value="All">All Property Types</option>
-              <option value="Single Family Detached">Detached House</option>
+              <option value="All">All property types</option>
+              <option value="Single Family Detached">Detached house</option>
               <option value="Townhouse">Townhouse</option>
-              <option value="Condo / Apartment">Condo / Apartment</option>
-              <option value="Acreage / Farm">Acreage / Farm</option>
+              <option value="Condo / apartment">Condo / Apartment</option>
+              <option value="Acreage / farm">Acreage / Farm</option>
             </select>
 
             {/* Beds Dropdown */}
@@ -207,7 +207,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               onChange={(e) => setMinBeds(Number(e.target.value))}
               className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
             >
-              <option value={0}>Any Beds</option>
+              <option value={0}>Any beds</option>
               <option value={1}>1+ Beds</option>
               <option value={2}>2+ Beds</option>
               <option value={3}>3+ Beds</option>
@@ -224,7 +224,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Cash-Back Offered Only</span>
+              <span>Cash back offered only</span>
             </button>
           </div>
 
@@ -302,10 +302,10 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               onChange={(e) => setSortBy(e.target.value as any)}
               className="bg-transparent font-medium text-slate-800 border-none focus:outline-none cursor-pointer"
             >
-              <option value="newest">Newest Listed</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="cashback_desc">Highest Cash-Back</option>
+              <option value="newest">Newest listed</option>
+              <option value="price_asc">Price: low to high</option>
+              <option value="price_desc">Price: high to low</option>
+              <option value="cashback_desc">Highest cash back</option>
             </select>
           </div>
         </div>
@@ -327,7 +327,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             onClick={resetFilters}
             className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl transition-all cursor-pointer"
           >
-            Clear All Filters
+            Clear all filters
           </button>}
         </div>
       ) : (
@@ -421,7 +421,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex justify-end animate-fadeIn">
           <div className="bg-white w-full max-w-sm h-full p-6 overflow-y-auto space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-900">Filter Homes</h3>
+              <h3 className="text-lg font-bold text-slate-900">Filter homes</h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -432,7 +432,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
             {/* City */}
             <div>
-              <label htmlFor="mobile-province-filter" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+              <label htmlFor="mobile-province-filter" className="block text-xs font-semibold text-slate-700 mb-2">
                 Province or territory
               </label>
               <select
@@ -450,8 +450,8 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
             {/* Property Type */}
             <div>
-              <label htmlFor="mobile-prop-type-filter" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                Property Type
+              <label htmlFor="mobile-prop-type-filter" className="block text-xs font-semibold text-slate-700 mb-2">
+                Property type
               </label>
               <select
                 id="mobile-prop-type-filter"
@@ -459,17 +459,17 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
                 onChange={(e) => setPropertyType(e.target.value)}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
               >
-                <option value="All">All Types</option>
-                <option value="Single Family Detached">Single Family Detached</option>
+                <option value="All">All types</option>
+                <option value="Detached house">Single Family Detached</option>
                 <option value="Townhouse">Townhouse</option>
-                <option value="Condo / Apartment">Condo / Apartment</option>
-                <option value="Acreage / Farm">Acreage / Farm</option>
+                <option value="Condo / apartment">Condo / Apartment</option>
+                <option value="Acreage / farm">Acreage / Farm</option>
               </select>
             </div>
 
             {/* Minimum Bedrooms */}
             <div>
-              <span className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+              <span className="block text-xs font-semibold text-slate-700 mb-2">
                 Bedrooms
               </span>
               <div className="grid grid-cols-5 gap-1.5">
@@ -493,7 +493,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             {/* Cash-back Toggle */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-slate-900">Cash-Back Offered</div>
+                <div className="text-sm font-semibold text-slate-900">Cash back offered</div>
                 <div className="text-xs text-slate-500">Only homes with closing credits</div>
               </div>
               <input
@@ -515,7 +515,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
                 onClick={() => setMobileFiltersOpen(false)}
                 className="flex-1 py-3 text-sm font-semibold text-white bg-emerald-700 rounded-xl"
               >
-                Show Results
+                Show results
               </button>
             </div>
           </div>

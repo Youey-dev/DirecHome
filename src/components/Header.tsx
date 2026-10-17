@@ -188,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="font-bold text-slate-900 max-w-[120px] truncate leading-tight">
                     {activeUser.name}
                   </div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                  <div className="text-[10px] text-slate-500 font-semibold">
                     {activeUser.role === 'admin' ? 'Admin' : 'Member'}
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export const Header: React.FC<HeaderProps> = ({
                       className="w-full px-4 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium"
                     >
                       <LayoutDashboard className="w-4 h-4 text-slate-400" />
-                      <span>My Dashboard — homes, messages & viewings</span>
+                      <span>My dashboard: homes, messages and viewings</span>
                     </button>
 
                     <button
@@ -232,7 +232,7 @@ export const Header: React.FC<HeaderProps> = ({
                     >
                       <div className="flex items-center gap-2.5">
                         <Heart className="w-4 h-4 text-slate-400" />
-                        <span>Saved Homes</span>
+                        <span>Saved homes</span>
                       </div>
                       {savedCount > 0 && (
                         <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold">
@@ -264,7 +264,7 @@ export const Header: React.FC<HeaderProps> = ({
                       className="w-full py-1.5 px-3 text-left rounded-lg text-rose-700 hover:bg-rose-50 font-semibold flex items-center gap-2 cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out</span>
+                      <span>Sign out</span>
                     </button>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={handleSignOut}
                 className="text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg"
               >
-                Sign Out
+                Sign out
               </button>
             </div>
           )}
@@ -325,13 +325,13 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => { setMobileMenuOpen(false); onOpenAuth('signin'); }}
                 className="py-2.5 px-3 text-center border border-slate-300 text-slate-800 rounded-xl text-xs font-semibold hover:bg-slate-50 min-h-[44px]"
               >
-                Sign In
+                Sign in
               </button>
               <button
                 onClick={() => { setMobileMenuOpen(false); onOpenAuth('signup'); }}
                 className="py-2.5 px-3 text-center bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 min-h-[44px]"
               >
-                Create Account
+                Create account
               </button>
             </div>
           )}
@@ -360,7 +360,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <Building2 className="w-5 h-5 text-slate-400" />
-            <span>How OwnersMarket Works</span>
+            <span>How OwnersMarket works</span>
           </NavLink>
 
           <NavLink
@@ -386,7 +386,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <LayoutDashboard className="w-5 h-5 text-slate-400" />
-            <span className="inline-flex items-center gap-2">My Dashboard{dashboardBadge > 0 && <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold inline-flex items-center justify-center">{dashboardBadge > 9 ? '9+' : dashboardBadge}</span>}</span>
+            <span className="inline-flex items-center gap-2">My dashboard{dashboardBadge > 0 && <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold inline-flex items-center justify-center">{dashboardBadge > 9 ? '9+' : dashboardBadge}</span>}</span>
           </button>
 
           <button
@@ -395,7 +395,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <div className="flex items-center gap-3">
               <Heart className="w-5 h-5 text-slate-400" />
-              <span>Saved Homes</span>
+              <span>Saved homes</span>
             </div>
             {savedCount > 0 && (
               <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs font-bold">

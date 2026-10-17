@@ -48,7 +48,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2 text-rose-700 font-bold">
             <AlertTriangle className="w-5 h-5" />
-            <span>Report This Listing</span>
+            <span>Report this listing</span>
           </div>
           <button
             onClick={onClose}
@@ -63,7 +63,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
             <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-6 h-6" />
             </div>
-            <h4 className="text-lg font-bold text-slate-900">Report Received</h4>
+            <h4 className="text-lg font-bold text-slate-900">Report received</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
               Thank you for helping keep OwnersMarket safe. Our team will review this listing.
             </p>
@@ -77,7 +77,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
-              <label htmlFor="report-reason-select" className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="report-reason-select" className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Reason for report
               </label>
               <select
@@ -97,7 +97,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({ listing, isOpen, onClo
 
             <div>
               <label htmlFor="report-explanation" className="block text-xs font-semibold text-slate-700 mb-1">
-                Details or Explanation
+                Details or explanation
               </label>
               <textarea
                 id="report-explanation"

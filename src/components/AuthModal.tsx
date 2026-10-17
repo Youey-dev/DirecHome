@@ -152,7 +152,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Sign In
+            Sign in
           </button>
           <button
             type="button"
@@ -163,7 +163,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Create Account
+            Create account
           </button>
         </div>
 
@@ -213,7 +213,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {mode === 'signup' && (
                 <div>
                   <label htmlFor="auth-fullname" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Full Name
+                    Full name
                   </label>
                   <div className="relative">
                     <input
@@ -233,7 +233,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* Email */}
               <div>
                 <label htmlFor="auth-email" className="block text-xs font-semibold text-slate-700 mb-1">
-                  Email Address
+                  Email address
                 </label>
                 <div className="relative">
                   <input
@@ -254,9 +254,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label htmlFor="auth-phone" className="text-xs font-semibold text-slate-700">
-                      Phone Number (Optional)
+                      Phone number (optional)
                     </label>
-                    <span className="text-[10px] text-slate-400">BC Local</span>
+                    <span className="text-[10px] text-slate-400">Canadian number</span>
                   </div>
                   <div className="relative">
                     <input
@@ -318,9 +318,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                   <div className="text-[11px] text-slate-600 leading-normal">
                     <span>I agree to the </span>
-                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-900 underline">Terms of Use</a>
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-900 underline">Terms of use</a>
                     <span> and </span>
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-900 underline">Privacy Policy</a>.
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-900 underline">Privacy policy</a>.
                     <span className="text-[10px] text-slate-400 block mt-0.5">
                       We record the date and version you accepted ({TERMS_VERSION}).
                     </span>
@@ -352,7 +352,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <span>{mode === 'signin' ? 'Sign In to OwnersMarket' : mode === 'signup' ? 'Create My Account' : 'Send reset link'}</span>
+                    <span>{mode === 'signin' ? 'Sign in to OwnersMarket' : mode === 'signup' ? 'Create my account' : 'Send reset link'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

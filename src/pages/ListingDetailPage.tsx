@@ -199,7 +199,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               <div className="p-3 bg-white/80 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-1">
                 <div className="font-semibold text-emerald-900 flex items-center gap-1.5">
                   <FileCheck className="w-4 h-4 text-emerald-700" />
-                  <span>Important Terms: Seller's Offer (Not a Guarantee)</span>
+                  <span>Important terms: seller's offer (not a guarantee)</span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-slate-700">{CASHBACK_SELLER_OFFER_NOTICE} To apply, it must be included in the purchase contract. {CONTRACT_NOTICE}</p>
                 <p className="text-[11px] leading-relaxed text-slate-900 font-medium">{CASHBACK_LENDER_NOTICE}</p>
@@ -227,11 +227,11 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">Details</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 text-[15px]">
               <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">Property Type</span>
+                <span className="text-slate-500">Property type</span>
                 <span className="font-semibold text-slate-900">{listing.propertyType}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">Year Built</span>
+                <span className="text-slate-500">Year built</span>
                 <span className="font-semibold text-slate-900 tabular-nums">{listing.yearBuilt}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
@@ -245,14 +245,14 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">Annual Property Taxes</span>
+                <span className="text-slate-500">Annual property taxes</span>
                 <span className="font-semibold text-slate-900 tabular-nums">
                   {listing.propertyTaxesAnnual ? formatCAD(listing.propertyTaxesAnnual) : 'Contact Owner'}
                 </span>
               </div>
               {listing.strataFee && listing.strataFee > 0 ? (
                 <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">Monthly Strata Fee</span>
+                  <span className="text-slate-500">Monthly strata fee</span>
                   <span className="font-semibold text-slate-900 tabular-nums">{formatCAD(listing.strataFee)} / mo</span>
                 </div>
               ) : null}
@@ -275,8 +275,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {listing.recentUpgrades && listing.recentUpgrades.length > 0 && (
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Recent Upgrades & Features
+                <h4 className="text-xs font-bold text-slate-900">
+                  Recent upgrades and features
                 </h4>
                 <ul className="space-y-2 text-xs text-slate-700">
                   {listing.recentUpgrades.map((item, idx) => (
@@ -291,8 +291,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
 
             {listing.inclusions && listing.inclusions.length > 0 && (
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Included in Purchase
+                <h4 className="text-xs font-bold text-slate-900">
+                  Included in purchase
                 </h4>
                 <ul className="space-y-2 text-xs text-slate-700">
                   {listing.inclusions.map((item, idx) => (
@@ -425,7 +425,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <div className="bg-slate-50 p-4 rounded-xl text-xs text-slate-600 leading-relaxed border border-slate-200/80 space-y-1.5">
               <div className="font-semibold text-slate-900 flex items-center gap-1.5">
                 <FileCheck className="w-4 h-4 text-emerald-700" />
-                <span>Notice to Buyers & Sellers</span>
+                <span>Notice to buyers and sellers</span>
               </div>
               <p>
                 This site is an advertising platform. We are not a real estate brokerage and do not provide real estate advice. Sellers and buyers should consult a lawyer or notary before signing any agreement.

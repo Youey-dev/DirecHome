@@ -158,7 +158,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
             <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
             <span>Sending as: <strong className="text-slate-800">{activeUser.name}</strong> ({activeUser.email || 'your account'})</span>
           </span>
-          <span className="text-[10px] text-slate-400 shrink-0">Direct to Owner</span>
+          <span className="text-[10px] text-slate-400 shrink-0">Direct to owner</span>
         </div>
 
         {/* Input Footer */}

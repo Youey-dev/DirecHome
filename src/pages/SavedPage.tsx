@@ -23,12 +23,12 @@ export const SavedPage: React.FC<SavedPageProps> = ({
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 pb-20 space-y-6">
       <div className="border-b border-slate-200 pb-4">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-rose-600">
+        <div className="flex items-center gap-2 text-xs font-semibold text-rose-600">
           <Heart className="w-4 h-4 fill-rose-500" />
-          <span>Your Shortlist</span>
+          <span>Your shortlist</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
-          Saved Homes
+          Saved homes
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
           Keep track of homes you want to tour or monitor for price & cash-back updates.
@@ -49,7 +49,7 @@ export const SavedPage: React.FC<SavedPageProps> = ({
             className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 mx-auto cursor-pointer min-h-[44px]"
           >
             <Compass className="w-4 h-4" />
-            <span>Browse Homes Now</span>
+            <span>Browse homes</span>
           </button>
         </div>
       ) : (

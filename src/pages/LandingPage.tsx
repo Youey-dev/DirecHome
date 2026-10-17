@@ -131,7 +131,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Hero */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 flex flex-col lg:flex-row gap-10 lg:gap-12 items-stretch">
         <div className="flex-1 flex flex-col justify-center gap-5 sm:gap-6 min-w-0">
-          <p className="text-sm font-bold text-emerald-700 uppercase tracking-[0.08em]">For sale by owner, across Canada</p>
+          <p className="text-sm font-bold text-emerald-700">For sale by owner, across Canada</p>
           <h1 className="font-display font-bold text-slate-900 text-[56px] sm:text-[72px] lg:text-[84px] leading-[0.95] tracking-[-0.5px] text-balance">
             Your home is ready. Let the photos sell it.
           </h1>
@@ -288,7 +288,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               },
               {
                 title: 'Go live after a quick review',
-                text: `We check the listing for accuracy and photo quality, then you start your ${LISTING_FEE_LABEL} monthly plan and buyers can find it.`,
+                text: `We review it for spam, scams and anything inappropriate, usually within a day. Then you start your ${LISTING_FEE_LABEL} monthly plan and buyers can find it.`,
               },
               {
                 title: 'Pick your viewing times',
@@ -343,7 +343,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </span>
           </div>
           <span className="text-[13px] text-slate-300">
-            Before your lawyer or notary fees, which you pay either way.
+            An estimate, before your lawyer or notary fees. If your buyer uses an agent, that agent may ask you to pay their commission.
           </span>
         </div>
       </section>

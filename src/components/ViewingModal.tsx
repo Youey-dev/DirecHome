@@ -98,7 +98,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Request a Private Viewing</h3>
+            <h3 className="text-lg font-bold text-slate-900">Request a private viewing</h3>
             <p className="text-xs text-slate-500 truncate max-w-xs">{listing.headline}</p>
           </div>
           <button
@@ -115,7 +115,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
             <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h4 className="text-xl font-bold text-slate-900">Viewing Request Sent!</h4>
+            <h4 className="text-xl font-bold text-slate-900">Viewing request sent</h4>
             <p className="text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
               Your request was sent to the homeowner. Once they confirm a time, the exact street address will appear on this listing and in your viewing details.
             </p>
@@ -138,8 +138,8 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
 
             {/* Date selection */}
             <div>
-              <label htmlFor="viewing-preferred-date" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Preferred Date
+              <label htmlFor="viewing-preferred-date" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Preferred date
               </label>
               <div className="relative">
                 <input
@@ -156,8 +156,8 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
 
             {/* Time Slot */}
             <div>
-              <span className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Preferred Time of Day
+              <span className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Preferred time of day
               </span>
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -185,7 +185,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
             {/* Contact details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="viewing-buyer-name" className="block text-xs font-semibold text-slate-700 mb-1">Your Full Name</label>
+                <label htmlFor="viewing-buyer-name" className="block text-xs font-semibold text-slate-700 mb-1">Your full name</label>
                 <input
                   id="viewing-buyer-name"
                   type="text"
@@ -196,7 +196,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
                 />
               </div>
               <div>
-                <label htmlFor="viewing-buyer-phone" className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                <label htmlFor="viewing-buyer-phone" className="block text-xs font-semibold text-slate-700 mb-1">Phone number</label>
                 <input
                   id="viewing-buyer-phone"
                   type="tel"
@@ -209,7 +209,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
             </div>
 
             <div>
-              <label htmlFor="viewing-buyer-email" className="block text-xs font-semibold text-slate-700 mb-1">Email for Confirmation</label>
+              <label htmlFor="viewing-buyer-email" className="block text-xs font-semibold text-slate-700 mb-1">Email for your confirmation</label>
               <input
                 id="viewing-buyer-email"
                 type="email"
@@ -223,7 +223,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
             {/* Notes */}
             <div>
               <label htmlFor="viewing-buyer-notes" className="block text-xs font-semibold text-slate-700 mb-1">
-                Note for Homeowner (Optional)
+                Note for homeowner (optional)
               </label>
               <textarea
                 id="viewing-buyer-notes"

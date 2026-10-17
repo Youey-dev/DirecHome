@@ -264,12 +264,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       {/* Top Banner & Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
             <Building2 className="w-3.5 h-3.5" />
-            <span>Your homes, messages & viewings</span>
+            <span>Your homes, messages and viewings</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 tracking-tight">
-            My Dashboard
+            My dashboard
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
             Logged in as <strong>{activeUser.name}</strong> ({activeUser.email})
@@ -283,7 +283,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             title="Download your data or delete your account"
           >
             <ShieldCheck className="w-4 h-4 text-emerald-700" />
-            <span>Privacy & Data Tools</span>
+            <span>Privacy and data tools</span>
           </button>
 
           <button
@@ -291,7 +291,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer min-h-[44px]"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>Create New Listing</span>
+            <span>List your home</span>
           </button>
         </div>
       </div>
@@ -344,7 +344,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs">
-            <span>Marketplace Views</span>
+            <span>Views</span>
             <Eye className="w-4 h-4 text-slate-400" />
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">
@@ -355,7 +355,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs">
-            <span>Saved by Buyers</span>
+            <span>Saved by buyers</span>
             <Heart className="w-4 h-4 text-rose-400" />
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">
@@ -366,7 +366,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-400 text-xs">
-            <span>Viewing Appointments</span>
+            <span>Viewing appointments</span>
             <Calendar className="w-4 h-4 text-emerald-700" />
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">
@@ -458,7 +458,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 onClick={() => onNavigate('wizard')}
                 className="px-5 py-2.5 bg-emerald-700 text-white text-sm font-semibold rounded-xl"
               >
-                Start Listing
+                List your home
               </button>
             </div>
           ) : (
@@ -482,7 +482,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center justify-between gap-2">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full  ${
                             listing.status === 'live' && !isListingLive(listing)
                               ? 'bg-amber-100 text-amber-900'
                               : listing.status === 'live'
@@ -495,10 +495,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           }`}
                         >
                           {listing.status === 'in_review'
-                            ? 'In Review'
+                            ? 'In review'
                             : listing.status === 'live' && !isListingLive(listing)
                             ? 'Approved · not published'
-                            : listing.status}
+                            : ({ live: 'Live', paused: listing.adminHold ? 'Paused by OwnersMarket' : 'Paused', sold: 'Sold', draft: 'Draft', rejected: 'Needs changes' } as Record<string, string>)[listing.status] ?? listing.status}
                         </span>
 
                         <span className="text-xs text-slate-400 tabular-nums">
@@ -623,7 +623,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 font-semibold rounded-lg border border-slate-300 flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                         >
                           <Printer className="w-3.5 h-3.5 text-slate-500" aria-hidden="true" />
-                          <span>Feature sheet (Letter)</span>
+                          <span>Feature sheet (letter)</span>
                         </button>
                       </div>
                       <p className="text-slate-500 leading-relaxed">
@@ -683,7 +683,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                             className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-900 font-semibold rounded-lg border border-purple-200 flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                           >
                             <Trophy className="w-3.5 h-3.5 text-purple-700" />
-                            <span>Mark Sold</span>
+                            <span>Mark sold</span>
                           </button>
                         </>
                       )}
@@ -735,7 +735,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full  ${
                           viewing.status === 'confirmed'
                             ? 'bg-emerald-100 text-emerald-900'
                             : viewing.status === 'declined'
@@ -743,7 +743,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                             : 'bg-amber-100 text-amber-900'
                         }`}
                       >
-                        {viewing.status}
+                        {viewing.status.charAt(0).toUpperCase() + viewing.status.slice(1)}
                       </span>
                       <span className="text-xs text-slate-400">
                         Requested {new Date(viewing.createdAt).toLocaleDateString()}
@@ -753,7 +753,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div className="p-3 bg-slate-50 rounded-xl space-y-1">
-                      <div className="font-semibold text-slate-700">Requested Appointment Time:</div>
+                      <div className="font-semibold text-slate-700">Requested appointment time:</div>
                       <div className="text-sm font-bold text-slate-900">
                         {viewing.preferredDate} ({viewing.preferredTimeSlot.toUpperCase()})
                       </div>
@@ -761,7 +761,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
                     {viewing.notes && (
                       <div className="p-3 bg-slate-50 rounded-xl space-y-1">
-                        <div className="font-semibold text-slate-700">Buyer Notes:</div>
+                        <div className="font-semibold text-slate-700">Buyer notes:</div>
                         <div className="text-slate-600 italic">"{viewing.notes}"</div>
                       </div>
                     )}
@@ -781,7 +781,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl min-h-[44px] shadow-sm flex items-center gap-1.5"
                       >
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>Confirm Viewing & Unlock Civic Address</span>
+                        <span>Confirm viewing and share the address</span>
                       </button>
                     </div>
                   )}
@@ -811,7 +811,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         <div className="text-sm font-bold text-slate-900">{v.listingTitle}</div>
                         <div className="text-xs text-slate-500">{v.listingAddress}</div>
                       </div>
-                      <span className={`self-start text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${chip.cls}`}>
+                      <span className={`self-start text-[10px] font-bold px-2.5 py-1 rounded-full  ${chip.cls}`}>
                         {chip.text}
                       </span>
                     </div>
@@ -911,7 +911,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     onClick={() => onNavigate('detail', activeThread.listingId)}
                     className="text-xs text-emerald-800 hover:underline font-medium"
                   >
-                    View Listing
+                    View listing
                   </button>
                 </div>
 

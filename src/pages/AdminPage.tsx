@@ -488,7 +488,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
       )}
 
       <div className="border-b border-slate-200 pb-4">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-700">
+        <div className="flex items-center gap-2 text-xs font-semibold text-amber-700">
           <ShieldCheck className="w-4 h-4" /> OwnersMarket admin
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Admin console</h1>
@@ -640,7 +640,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
               <li>Photos show a real home and nothing offensive or copied from another site</li>
               <li>Description has no phone numbers, emails or links trying to move buyers off the site</li>
               <li>Price, size and location look plausible (no obvious scam or placeholder)</li>
-              <li>Nothing discriminatory or otherwise against the Terms of Use</li>
+              <li>Nothing discriminatory or otherwise against the terms of use</li>
             </ul>
           </div>
           {reviewQueue.length === 0 ? (
@@ -835,11 +835,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
                       </div>
                     </div>
                     <span
-                      className={`self-start text-[11px] font-bold px-2 py-0.5 rounded uppercase ${
+                      className={`self-start text-[11px] font-bold px-2 py-0.5 rounded ${
                         r.status === 'pending' ? 'bg-rose-100 text-rose-900' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
-                      {r.status === 'pending' ? 'Open' : r.status}
+                      {r.status === 'pending' ? 'Open' : r.status === 'dismissed' ? 'Dismissed' : 'Resolved'}
                     </span>
                   </div>
                   <div className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100">

@@ -509,21 +509,21 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         </div>
 
         <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 text-left space-y-3">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Listing Summary
+          <div className="text-xs font-semibold text-slate-400">
+            Listing summary
           </div>
           <div className="flex justify-between text-sm py-1 border-b border-slate-200/60">
-            <span className="text-slate-600">Asking Price</span>
+            <span className="text-slate-600">Asking price</span>
             <span className="font-bold text-slate-900 tabular-nums">{formatCAD(submittedSummary.price)}</span>
           </div>
           {submittedSummary.offersCashback && (
             <div className="flex justify-between text-sm py-1 border-b border-slate-200/60">
-              <span className="text-slate-600">Buyer Cash-Back</span>
+              <span className="text-slate-600">Buyer cash back</span>
               <span className="font-bold text-emerald-800 tabular-nums">+{formatCAD(submittedSummary.cashbackAmount)}</span>
             </div>
           )}
           <div className="flex justify-between text-sm py-1">
-            <span className="text-slate-600">Photos Resized & Uploaded</span>
+            <span className="text-slate-600">Photos uploaded</span>
             <span className="font-medium text-slate-800 tabular-nums">{submittedSummary.photoCount} photos</span>
           </div>
         </div>
@@ -533,7 +533,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             onClick={() => onListingCreated()}
             className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-all shadow-sm min-h-[44px]"
           >
-            Go to Seller Dashboard
+            Go to my dashboard
           </button>
         </div>
       </div>
@@ -546,7 +546,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       {/* Top Header Bar: Step info + Live Saved Indicator */}
       <div className="mb-6 space-y-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-emerald-800 uppercase tracking-wider">
+          <span className="font-semibold text-emerald-800">
             Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].title}
           </span>
           <span className="text-slate-400 flex items-center gap-1.5 tabular-nums">
@@ -598,7 +598,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {/* Street Address */}
             <div>
               <label htmlFor="wizard-street-address" className="block text-sm font-semibold text-slate-900 mb-1">
-                Civic Street Address
+                Street address
               </label>
               <input
                 id="wizard-street-address"
@@ -615,7 +615,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="wizard-unit-number" className="block text-xs font-semibold text-slate-700 mb-1">Unit / Suite # (Optional)</label>
+                <label htmlFor="wizard-unit-number" className="block text-xs font-semibold text-slate-700 mb-1">Unit / suite # (optional)</label>
                 <input
                   id="wizard-unit-number"
                   type="text"
@@ -663,7 +663,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
 
               <div>
-                <label htmlFor="wizard-postal-code" className="block text-xs font-semibold text-slate-700 mb-1">Postal Code</label>
+                <label htmlFor="wizard-postal-code" className="block text-xs font-semibold text-slate-700 mb-1">Postal code</label>
                 <input
                   id="wizard-postal-code"
                   type="text"
@@ -678,7 +678,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {/* Neighborhood */}
             <div>
               <label htmlFor="wizard-neighborhood" className="block text-xs font-semibold text-slate-700 mb-1">
-                Neighborhood Name
+                Neighbourhood name
               </label>
               <input
                 id="wizard-neighborhood"
@@ -692,8 +692,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
             {/* Property Type Radio Cards */}
             <div>
-              <span className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                Property Type
+              <span className="block text-xs font-semibold text-slate-700 mb-2">
+                Property type
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {[
@@ -729,7 +729,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div>
               <div className="flex justify-between items-baseline mb-1">
                 <label htmlFor="wizard-asking-price" className="text-sm font-semibold text-slate-900">
-                  Asking Price ($ CAD)
+                  Asking price ($ CAD)
                 </label>
                 <span className="text-xl font-extrabold text-slate-900 tabular-nums">
                   {formatCAD(price)}
@@ -782,7 +782,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {/* Size & Year */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label htmlFor="wizard-interior-sqft" className="block text-xs font-semibold text-slate-700 mb-1">Interior Area (Sq Ft)</label>
+                <label htmlFor="wizard-interior-sqft" className="block text-xs font-semibold text-slate-700 mb-1">Interior area (sq ft)</label>
                 <input
                   id="wizard-interior-sqft"
                   type="number"
@@ -795,7 +795,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
 
               <div>
-                <label htmlFor="wizard-lot-sqft" className="block text-xs font-semibold text-slate-700 mb-1">Lot Size (Sq Ft)</label>
+                <label htmlFor="wizard-lot-sqft" className="block text-xs font-semibold text-slate-700 mb-1">Lot size (sq ft)</label>
                 <input
                   id="wizard-lot-sqft"
                   type="number"
@@ -807,7 +807,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
 
               <div>
-                <label htmlFor="wizard-year-built" className="block text-xs font-semibold text-slate-700 mb-1">Year Built</label>
+                <label htmlFor="wizard-year-built" className="block text-xs font-semibold text-slate-700 mb-1">Year built</label>
                 <input
                   id="wizard-year-built"
                   type="number"
@@ -822,7 +822,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {/* Parking & Taxes */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label htmlFor="wizard-parking-spaces" className="block text-xs font-semibold text-slate-700 mb-1">Parking Stalls</label>
+                <label htmlFor="wizard-parking-spaces" className="block text-xs font-semibold text-slate-700 mb-1">Parking spaces</label>
                 <input
                   id="wizard-parking-spaces"
                   type="number"
@@ -834,7 +834,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
 
               <div>
-                <label htmlFor="wizard-annual-taxes" className="block text-xs font-semibold text-slate-700 mb-1">Annual Taxes ($ CAD)</label>
+                <label htmlFor="wizard-annual-taxes" className="block text-xs font-semibold text-slate-700 mb-1">Annual taxes ($ CAD)</label>
                 <input
                   id="wizard-annual-taxes"
                   type="number"
@@ -847,7 +847,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
               {(propertyType === 'Condo / Apartment' || propertyType === 'Townhouse') && (
                 <div>
-                  <label htmlFor="wizard-strata-fee" className="block text-xs font-semibold text-slate-700 mb-1">Monthly Strata ($)</label>
+                  <label htmlFor="wizard-strata-fee" className="block text-xs font-semibold text-slate-700 mb-1">Monthly strata ($)</label>
                   <input
                     id="wizard-strata-fee"
                     type="number"
@@ -868,7 +868,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
               <div className="font-semibold text-slate-900 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-emerald-700" />
-                <span>Automatic Mobile Photo Optimizer</span>
+                <span>Photos are resized automatically</span>
               </div>
               <p>
                 Photos taken on your iPhone or Android phone are resized right in your browser (max 2000px long side) with thumbnail generation. Upload is fast and won't use heavy mobile data.
@@ -901,7 +901,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   </div>
                 </div>
                 <div className="px-4 py-2 bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm">
-                  Choose Files from Phone or Computer
+                  Choose photos from your phone or computer
                 </div>
               </label>
             </div>
@@ -961,7 +961,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                           onClick={() => setCoverPhoto(photo.id)}
                           className="px-2 py-1 bg-white text-slate-800 text-[10px] font-bold rounded shadow-sm hover:bg-slate-100 cursor-pointer"
                         >
-                          Set Cover
+                          Set cover
                         </button>
                       )}
                       <button
@@ -985,7 +985,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
           <div className="space-y-6">
             <div>
               <label htmlFor="wizard-listing-headline" className="block text-sm font-semibold text-slate-900 mb-1">
-                Listing Headline
+                Listing headline
               </label>
               <input
                 id="wizard-listing-headline"
@@ -1000,7 +1000,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
             <div>
               <label htmlFor="wizard-full-description" className="block text-sm font-semibold text-slate-900 mb-1">
-                Full Description
+                Full description
               </label>
               <textarea
                 id="wizard-full-description"
@@ -1015,8 +1015,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {/* Prompt helpers */}
             <div className="space-y-4 pt-2 border-t border-slate-100">
               <div>
-                <label htmlFor="wizard-recent-upgrades" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Recent Upgrades (Comma Separated)
+                <label htmlFor="wizard-recent-upgrades" className="block text-xs font-semibold text-slate-700 mb-1">
+                  Recent upgrades (comma separated)
                 </label>
                 <input
                   id="wizard-recent-upgrades"
@@ -1029,8 +1029,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
 
               <div>
-                <label htmlFor="wizard-inclusions" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Inclusions (What Stays with the Home?)
+                <label htmlFor="wizard-inclusions" className="block text-xs font-semibold text-slate-700 mb-1">
+                  Inclusions (what stays with the home?)
                 </label>
                 <input
                   id="wizard-inclusions"
@@ -1043,8 +1043,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
 
               <div>
-                <label htmlFor="wizard-neighborhood-highlights" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Neighborhood & School Notes
+                <label htmlFor="wizard-neighborhood-highlights" className="block text-xs font-semibold text-slate-700 mb-1">
+                  Neighbourhood and school notes
                 </label>
                 <input
                   id="wizard-neighborhood-highlights"
@@ -1065,7 +1065,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200/80 space-y-2">
               <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
                 <Gift className="w-4 h-4 text-emerald-700" />
-                <span>Optional: Offer a Buyer Cash-Back</span>
+                <span>Optional: offer a buyer cash back</span>
               </div>
               <p className="text-xs text-emerald-950/90 leading-relaxed">
                 At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. OwnersMarket charges no commission, just a flat $24.99/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
@@ -1075,7 +1075,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {/* Toggle */}
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
               <div>
-                <div className="text-sm font-bold text-slate-900">Offer Buyer Cash-Back at Completion?</div>
+                <div className="text-sm font-bold text-slate-900">Offer buyer cash back at completion?</div>
                 <div className="text-xs text-slate-500">Your voluntary offer, written into the purchase contract by the parties' lawyers or notaries</div>
               </div>
               <input
@@ -1089,8 +1089,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {offersCashback && (
               <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Cash-Back Amount
+                  <span className="text-xs font-semibold text-slate-700">
+                    Cash back amount
                   </span>
                   <span className="text-lg font-bold text-emerald-800 tabular-nums">
                     {formatCAD(cashbackAmount)}
@@ -1109,13 +1109,13 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
                 <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
                   <div className="p-3 bg-white rounded-xl border border-slate-200">
-                    <div className="text-slate-400">Buyer Receives:</div>
+                    <div className="text-slate-400">Buyer receives:</div>
                     <div className="text-base font-bold text-slate-900 mt-0.5 tabular-nums">
                       {formatCAD(cashbackAmount)} credit
                     </div>
                   </div>
                   <div className="p-3 bg-emerald-100/60 rounded-xl border border-emerald-200">
-                    <div className="text-emerald-800 font-medium">You Could Still Keep (estimate):</div>
+                    <div className="text-emerald-800 font-medium">You could still keep (estimate):</div>
                     <div className="text-base font-bold text-emerald-900 mt-0.5 tabular-nums">
                       {formatCAD(commissionBreakdown.netSellerSavingsWithCashback)}
                     </div>
@@ -1166,7 +1166,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
               {offersCashback && (
                 <div className="bg-emerald-100/70 p-3 rounded-xl text-xs text-emerald-950 flex items-center justify-between">
-                  <span>Buyer Cash-Back Incentive Offered:</span>
+                  <span>Buyer cash back incentive offered:</span>
                   <span className="font-bold text-emerald-900 tabular-nums">+{formatCAD(cashbackAmount)}</span>
                 </div>
               )}
@@ -1183,7 +1183,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   {coachTips.map((tip) => (
                     <li key={tip.id} className="flex items-start gap-3 text-xs text-slate-800 leading-relaxed">
                       <span
-                        className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                        className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold  ${
                           tip.level === 'important' ? 'bg-amber-200 text-amber-950' : 'bg-white text-slate-600 border border-slate-200'
                         }`}
                       >
@@ -1217,7 +1217,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-3 leading-relaxed">
               <div className="font-bold text-slate-900 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>OwnersMarket Legal Declaration & Representation</span>
+                <span>Your declaration</span>
               </div>
               <p className="text-slate-600">
                 You confirm that you are the owner of this property or are legally authorized by the owner to advertise it for sale, that all information and photos are accurate, and that you are solely responsible for this listing. OwnersMarket does not verify property ownership, is an advertising marketplace only, and is not a licensed real estate brokerage.
@@ -1237,9 +1237,9 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 />
                 <div className="text-xs text-slate-800 leading-normal">
                   <span className="font-semibold text-slate-900">I have read and agree to the </span>
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold underline">Terms of Use</a>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold underline">Terms of use</a>
                   <span className="font-semibold text-slate-900"> and </span>
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold underline">Privacy Policy</a>.
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold underline">Privacy policy</a>.
                   <span className="text-[11px] text-slate-500 block mt-0.5">
                     We record the date and version you accepted ({TERMS_VERSION}).
                   </span>
