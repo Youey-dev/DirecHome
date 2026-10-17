@@ -14,6 +14,7 @@ import { runCoachTests } from './coach.test';
 import { runBillingTests } from './billing.test';
 import { runReviewTests } from './review.test';
 import { runExampleTests } from './examples.test';
+import { runEmailTests } from './email.test';
 
 async function main() {
   console.log('====================================================');
@@ -29,6 +30,7 @@ async function main() {
     runBillingTests();
     runReviewTests();
     runExampleTests();
+    runEmailTests();
 
     console.log('====================================================');
     console.log('✨ SUCCESS: ALL TEST SUITES PASSED WITHOUT ERRORS!');
