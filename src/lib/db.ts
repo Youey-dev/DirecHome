@@ -404,7 +404,17 @@ class DataStore {
     const ownerFieldsById = new Map<string, Row>(ownerFieldRows.map((o) => [o.id, o]));
 
     const listings = listingRows.map((row) =>
-      this.mapListing({ ...row, ...(ownerFieldsById.get(row.id) ?? {}) }, privateById.get(row.id), people.get(row.user_id))
+      this.mapListing(
+        {
+          ...row,
+          // Billing fields are private (owner and admins only). Anyone else can only ever receive a
+          // listing the database already considers public (live and paid, or on a free promo), so
+          // for them it is shown as live. Without this, visitors saw no listings at all.
+          ...(ownerFieldsById.get(row.id) ?? (row.status === 'live' ? { payment_status: 'active' } : {})),
+        },
+        privateById.get(row.id),
+        people.get(row.user_id)
+      )
     );
     const byId = new Map(listings.map((l) => [l.id, l]));
 
