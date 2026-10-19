@@ -19,6 +19,7 @@ export const TAB_PATHS: Record<string, string> = {
   'guide-selling': '/guides/selling-your-home',
   'guide-buying': '/guides/buying-a-home',
   'guide-bc': '/guides/selling-without-a-realtor-bc',
+  about: '/about',
 };
 
 export function pathFor(tab: string, listingId?: string | null): string {

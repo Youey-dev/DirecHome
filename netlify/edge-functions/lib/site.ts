@@ -67,6 +67,10 @@ export const PAGES: Record<string, PageMeta> = {
     title: 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
     description: 'A free 8-step guide to buying a house for sale by owner in Canada: budgeting, checking the title, inspections, making an offer through your lawyer and keeping your deposit safe.',
   },
+  '/about': {
+    title: 'About and Contact · OwnersMarket',
+    description: 'About OwnersMarket, a Canadian advertising site for homes for sale by owner, run from British Columbia. Contact us at hello@ownersmarket.ca.',
+  },
   '/terms': { title: 'Terms of use · OwnersMarket', description: 'The terms for using OwnersMarket, a Canadian advertising site for homes for sale by owner.' },
   '/privacy': { title: 'Privacy policy · OwnersMarket', description: 'How OwnersMarket collects, uses and protects your personal information.' },
   '/rules': { title: 'Listing rules · OwnersMarket', description: 'Standards for sellers and buyers on OwnersMarket across Canada.' },
@@ -82,6 +86,7 @@ export const SITEMAP_PATHS = [
   '/guides/selling-your-home',
   '/guides/selling-without-a-realtor-bc',
   '/guides/buying-a-home',
+  '/about',
 ];
 
 /** Signed-in pages: real app pages, but never shown in search. */
@@ -127,6 +132,8 @@ const ORGANIZATION = {
   logo: `${SITE_URL}/icon-512.png`,
   description: 'A Canadian advertising site for homes for sale by owner. Not a real estate brokerage.',
   areaServed: { '@type': 'Country', name: 'Canada' },
+  email: 'hello@ownersmarket.ca',
+  contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: 'hello@ownersmarket.ca', areaServed: 'CA', availableLanguage: 'English' },
 };
 
 const WEBSITE = {

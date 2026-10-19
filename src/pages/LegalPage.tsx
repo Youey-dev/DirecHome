@@ -46,7 +46,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({
   // Emails about the person's own messages, viewings and listings (on by default; they can turn them off)
   const [emailTransactional, setEmailTransactional] = useState(true);
   const [emailMarketing, setEmailMarketing] = useState(false); // Default false: CASL explicit opt-in required
-  const [emailWeeklyDigest, setEmailWeeklyDigest] = useState(false);
   const [prefSavedMessage, setPrefSavedMessage] = useState(false);
 
   const [prefError, setPrefError] = useState<string | null>(null);
@@ -59,7 +58,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       .then((p) => {
         if (cancelled) return;
         setEmailMarketing(p.marketing);
-        setEmailWeeklyDigest(p.digest);
         setEmailTransactional(p.notify);
       })
       .catch(() => { /* keep the unticked defaults */ });
@@ -76,7 +74,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({
       return;
     }
     try {
-      await db.saveEmailPreferences({ marketing: emailMarketing, digest: emailWeeklyDigest, notify: emailTransactional });
+      // The weekly digest isn't offered (no such email exists), so it is always saved as off
+      await db.saveEmailPreferences({ marketing: emailMarketing, digest: false, notify: emailTransactional });
       setPrefSavedMessage(true);
       setTimeout(() => setPrefSavedMessage(false), 3000);
     } catch (err: any) {
@@ -625,22 +624,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                 type="checkbox"
                 checked={emailMarketing}
                 onChange={(e) => setEmailMarketing(e.target.checked)}
-                className="w-5 h-5 accent-emerald-700 rounded cursor-pointer mt-1"
-              />
-            </div>
-
-            {/* Weekly Digest */}
-            <div className="p-4 bg-white rounded-xl border border-slate-200 flex items-start justify-between gap-4 hover:border-slate-300 transition-colors">
-              <div>
-                <div className="font-semibold text-slate-900 text-sm">Weekly market digest and newly listed homes</div>
-                <div className="text-xs text-slate-500 mt-0.5">
-                  A once-per-week summary of homes matching your saved searches.
-                </div>
-              </div>
-              <input
-                type="checkbox"
-                checked={emailWeeklyDigest}
-                onChange={(e) => setEmailWeeklyDigest(e.target.checked)}
                 className="w-5 h-5 accent-emerald-700 rounded cursor-pointer mt-1"
               />
             </div>
