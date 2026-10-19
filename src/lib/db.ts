@@ -1150,7 +1150,12 @@ class DataStore {
     } catch {
       /* storage unavailable: count anyway */
     }
-    void supabase.rpc('increment_listing_views', { _listing_id: listingId });
+    // A Supabase call only runs once something waits on it, so a bare `void` here would never send
+    // the request. Errors are ignored on purpose: counting a view must never get in a visitor's way.
+    supabase.rpc('increment_listing_views', { _listing_id: listingId }).then(
+      () => {},
+      () => {}
+    );
   }
 
   // ---------------------------------------------------------------------------
