@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { trackEvent } from '../lib/analytics';
 import { 
   Building2, 
   X, 
@@ -89,6 +90,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } else if (mode === 'signup') {
       const res = await signUp(email, fullName, phone, password, token);
       if (res.success) {
+        trackEvent('sign_up', { method: 'email', page: window.location.pathname.split('/')[1] || 'home' });
         if (res.needsEmailConfirmation) {
           setSuccessMsg('Check your email');
         } else {
@@ -179,7 +181,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <p className="text-xs text-slate-600 leading-relaxed">
                   {mode === 'reset'
                     ? 'If an account exists for that address, we have sent a link to reset your password.'
-                    : 'We sent a confirmation link to your email address. Click it to activate your account, then sign in. Check your spam folder if you do not see it within a few minutes.'}
+                    : 'We sent a confirmation link to your email address. Click it to activate your account; it brings you back to this page, signed in. Open it on this device and browser so anything you started here is still waiting. Check your spam folder if you don’t see it within a few minutes.'}
                 </p>
               ) : (
                 <p className="text-xs text-slate-500">One moment…</p>

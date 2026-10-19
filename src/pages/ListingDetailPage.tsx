@@ -34,9 +34,11 @@ interface ListingDetailPageProps {
   isFavorited: boolean;
   onToggleFavorite: (e: React.MouseEvent, id: string) => void;
   onBack: () => void;
-  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup', opts?: { title?: string; subtitle?: string }) => void;
   /** Example listings only: where "List your home" goes. */
   onListYourHome?: () => void;
+  /** The seller's own preview while creating a listing: nothing is clickable or counted. */
+  previewMode?: boolean;
 }
 
 export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
@@ -46,10 +48,13 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
   onToggleFavorite,
   onBack,
   onOpenAuth,
-  onListYourHome
+  onListYourHome,
+  previewMode
 }) => {
   // Example listings show how a home looks on OwnersMarket; they are not for sale.
-  const isExample = !!listing.isExample;
+  // A seller's preview behaves the same way (no buttons, no view counting) with its own wording.
+  const isPreview = !!previewMode;
+  const isExample = !!listing.isExample || isPreview;
   const [viewingModalOpen, setViewingModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -65,10 +70,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
     if (listing.status === 'live' && !isOwner && !isExample) db.incrementViews(listing.id);
   }, [listing.id]);
 
-  const handleOpenMessage = () => {
-    if (isGuestUser(activeUser)) onOpenAuth?.('signin');
-    else setMessageModalOpen(true);
-  };
+  // Visitors can write their message first; they create an account to send it
+  const handleOpenMessage = () => setMessageModalOpen(true);
 
   const handleOpenViewing = () => {
     if (isGuestUser(activeUser)) onOpenAuth?.('signin');
@@ -96,7 +99,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer min-h-[44px] py-1"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to homes</span>
+          <span>{isPreview ? "Back to editing" : "Back to homes"}</span>
         </button>
 
         {!isExample && (
@@ -123,7 +126,16 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         )}
       </div>
 
-      {isExample && (
+      {isPreview && (
+        <div role="note" className="rounded-xl border-2 border-sign bg-amber-50 p-4 sm:p-5">
+          <div className="text-base font-extrabold text-slate-900">Preview: this is how buyers will see your listing</div>
+          <p className="text-sm text-slate-700 mt-1">
+            Your exact address stays private; buyers see the neighbourhood and city until you confirm a viewing.
+          </p>
+        </div>
+      )}
+
+      {isExample && !isPreview && (
         <div role="note" className="rounded-xl border-2 border-sign bg-amber-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex-1">
             <div className="text-base font-extrabold text-slate-900">Example listing: not a real home, not for sale</div>
@@ -142,7 +154,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
 
       {/* Photo Gallery (Desktop Grid & Mobile Carousel) */}
       <ListingGallery photos={listing.photos} title={listing.headline} />
-      {isExample && listing.photoCredits && (
+      {isExample && !isPreview && listing.photoCredits && (
         <p className="-mt-6 text-xs text-slate-500">
           Example photos from Unsplash by {listing.photoCredits.join(', ')}.
         </p>
@@ -210,7 +222,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
           )}
 
           {/* Agents welcome: the seller's buyer's agent commission offer */}
-          {listing.agentsWelcome && !isExample && (
+          {listing.agentsWelcome && !listing.isExample && (
             <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-300 space-y-2">
               <div className="flex items-center gap-2 font-bold text-base text-slate-900">
                 <Handshake className="w-5 h-5 text-emerald-700 shrink-0" />
@@ -278,7 +290,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               ) : null}
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Listed by</span>
-                <span className="font-semibold text-emerald-800">{isExample ? "Example (no seller)" : "The owner"}</span>
+                <span className="font-semibold text-emerald-800">{isExample && !isPreview ? "Example (no seller)" : "The owner"}</span>
               </div>
             </div>
           </div>
@@ -384,7 +396,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
 
             {/* Price & Cash-Back Summary */}
             <div className="space-y-1">
-              <div className="text-sm text-slate-600">{isExample ? 'Example price' : 'Asking price'}</div>
+              <div className="text-sm text-slate-600">{isExample && !isPreview ? 'Example price' : 'Asking price'}</div>
               <div className="font-display font-bold text-[40px] leading-none text-slate-900 tabular-nums">
                 {formatCAD(listing.price)}
               </div>
@@ -396,7 +408,12 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             </div>
 
             {/* Actions */}
-            {isExample ? (
+            {isPreview ? (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-1.5">
+                <div className="font-bold text-slate-900">Buyers see “Request a viewing” and “Message the owner” here.</div>
+                <p>You choose which viewing times to accept, and messages arrive in your dashboard and by email.</p>
+              </div>
+            ) : isExample ? (
               <div className="space-y-3">
                 <div className="rounded-xl border-2 border-sign bg-amber-50 p-4 text-sm text-slate-900">
                   <b>Example listing.</b> Not a real home and not for sale, so it can’t be viewed or messaged.
@@ -454,13 +471,13 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
       {/* Mobile Sticky Bottom CTA Bar (< lg) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xs text-slate-600">{isExample ? 'Example · not for sale' : 'Asking price'}</div>
+          <div className="text-xs text-slate-600">{isExample && !isPreview ? 'Example · not for sale' : 'Asking price'}</div>
           <div className="font-display text-2xl font-bold leading-none text-slate-900 truncate tabular-nums">
             {formatCAD(listing.price)}
           </div>
         </div>
 
-        {isExample && (
+        {isExample && !isPreview && (
           <button
             onClick={onListYourHome}
             className="px-5 py-3 bg-emerald-700 text-white rounded-md font-bold text-sm min-h-[48px] cursor-pointer shrink-0"
@@ -505,6 +522,12 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         activeUser={activeUser}
         isOpen={messageModalOpen}
         onClose={() => setMessageModalOpen(false)}
+        onRequireAuth={() =>
+          onOpenAuth?.('signup', {
+            title: 'Create a free account to send your message',
+            subtitle: 'Your message is saved. Once you’re signed in, we send it to the owner.',
+          })
+        }
       />
 
       <ReportModal

@@ -7,7 +7,7 @@ import { coachListing, measureDarkPhotos } from '../lib/listingCoach';
 import { geocodeAddress } from '../lib/geocode';
 import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
-import { calculateBCCommission, formatCAD } from '../lib/commissionCalc';
+import { calculateBCCommission, formatCAD, LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import { AGENT_FIXED_RANGE, AGENT_OFFER_NOTICE, AGENT_PERCENT_RANGE, describeAgentCommission, validateAgentOffer, type AgentCommissionType } from '../lib/agentCommission';
 import { 
   Building2, 
@@ -31,11 +31,15 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { sanitizeHtml, stripHtml, stripHtmlKeepLines, validateCanadianPostalCode } from '../lib/security';
+import { isGuestUser } from '../lib/db';
+import { loadDraftPhotos, saveDraftPhotos } from '../lib/draftPhotos';
+import { trackEvent } from '../lib/analytics';
+import { ListingDetailPage } from './ListingDetailPage';
 interface WizardPageProps {
   activeUser: UserProfile;
   onListingCreated: () => void;
   onCancel: () => void;
-  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup', opts?: { title?: string; subtitle?: string }) => void;
   /** An existing listing to edit. When absent, the wizard always creates a NEW listing. */
   editListing?: Listing | null;
 }
@@ -173,7 +177,43 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     }
   }, []);
 
-  // Autosave text fields on this device (new photos and documents are not kept until you submit)
+  // New listings: bring back photos kept on this device (they survive a reload or signing up)
+  const photosRestored = useRef(false);
+  useEffect(() => {
+    if (editListing) {
+      photosRestored.current = true;
+      return;
+    }
+    let cancelled = false;
+    // Just signed up or in: the photos may still be under the signed-out key for a moment
+    loadDraftPhotos(db.draftPhotosKey())
+      .then((saved) => (saved.length || isGuestUser(activeUser) ? saved : loadDraftPhotos(db.guestDraftPhotosKey())))
+      .then((saved) => {
+      if (cancelled) return;
+      if (saved.length) setPhotos((cur) => (cur.length ? cur : saved));
+      photosRestored.current = true;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [editListing?.id]);
+
+  // ...and keep them up to date while the seller works
+  useEffect(() => {
+    if (editListing || isSubmittedSuccess || !photosRestored.current) return;
+    const t = setTimeout(() => void saveDraftPhotos(db.draftPhotosKey(), photos), 800);
+    return () => clearTimeout(t);
+  }, [photos, editListing?.id, isSubmittedSuccess, activeUser.id]);
+
+  // Analytics: someone started (or reopened) the listing form
+  useEffect(() => {
+    if (!editListing) trackEvent('start_listing', { signed_in: !isGuestUser(activeUser) });
+  }, []);
+
+  const isGuest = isGuestUser(activeUser);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Autosave text fields on this device (photos are kept on the device separately, above)
   useEffect(() => {
     if (isSubmittedSuccess) return;
     if (editingId) return; // edits are not autosaved into the new-listing draft
@@ -416,6 +456,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     }
 
     if (currentStep < 6) {
+      trackEvent('listing_step', { step: currentStep + 1 });
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -431,9 +472,71 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     }
   };
 
+  // What buyers will see, built from the form (never saved; used by "Preview your listing")
+  const buildPreviewListing = (): Listing => ({
+    id: 'preview',
+    userId: activeUser.id,
+    sellerName: activeUser.name || 'The owner',
+    sellerEmail: '',
+    sellerPhone: '',
+    status: 'live',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    city,
+    province,
+    neighborhood: neighborhood || city,
+    lat,
+    lng,
+    propertyType,
+    price,
+    bedrooms,
+    bathrooms,
+    sqft,
+    lotSqft: lotSqft || undefined,
+    lotAcres,
+    yearBuilt,
+    parkingSpaces,
+    strataFee: propertyType === 'Condo / Apartment' || propertyType === 'Townhouse' ? strataFee : 0,
+    propertyTaxesAnnual: propertyTaxesAnnual || undefined,
+    offersCashback,
+    cashbackType,
+    cashbackAmount: offersCashback ? commissionBreakdown.offeredCashback : 0,
+    estimatedCommissionSaved: commissionBreakdown.traditionalTotalCommission,
+    agentsWelcome,
+    agentCommissionType: agentsWelcome ? agentCommissionType : undefined,
+    agentCommissionValue: agentsWelcome && agentCommissionType !== 'negotiable' ? Number(agentCommissionValue) || undefined : undefined,
+    photos: [...photos].sort((a, b) => Number(b.isCover) - Number(a.isCover)),
+    headline: headline || 'Your headline',
+    description: stripHtmlKeepLines(description),
+    neighborhoodHighlights: neighborhoodHighlights ? stripHtmlKeepLines(neighborhoodHighlights) : undefined,
+    recentUpgrades: upgradesInput.split(',').map((x) => x.trim()).filter(Boolean),
+    inclusions: inclusionsInput.split(',').map((x) => x.trim()).filter(Boolean),
+    viewsCount: 0,
+    savesCount: 0,
+    inquiriesCount: 0,
+  });
+
+  const openPreview = () => {
+    trackEvent('preview_listing', { signed_in: !isGuest });
+    setPreviewOpen(true);
+  };
+
+  const askToSignUp = () => {
+    trackEvent('signup_prompt', { from: 'listing_form' });
+    onOpenAuth?.('signup', {
+      title: 'Create your free account to submit',
+      subtitle:
+        'Your listing and photos are saved on this device. After you confirm your email, you’ll come back here to submit it for review.',
+    });
+  };
+
   // Final submit: saves everything to the database and sends the listing to the review queue
   const handleFinalSubmit = async () => {
     if (submitting) return;
+    if (isGuest) {
+      askToSignUp();
+      return;
+    }
     if (!termsAccepted) {
       setValidationError('Please accept the OwnersMarket Terms of Use and Privacy Policy to submit your listing.');
       return;
@@ -496,6 +599,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         outcome: !wasApproved ? 'new' : needsReview ? 'rereview' : 'updated',
       });
       setIsSubmittedSuccess(true);
+      trackEvent(!wasApproved ? 'submit_listing' : 'update_listing', { photos: photos.length });
     } catch (err: any) {
       // Make sure a retry updates the listing that may already have been created
       await db.refresh();
@@ -1332,6 +1436,46 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
             )}
 
+            {/* See it the way buyers will */}
+            <button
+              type="button"
+              onClick={openPreview}
+              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-white border-[1.5px] border-slate-900 hover:bg-slate-50 text-slate-900 font-semibold text-sm rounded-xl min-h-[48px] cursor-pointer"
+            >
+              <Eye className="w-4 h-4" />
+              Preview your listing as buyers will see it
+            </button>
+
+            {isGuest && (
+              <div className="rounded-xl border-2 border-emerald-700 bg-emerald-50 p-5 space-y-3">
+                <div className="font-bold text-slate-900 text-base">Last step: create your free account</div>
+                <ul className="text-sm text-slate-700 space-y-1.5 list-disc pl-5">
+                  <li>Your listing and photos are saved on this device, so nothing is lost.</li>
+                  <li>We’ll email you a link to confirm your address. It brings you back here to submit.</li>
+                  <li>
+                    After a quick review (usually within a day), you activate your listing on the {LISTING_FEE_LABEL}/month plan. No commission,
+                    cancel any time.
+                  </li>
+                </ul>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={askToSignUp}
+                    className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm rounded-xl min-h-[48px] cursor-pointer"
+                  >
+                    Create free account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenAuth?.('signin', { title: 'Sign in to submit your listing' })}
+                    className="px-5 py-3 text-sm font-semibold text-slate-800 underline underline-offset-2 min-h-[48px] cursor-pointer"
+                  >
+                    I already have an account
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Legal Confirmation & Mandatory Terms Acceptance */}
             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-3 leading-relaxed">
               <div className="font-bold text-slate-900 flex items-center gap-2">
@@ -1398,11 +1542,30 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               className="disabled:opacity-60 px-8 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-sm rounded-xl transition-all shadow-md min-h-[48px] flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-5 h-5" />
-              <span>{submitting ? 'Uploading… please keep this page open' : editListing && ['live', 'paused'].includes(editListing.status) ? 'Save Changes' : 'Submit Listing for Review'}</span>
+              <span>{submitting ? 'Uploading… please keep this page open' : isGuest ? 'Create account to submit' : editListing && ['live', 'paused'].includes(editListing.status) ? 'Save changes' : 'Submit listing for review'}</span>
             </button>
           )}
         </div>
       </div>
+
+      {previewOpen && (
+        <div
+          className="fixed inset-0 z-[70] bg-white overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Preview of your listing"
+          onKeyDown={(e) => e.key === 'Escape' && setPreviewOpen(false)}
+        >
+          <ListingDetailPage
+            listing={buildPreviewListing()}
+            activeUser={activeUser}
+            isFavorited={false}
+            onToggleFavorite={() => {}}
+            onBack={() => setPreviewOpen(false)}
+            previewMode
+          />
+        </div>
+      )}
     </div>
   );
 };

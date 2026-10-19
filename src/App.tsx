@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import React, { useRef, Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { clearPendingMessage, readPendingMessage } from './lib/pendingMessage';
 import type { AppNotification, Listing } from './types/listing';
 import { isListingLive } from './types/listing';
 import { db, isGuestUser } from './lib/db';
@@ -17,7 +18,7 @@ import { PasswordRecoveryModal } from './components/PasswordRecoveryModal';
 import { SetupNotice } from './components/SetupNotice';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TAB_PATHS, pathFor } from './lib/routes';
-import { initAnalytics, trackPageView } from './lib/analytics';
+import { initAnalytics, trackEvent, trackPageView } from './lib/analytics';
 import { findExample } from './data/exampleListings';
 
 // Heavier pages load only when visited (keeps the first page load fast)
@@ -170,6 +171,30 @@ function MainApp() {
     setTimeout(() => setToast(null), 4500);
   }, []);
 
+  // A message written before signing up is sent as soon as the person is signed in
+  const pendingSending = useRef(false);
+  useEffect(() => {
+    if (isGuestUser(activeUser) || !dataReady || pendingSending.current) return;
+    const pending = readPendingMessage();
+    if (!pending) return;
+    const listing = db.getListingById(pending.listingId);
+    if (!listing || listing.userId === activeUser.id) {
+      clearPendingMessage();
+      return;
+    }
+    pendingSending.current = true;
+    db.sendMessageToSeller(listing, pending.text)
+      .then(() => {
+        clearPendingMessage();
+        trackEvent('send_message', { first: true, after_signup: true });
+        showToast('Your message was sent to the owner. Replies appear in your dashboard and by email.');
+      })
+      .catch((err) => showToast(err?.message || 'We couldn’t send your saved message. Please open the listing and try again.'))
+      .finally(() => {
+        pendingSending.current = false;
+      });
+  }, [activeUser.id, dataReady]);
+
   // Pop-up banner when something new arrives while the site is open
   useEffect(() => {
     return db.onIncomingNotification((n) => showToast(`🔔 ${n.title}`));
@@ -185,8 +210,10 @@ function MainApp() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin') => {
+  const [authCopy, setAuthCopy] = useState<{ title?: string; subtitle?: string }>({});
+  const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin', opts: { title?: string; subtitle?: string } = {}) => {
     setAuthModalMode(mode);
+    setAuthCopy(opts);
     setAuthModalOpen(true);
   };
 
@@ -326,22 +353,17 @@ function MainApp() {
               />
             ))}
 
-          {currentTab === 'wizard' &&
-            (!signedIn ? (
-              <Gate
-                title="Sign in to list your home"
-                text="Create a free account to start your listing. The same account lets you browse, message owners and book viewings."
-                action={{ label: 'Create free account', onClick: () => handleOpenAuth('signup') }}
-              />
-            ) : (
-              <WizardPage
-                key={editListing?.id ?? 'new'}
-                editListing={editListing}
-                activeUser={activeUser}
-                onListingCreated={() => handleNavigate('dashboard')}
-                onCancel={() => handleNavigate('dashboard')}
-              />
-            ))}
+          {/* Anyone can fill in a listing; the account is created at the last step */}
+          {currentTab === 'wizard' && (
+            <WizardPage
+              key={signedIn ? editListing?.id ?? 'new' : 'new'}
+              editListing={signedIn ? editListing : null}
+              activeUser={activeUser}
+              onListingCreated={() => handleNavigate('dashboard')}
+              onCancel={() => handleNavigate(signedIn ? 'dashboard' : 'landing')}
+              onOpenAuth={handleOpenAuth}
+            />
+          )}
 
           {currentTab === 'dashboard' &&
             (signedIn ? (
@@ -419,6 +441,8 @@ function MainApp() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         initialMode={authModalMode}
+        title={authCopy.title}
+        subtitle={authCopy.subtitle}
       />
 
       {recoveryMode && <PasswordRecoveryModal />}

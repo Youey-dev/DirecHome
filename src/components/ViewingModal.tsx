@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { trackEvent } from '../lib/analytics';
 import { Listing, UserProfile } from '../types/listing';
 import { db } from '../lib/db';
 import { Calendar, Clock, X, CheckCircle2, ShieldCheck, Mail, AlertCircle } from 'lucide-react';
@@ -83,6 +84,7 @@ export const ViewingModal: React.FC<ViewingModalProps> = ({
         notes: cleanNotes
       });
       setSubmitted(true);
+      trackEvent('request_viewing', { time: preferredTimeSlot });
       onSuccess();
     } catch (err: any) {
       setErrorMsg(err.message || 'Your request could not be sent. Please try again.');

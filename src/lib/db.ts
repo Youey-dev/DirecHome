@@ -10,11 +10,13 @@
  * (002_security_hardening.sql). Even if someone edits this code in their browser,
  * the database still refuses anything they are not allowed to do.
  */
+import { trackEvent } from './analytics';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
 import { stripHtml, stripHtmlKeepLines } from './security';
 import { editNeedsReview } from './reviewRules';
 import { agentOfferColumns } from './agentCommission';
+import { deleteDraftPhotos, moveDraftPhotos } from './draftPhotos';
 import type {
   AppNotification,
   Listing,
@@ -272,6 +274,8 @@ class DataStore {
   // ---------------------------------------------------------------------------
   setUser(user: UserProfile) {
     const changed = user.id !== this.user.id || user.role !== this.user.role;
+    // Someone who started a listing while signed out keeps it when they sign in or sign up
+    if (changed && isGuestUser(this.user) && !isGuestUser(user)) this.adoptGuestDraft(user.id);
     this.user = user;
     if (!changed && this.loaded) return;
     this.userVersion += 1;
@@ -839,6 +843,7 @@ class DataStore {
   /** Sends the owner to Stripe Checkout to activate a listing ($24.99 CAD / month). */
   async startCheckout(listingId: string): Promise<void> {
     this.requireUser();
+    trackEvent('activate_listing');
     const { data, error } = await supabase.functions.invoke('create-checkout', { body: { listingId } });
     if (error || !data?.url) {
       let msg = data?.error as string | undefined;
@@ -1255,8 +1260,34 @@ class DataStore {
   // ---------------------------------------------------------------------------
   // Wizard draft (kept on this device only, one per signed-in user)
   // ---------------------------------------------------------------------------
-  private draftKey(): string {
-    return `directhome_wizard_draft_v2:${this.user.id}`;
+  private draftKey(userId: string = this.user.id): string {
+    return `directhome_wizard_draft_v2:${userId}`;
+  }
+
+  /** The key under which this person's unfinished-listing photos are kept on the device. */
+  draftPhotosKey(): string {
+    return this.draftKey();
+  }
+
+  /** Where photos are kept while signed out (moved to the account on sign-in). */
+  guestDraftPhotosKey(): string {
+    return this.draftKey(GUEST_USER.id);
+  }
+
+  /** Moves a draft started while signed out to the account that just signed in (unless it has one). */
+  private adoptGuestDraft(userId: string) {
+    const from = this.draftKey(GUEST_USER.id);
+    const to = this.draftKey(userId);
+    try {
+      const guestDraft = localStorage.getItem(from);
+      if (guestDraft) {
+        if (!localStorage.getItem(to)) localStorage.setItem(to, guestDraft);
+        localStorage.removeItem(from);
+      }
+    } catch {
+      /* storage blocked: nothing to move */
+    }
+    void moveDraftPhotos(from, to);
   }
 
   getDraft(): Record<string, any> | null {
@@ -1284,6 +1315,7 @@ class DataStore {
     } catch {
       /* ignore */
     }
+    void deleteDraftPhotos(this.draftKey());
   }
 
   clearAllDrafts() {
@@ -1291,6 +1323,11 @@ class DataStore {
       Object.keys(localStorage)
         .filter((k) => k.startsWith('directhome_wizard_draft_v2:'))
         .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      /* ignore */
+    }
+    try {
+      indexedDB.deleteDatabase('ownersmarket-drafts'); // draft photos kept on this device
     } catch {
       /* ignore */
     }
