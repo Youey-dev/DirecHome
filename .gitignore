@@ -9,3 +9,7 @@ coverage/
 
 # Generated before each Netlify build (scripts/write-edge-config.mjs)
 netlify/edge-functions/lib/config.ts
+
+# Generated at build time (scripts/prerender.mjs)
+netlify/edge-functions/lib/prerendered.ts
+dist-ssr/
