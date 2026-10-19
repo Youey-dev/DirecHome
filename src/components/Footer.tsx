@@ -44,6 +44,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               <FooterLink to="wizard" onNavigate={onNavigate}>List your home</FooterLink>
               <FooterLink to="calculator" onNavigate={onNavigate}>Savings estimator</FooterLink>
               <FooterLink to="how-it-works" onNavigate={onNavigate}>How it works</FooterLink>
+              <FooterLink to="regions" onNavigate={onNavigate}>For sale by owner by province</FooterLink>
               <FooterLink to="about" onNavigate={onNavigate}>About and contact</FooterLink>
               <FooterLink to="guide-selling" onNavigate={onNavigate}>Selling without a realtor</FooterLink>
               <FooterLink to="guide-bc" onNavigate={onNavigate}>Selling without a realtor in BC</FooterLink>

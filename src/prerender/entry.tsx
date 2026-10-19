@@ -13,6 +13,8 @@ import { renderToString } from 'react-dom/server';
 import { LandingPage } from '../pages/LandingPage';
 import { HowItWorksPage } from '../pages/HowItWorksPage';
 import { AboutPage } from '../pages/AboutPage';
+import { ProvincePage, RegionsPage } from '../pages/ProvincePage';
+import { PROVINCE_PAGES, provincePath } from '../../netlify/edge-functions/lib/regions.ts';
 import { GuidePage } from '../pages/GuidePage';
 import { SavingsCalculator } from '../components/SavingsCalculator';
 import { BC_SELLER_GUIDE, BUYER_GUIDE, SELLER_GUIDE } from '../data/guides';
@@ -27,6 +29,7 @@ const NAV: [string, string][] = [
   ['/calculator', 'Savings estimator'],
   ['/guides/selling-your-home', 'Selling without a realtor'],
   ['/guides/buying-a-home', 'Buying a home for sale by owner'],
+  ['/for-sale-by-owner', 'For sale by owner by province'],
   ['/about', 'About and contact'],
 ];
 
@@ -84,6 +87,23 @@ const PAGES: Record<string, () => React.ReactElement> = {
   [TAB_PATHS['guide-bc']]: () => <GuidePage guide={BC_SELLER_GUIDE} onNavigate={noop} />,
   [TAB_PATHS['guide-buying']]: () => <GuidePage guide={BUYER_GUIDE} onNavigate={noop} />,
   [TAB_PATHS.about]: () => <AboutPage onNavigate={noop} />,
+  [TAB_PATHS.regions]: () => <RegionsPage onNavigate={noop} />,
+  ...Object.fromEntries(
+    PROVINCE_PAGES.map((p) => [
+      provincePath(p.slug),
+      () => (
+        <ProvincePage
+          slug={p.slug}
+          prerender
+          listings={[]}
+          savedIds={[]}
+          onToggleFavorite={noop}
+          onSelectListing={noop}
+          onNavigate={noop}
+        />
+      ),
+    ]),
+  ),
 };
 
 export const PRERENDER_PATHS = Object.keys(PAGES);

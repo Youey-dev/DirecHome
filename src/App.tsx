@@ -12,6 +12,8 @@ import { ListingDetailPage } from './pages/ListingDetailPage';
 import { SavedPage } from './pages/SavedPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
 import { AboutPage } from './pages/AboutPage';
+import { CityPage, ProvincePage, RegionsPage } from './pages/ProvincePage';
+import { CITY_PATH_RE, PROVINCE_PATH_RE, cityTitle, provinceBySlug } from '../netlify/edge-functions/lib/regions.ts';
 import { SavingsCalculator } from './components/SavingsCalculator';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AuthModal } from './components/AuthModal';
@@ -49,6 +51,7 @@ const TAB_TITLES: Record<string, string> = {
   saved: 'Saved homes · OwnersMarket',
   'how-it-works': 'How Selling Your Home Privately Works · OwnersMarket',
   about: 'About and Contact · OwnersMarket',
+  regions: 'For Sale by Owner Across Canada, by Province · OwnersMarket',
   terms: 'Terms of use · OwnersMarket',
   privacy: 'Privacy policy · OwnersMarket',
   rules: 'Listing rules · OwnersMarket',
@@ -68,10 +71,26 @@ function parsePath(pathname: string): { tab: string; listingId: string | null } 
   if (detail) return { tab: 'detail', listingId: detail[1] };
   const example = clean.match(/^\/example\/([a-z0-9-]{1,60})$/);
   if (example) return { tab: 'example', listingId: `example-${example[1]}` };
+  const province = clean.match(PROVINCE_PATH_RE);
+  if (province && provinceBySlug(province[1])) return { tab: 'province', listingId: province[1] };
+  const city = clean.match(CITY_PATH_RE);
+  if (city && provinceBySlug(city[1])) return { tab: 'city', listingId: `${city[1]}/${city[2]}` };
   const found = Object.entries(TAB_PATHS).find(([, p]) => p === clean);
   return { tab: found ? found[0] : 'not-found', listingId: null };
 }
 
+
+/** The browser tab title: fixed per page, or built from the province or city in the address. */
+function titleFor(tab: string, id: string | null): string {
+  if (tab === 'province' && id) return provinceBySlug(id)?.title ?? TAB_TITLES.landing;
+  if (tab === 'city' && id) {
+    const [p, c] = id.split('/');
+    const prov = provinceBySlug(p);
+    const name = (c ?? '').replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+    if (prov) return cityTitle(name, prov);
+  }
+  return TAB_TITLES[tab] ?? TAB_TITLES.landing;
+}
 
 const Loading: React.FC<{ label?: string }> = ({ label = 'Loading…' }) => (
   <div className="flex items-center justify-center py-32 text-sm text-slate-500">{label}</div>
@@ -157,15 +176,15 @@ function MainApp() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  const pageTitle = titleFor(currentTab, selectedListingId);
   useEffect(() => {
-    const base = TAB_TITLES[currentTab] ?? TAB_TITLES.landing;
-    document.title = unreadCount > 0 ? `(${unreadCount}) ${base}` : base;
-  }, [currentTab, unreadCount]);
+    document.title = unreadCount > 0 ? `(${unreadCount}) ${pageTitle}` : pageTitle;
+  }, [pageTitle, unreadCount]);
 
   // Google Analytics: starts only if the visitor already accepted; counts each page change
   useEffect(() => { initAnalytics(); }, []);
   useEffect(() => {
-    trackPageView(pathFor(currentTab, selectedListingId), TAB_TITLES[currentTab] ?? TAB_TITLES.landing);
+    trackPageView(pathFor(currentTab, selectedListingId), titleFor(currentTab, selectedListingId));
   }, [currentTab, selectedListingId]);
 
   const showToast = useCallback((message: string) => {
@@ -203,7 +222,7 @@ function MainApp() {
   }, [showToast]);
 
   const handleNavigate = useCallback((tab: string, listingId?: string) => {
-    const nextListing = tab === 'detail' || tab === 'example' ? listingId ?? null : null;
+    const nextListing = ['detail', 'example', 'province', 'city'].includes(tab) ? listingId ?? null : null;
     setSelectedListingId(nextListing);
     setEditListing(null); // every normal "List your home" starts a NEW listing
     setCurrentTab(tab);
@@ -412,6 +431,21 @@ function MainApp() {
 
           {currentTab === 'how-it-works' && <HowItWorksPage onNavigate={handleNavigate} />}
           {currentTab === 'about' && <AboutPage onNavigate={handleNavigate} />}
+          {currentTab === 'regions' && <RegionsPage onNavigate={handleNavigate} />}
+          {(currentTab === 'province' || currentTab === 'city') && selectedListingId && (() => {
+            const Page = currentTab === 'province' ? ProvincePage : CityPage;
+            return (
+              <Page
+                key={selectedListingId}
+                slug={selectedListingId}
+                listings={listings}
+                savedIds={savedIds}
+                onToggleFavorite={handleToggleFavorite}
+                onSelectListing={handleSelectListing}
+                onNavigate={handleNavigate}
+              />
+            );
+          })()}
 
           {currentTab.startsWith('guide-') && (
             <GuideRoute key={currentTab} tab={currentTab} onNavigate={handleNavigate} />

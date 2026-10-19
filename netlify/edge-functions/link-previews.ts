@@ -10,6 +10,19 @@
 import { DEFAULT_IMAGE, NOT_FOUND, PAGES, PRIVATE_PATHS, SITE_URL, readPublic, structuredData, type PageMeta } from './lib/site.ts';
 // Page HTML built at publish time (scripts/prerender.mjs), keyed by path
 import { PRERENDERED } from './lib/prerendered.ts';
+import {
+  CITY_PAGE_MIN_LISTINGS,
+  CITY_PATH_RE,
+  PROVINCE_PATH_RE,
+  cityDescription,
+  cityPath,
+  citySlug,
+  cityTitle,
+  countCities,
+  provinceBySlug,
+  provincePath,
+  type ProvincePage,
+} from './lib/regions.ts';
 
 type ListingRow = {
   headline: string;
@@ -75,13 +88,63 @@ const SIMPLE_HEADER = `<header style="border-bottom:1px solid #D5DED7"><div styl
 type LinkRow = { id: string; headline: string; city: string; province: string; price: number };
 
 /** Plain links to the homes for sale right now, so crawlers can find every listing. */
-async function listingLinksHtml(heading: string): Promise<string> {
-  const rows = await readPublic<LinkRow[]>('listings?status=eq.live&select=id,headline,city,province,price&order=created_at.desc&limit=200');
+const LINK_FIELDS = 'select=id,headline,city,province,price&order=created_at.desc&limit=200';
+
+async function listingLinksHtml(heading: string, rowsIn?: LinkRow[] | null): Promise<string> {
+  const rows = rowsIn !== undefined ? rowsIn : await readPublic<LinkRow[]>(`listings?status=eq.live&${LINK_FIELDS}`);
   if (!rows || !rows.length) return '';
   const items = rows
     .map((r) => `<li><a href="/listing/${esc(r.id)}">${esc(r.headline)}</a>, ${esc(r.city)}, ${esc(r.province)}: ${esc(money(Number(r.price)))}</li>`)
     .join('');
   return `<section style="max-width:1240px;margin:0 auto;padding:24px 16px"><h2>${esc(heading)}</h2><ul>${items}</ul></section>`;
+}
+
+/** Live listings in one province (only public ones come back to an anonymous read). */
+const provinceRows = (code: string) => readPublic<LinkRow[]>(`listings?status=eq.live&province=eq.${encodeURIComponent(code)}&${LINK_FIELDS}`);
+
+/** Links under a province page: its live listings, and its cities that have their own page. */
+async function provinceExtrasHtml(province: ProvincePage): Promise<string> {
+  const rows = await provinceRows(province.code);
+  if (!rows || !rows.length) return '';
+  const cities = countCities(rows).filter((c) => c.count >= CITY_PAGE_MIN_LISTINGS);
+  const cityLinks = cities.length
+    ? `<section style="max-width:1240px;margin:0 auto;padding:0 16px 24px"><h2>Homes for sale by owner by city</h2><ul>${cities
+        .map((c) => `<li><a href="${esc(cityPath(province.slug, c.city))}">${esc(c.city)} (${c.count})</a></li>`)
+        .join('')}</ul></section>`
+    : '';
+  return (await listingLinksHtml(`Homes for sale by owner in ${province.name}`, rows)) + cityLinks;
+}
+
+/** A city page: indexed only once the city has enough live listings to be worth a page of its own. */
+async function cityMeta(province: ProvincePage, slug: string): Promise<(PageMeta & { body?: string }) | undefined> {
+  const rows = await provinceRows(province.code);
+  if (rows === null) return undefined;
+  const inCity = rows.filter((r) => citySlug(r.city ?? '') === slug);
+  const name = inCity[0]?.city ?? slug.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+  const title = cityTitle(name, province);
+  if (inCity.length < CITY_PAGE_MIN_LISTINGS) {
+    return { title, description: cityDescription(name, province, inCity.length), noindex: true };
+  }
+  const path = cityPath(province.slug, name);
+  return {
+    title,
+    description: cityDescription(name, province, inCity.length),
+    jsonLd: [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: province.name, item: `${SITE_URL}${provincePath(province.slug)}` },
+          { '@type': 'ListItem', position: 3, name, item: `${SITE_URL}${path}` },
+        ],
+      },
+    ],
+    body: `${SIMPLE_HEADER}<main><h1 style="max-width:1240px;margin:0 auto;padding:24px 16px 0">Homes for sale by owner in ${esc(name)}, ${esc(
+      province.code,
+    )}</h1><p style="max-width:1240px;margin:0 auto;padding:8px 16px"><a href="${esc(provincePath(province.slug))}">Selling in ${esc(
+      province.name,
+    )}: what to know</a></p>${await listingLinksHtml(`${inCity.length} homes for sale by owner in ${name}`, inCity)}</main>`,
+  };
 }
 
 const LISTING_PATH = /^\/listing\/([0-9a-fA-F-]{36})$/;
@@ -203,8 +266,11 @@ export default async (request: Request, context: { next: () => Promise<Response>
   if (!(response.headers.get('content-type') ?? '').includes('text/html')) return response;
 
   const listingMatch = path.match(LISTING_PATH);
+  const cityMatch = path.match(CITY_PATH_RE);
+  const cityProvince = cityMatch ? provinceBySlug(cityMatch[1]) : undefined;
   let meta: (PageMeta & { body?: string }) | undefined;
   if (listingMatch) meta = await listingMeta(listingMatch[1]);
+  else if (cityMatch && cityProvince) meta = await cityMeta(cityProvince, cityMatch[2]);
   else if (EXAMPLE_PATH.test(path))
     meta = {
       ...PAGES['/'],
@@ -220,6 +286,12 @@ export default async (request: Request, context: { next: () => Promise<Response>
 
   // The visible page as HTML, so search engines and link previews see the text without JavaScript
   let body = meta.body ?? (PRERENDERED[path] && !meta.noindex ? PRERENDERED[path] : undefined);
+  const provinceMatch = path.match(PROVINCE_PATH_RE);
+  const province = provinceMatch ? provinceBySlug(provinceMatch[1]) : undefined;
+  if (province && body) {
+    const extras = await provinceExtrasHtml(province);
+    if (extras) body = body.includes('<footer') ? body.replace('<footer', `${extras}<footer`) : body + extras;
+  }
   if (path === '/' || path === '/browse') {
     const links = await listingLinksHtml('Homes for sale by owner');
     if (path === '/browse') {
