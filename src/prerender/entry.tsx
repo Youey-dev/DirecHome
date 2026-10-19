@@ -12,6 +12,7 @@ import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { LandingPage } from '../pages/LandingPage';
 import { HowItWorksPage } from '../pages/HowItWorksPage';
+import { AboutPage } from '../pages/AboutPage';
 import { GuidePage } from '../pages/GuidePage';
 import { SavingsCalculator } from '../components/SavingsCalculator';
 import { BC_SELLER_GUIDE, BUYER_GUIDE, SELLER_GUIDE } from '../data/guides';
@@ -82,6 +83,7 @@ const PAGES: Record<string, () => React.ReactElement> = {
   [TAB_PATHS['guide-selling']]: () => <GuidePage guide={SELLER_GUIDE} onNavigate={noop} />,
   [TAB_PATHS['guide-bc']]: () => <GuidePage guide={BC_SELLER_GUIDE} onNavigate={noop} />,
   [TAB_PATHS['guide-buying']]: () => <GuidePage guide={BUYER_GUIDE} onNavigate={noop} />,
+  [TAB_PATHS.about]: () => <AboutPage onNavigate={noop} />,
 };
 
 export const PRERENDER_PATHS = Object.keys(PAGES);

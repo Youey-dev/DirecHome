@@ -14,7 +14,8 @@ import {
   ChevronDown,
   User,
   MessageSquare,
-  BookOpen
+  BookOpen,
+  Mail
 } from 'lucide-react';
 import { AppNotification, UserProfile } from '../types/listing';
 import { useAuth } from '../context/AuthContext';
@@ -358,6 +359,15 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Building2 className="w-5 h-5 text-slate-400" />
             <span>How OwnersMarket works</span>
+          </NavLink>
+
+          <NavLink
+            to="about"
+            onNavigate={handleNav}
+            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
+          >
+            <Mail className="w-5 h-5 text-slate-400" />
+            <span>About and contact</span>
           </NavLink>
 
           <NavLink

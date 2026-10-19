@@ -44,6 +44,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               <FooterLink to="wizard" onNavigate={onNavigate}>List your home</FooterLink>
               <FooterLink to="calculator" onNavigate={onNavigate}>Savings estimator</FooterLink>
               <FooterLink to="how-it-works" onNavigate={onNavigate}>How it works</FooterLink>
+              <FooterLink to="about" onNavigate={onNavigate}>About and contact</FooterLink>
               <FooterLink to="guide-selling" onNavigate={onNavigate}>Selling without a realtor</FooterLink>
               <FooterLink to="guide-bc" onNavigate={onNavigate}>Selling without a realtor in BC</FooterLink>
               <FooterLink to="guide-buying" onNavigate={onNavigate}>Buying a house for sale by owner</FooterLink>
@@ -69,8 +70,14 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
           </nav>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-slate-700 text-xs text-slate-400">
-          © {new Date().getFullYear()} OwnersMarket. Made in British Columbia.
+        <div className="mt-12 pt-6 border-t border-slate-700 text-xs text-slate-400 flex flex-col sm:flex-row sm:justify-between gap-2">
+          <span>© {new Date().getFullYear()} OwnersMarket. Made in British Columbia.</span>
+          <span>
+            Questions?{' '}
+            <a href="mailto:hello@ownersmarket.ca" className="text-slate-300 hover:text-white underline underline-offset-2">
+              hello@ownersmarket.ca
+            </a>
+          </span>
         </div>
       </div>
     </footer>

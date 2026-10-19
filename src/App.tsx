@@ -11,6 +11,7 @@ import { BrowsePage, BrowseFilters } from './pages/BrowsePage';
 import { ListingDetailPage } from './pages/ListingDetailPage';
 import { SavedPage } from './pages/SavedPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
+import { AboutPage } from './pages/AboutPage';
 import { SavingsCalculator } from './components/SavingsCalculator';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AuthModal } from './components/AuthModal';
@@ -47,6 +48,7 @@ const TAB_TITLES: Record<string, string> = {
   admin: 'Admin · OwnersMarket',
   saved: 'Saved homes · OwnersMarket',
   'how-it-works': 'How Selling Your Home Privately Works · OwnersMarket',
+  about: 'About and Contact · OwnersMarket',
   terms: 'Terms of use · OwnersMarket',
   privacy: 'Privacy policy · OwnersMarket',
   rules: 'Listing rules · OwnersMarket',
@@ -409,6 +411,7 @@ function MainApp() {
           )}
 
           {currentTab === 'how-it-works' && <HowItWorksPage onNavigate={handleNavigate} />}
+          {currentTab === 'about' && <AboutPage onNavigate={handleNavigate} />}
 
           {currentTab.startsWith('guide-') && (
             <GuideRoute key={currentTab} tab={currentTab} onNavigate={handleNavigate} />
