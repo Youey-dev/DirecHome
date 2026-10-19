@@ -8,6 +8,8 @@
  * The exact street address is never used here.
  */
 import { DEFAULT_IMAGE, NOT_FOUND, PAGES, PRIVATE_PATHS, SITE_URL, readPublic, structuredData, type PageMeta } from './lib/site.ts';
+// Page HTML built at publish time (scripts/prerender.mjs), keyed by path
+import { PRERENDERED } from './lib/prerendered.ts';
 
 type ListingRow = {
   headline: string;
@@ -17,9 +19,70 @@ type ListingRow = {
   bathrooms: number;
   city: string;
   province: string;
+  neighborhood?: string;
   property_type: string;
+  sqft?: number;
+  year_built?: number;
+  property_taxes_annual?: number | null;
+  neighborhood_highlights?: string | null;
+  inclusions?: string[] | null;
+  offers_cashback?: boolean;
+  cashback_amount?: number;
+  agents_welcome?: boolean;
   listing_photos?: { url: string; is_cover: boolean; sort_order: number | null }[];
 };
+
+/** Escapes text for HTML. */
+const esc = (s: unknown) =>
+  String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** The owner's description as simple HTML: paragraphs, line breaks and bulleted lists. */
+function descriptionHtml(text: string): string {
+  return text
+    .replace(/\r\n?/g, '\n')
+    .split(/\n\s*\n/)
+    .map((para) => {
+      const lines = para.split('\n').map((l) => l.replace(/\*\*/g, '').trim()).filter(Boolean);
+      if (!lines.length) return '';
+      const bullet = /^(?:[-*•]|\d+[.)])\s+/;
+      // Runs of bulleted lines become lists; other lines stay together as a paragraph
+      const out: string[] = [];
+      let text: string[] = [];
+      let items: string[] = [];
+      const flush = () => {
+        if (text.length) out.push(`<p>${text.map(esc).join('<br>')}</p>`);
+        if (items.length) out.push(`<ul>${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`);
+        text = [];
+        items = [];
+      };
+      for (const line of lines) {
+        if (bullet.test(line)) {
+          if (text.length) flush();
+          items.push(line.replace(bullet, ''));
+        } else {
+          if (items.length) flush();
+          text.push(line);
+        }
+      }
+      flush();
+      return out.join('');
+    })
+    .join('');
+}
+
+const SIMPLE_HEADER = `<header style="border-bottom:1px solid #D5DED7"><div style="max-width:1240px;margin:0 auto;padding:18px 16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap"><a href="/" style="font-weight:700;font-size:24px;color:#16261D;text-decoration:none">OwnersMarket</a><nav style="display:flex;gap:16px;flex-wrap:wrap"><a href="/browse">Browse homes</a><a href="/sell">List your home</a><a href="/how-it-works">How it works</a><a href="/about">About and contact</a></nav></div></header>`;
+
+type LinkRow = { id: string; headline: string; city: string; province: string; price: number };
+
+/** Plain links to the homes for sale right now, so crawlers can find every listing. */
+async function listingLinksHtml(heading: string): Promise<string> {
+  const rows = await readPublic<LinkRow[]>('listings?status=eq.live&select=id,headline,city,province,price&order=created_at.desc&limit=200');
+  if (!rows || !rows.length) return '';
+  const items = rows
+    .map((r) => `<li><a href="/listing/${esc(r.id)}">${esc(r.headline)}</a>, ${esc(r.city)}, ${esc(r.province)}: ${esc(money(Number(r.price)))}</li>`)
+    .join('');
+  return `<section style="max-width:1240px;margin:0 auto;padding:24px 16px"><h2>${esc(heading)}</h2><ul>${items}</ul></section>`;
+}
 
 const LISTING_PATH = /^\/listing\/([0-9a-fA-F-]{36})$/;
 // Example listings (not for sale): shown on the site, never indexed by search engines.
@@ -35,9 +98,9 @@ const shorten = (text: string, max: number) => {
   return clean.length <= max ? clean : `${clean.slice(0, max - 1).replace(/\s+\S*$/, '')}…`;
 };
 
-async function listingMeta(id: string): Promise<PageMeta | undefined> {
+async function listingMeta(id: string): Promise<(PageMeta & { body?: string }) | undefined> {
   const rows = await readPublic<ListingRow[]>(
-    `listings?id=eq.${id}&select=headline,description,price,bedrooms,bathrooms,city,province,property_type,listing_photos(url,is_cover,sort_order)`,
+    `listings?id=eq.${id}&select=headline,description,price,bedrooms,bathrooms,city,province,neighborhood,property_type,sqft,year_built,property_taxes_annual,neighborhood_highlights,inclusions,offers_cashback,cashback_amount,agents_welcome,listing_photos(url,is_cover,sort_order)`,
   );
   // Database not reachable (or not configured): leave the page as it is rather than guess.
   if (rows === null) return undefined;
@@ -49,14 +112,44 @@ async function listingMeta(id: string): Promise<PageMeta | undefined> {
       noindex: true,
     };
   }
-  const photo = (l.listing_photos ?? [])
+  const photos = (l.listing_photos ?? [])
     .slice()
-    .sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || (a.sort_order ?? 0) - (b.sort_order ?? 0))[0];
+    .sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const photo = photos[0];
   const facts = `${money(Number(l.price))} · ${plural(Number(l.bedrooms), 'bed')} · ${plural(Number(l.bathrooms), 'bath')} · ${l.city}, ${l.province}`;
+  const place = `${l.neighborhood ? `${l.neighborhood}, ` : ''}${l.city}, ${l.province}`;
+  const factList = [
+    ['Price', money(Number(l.price))],
+    ['Bedrooms', l.bedrooms],
+    ['Bathrooms', l.bathrooms],
+    ['Home type', l.property_type],
+    ['Interior size', l.sqft ? `${Number(l.sqft).toLocaleString('en-CA')} sq ft` : ''],
+    ['Year built', l.year_built ?? ''],
+    ['Property taxes', l.property_taxes_annual ? `${money(Number(l.property_taxes_annual))} a year` : ''],
+    ['Cash back to the buyer', l.offers_cashback && Number(l.cashback_amount) > 0 ? money(Number(l.cashback_amount)) : ''],
+    ['Agents welcome', l.agents_welcome ? 'Yes, the owner pays a buyer’s agent commission' : ''],
+  ].filter(([, v]) => v !== '' && v !== null && v !== undefined);
+  // The visible page, in plain HTML, for crawlers and link previews (the app replaces it in browsers)
+  const body = [
+    SIMPLE_HEADER,
+    '<main style="max-width:1100px;margin:0 auto;padding:24px 16px">',
+    '<p><a href="/browse">Back to homes for sale</a></p>',
+    `<h1>${esc(l.headline)}</h1>`,
+    `<p><strong>${esc(money(Number(l.price)))}</strong> · ${esc(place)} · For sale by owner</p>`,
+    photos.slice(0, 6).map((ph, i) => `<img src="${esc(ph.url)}" alt="${esc(`${l.headline}, photo ${i + 1}`)}" loading="lazy" style="max-width:100%;height:auto">`).join(''),
+    `<dl>${factList.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`,
+    '<h2>From the owner</h2>',
+    descriptionHtml(l.description ?? ''),
+    l.inclusions?.length ? `<h2>Included in the sale</h2><ul>${l.inclusions.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '',
+    l.neighborhood_highlights ? `<h2>The neighbourhood</h2>${descriptionHtml(l.neighborhood_highlights)}` : '',
+    '<p>Message the owner on OwnersMarket to ask a question or book a viewing. The exact address is shared once a viewing is confirmed.</p>',
+    '</main>',
+  ].join('');
   return {
     title: `${shorten(l.headline, 70)} · ${money(Number(l.price))} · OwnersMarket`,
     description: shorten(`${facts}. For sale by owner: message the owner to book a viewing. ${l.description}`, 200),
     image: photo?.url,
+    body,
   };
 }
 
@@ -110,7 +203,7 @@ export default async (request: Request, context: { next: () => Promise<Response>
   if (!(response.headers.get('content-type') ?? '').includes('text/html')) return response;
 
   const listingMatch = path.match(LISTING_PATH);
-  let meta: PageMeta | undefined;
+  let meta: (PageMeta & { body?: string }) | undefined;
   if (listingMatch) meta = await listingMeta(listingMatch[1]);
   else if (EXAMPLE_PATH.test(path))
     meta = {
@@ -125,7 +218,19 @@ export default async (request: Request, context: { next: () => Promise<Response>
   else meta = NOT_FOUND;
   if (!meta) return response;
 
-  const html = await response.text();
+  // The visible page as HTML, so search engines and link previews see the text without JavaScript
+  let body = meta.body ?? (PRERENDERED[path] && !meta.noindex ? PRERENDERED[path] : undefined);
+  if (path === '/' || path === '/browse') {
+    const links = await listingLinksHtml('Homes for sale by owner');
+    if (path === '/browse') {
+      body = `${SIMPLE_HEADER}<main><h1 style="max-width:1240px;margin:0 auto;padding:24px 16px 0">Homes for sale by owner across Canada</h1>${links}</main>`;
+    } else if (body && links) {
+      body = body.includes('<footer') ? body.replace('<footer', `${links}<footer`) : body + links;
+    }
+  }
+
+  let html = await response.text();
+  if (body) html = html.replace(/<div id="root">\s*<\/div>/, `<div id="root">${body}</div>`);
   const headers = new Headers(response.headers);
   headers.delete('content-length');
   headers.delete('etag');
