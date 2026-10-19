@@ -168,7 +168,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          // The confirmation link brings people back to the page they signed up on (e.g. their listing form)
+          emailRedirectTo: window.location.origin + window.location.pathname + window.location.search,
           captchaToken,
           // Everyone signs up as the same kind of member. Admin access can only be granted by the
           // site owner inside the Supabase dashboard — the database ignores anything sent here.

@@ -276,11 +276,8 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Primary CTA Button: List Your Home */}
           <button
             onClick={() => {
-              if (isGuest) {
-                onOpenAuth('signup');
-              } else {
-                handleNav('wizard');
-              }
+              // Anyone can start a listing; the account is created at the end
+              handleNav('wizard');
             }}
             className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 text-xs sm:text-[15px] font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] rounded-md transition-all whitespace-nowrap shrink-0 min-h-[44px] cursor-pointer"
           >
@@ -408,11 +405,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                if (isGuest) {
-                  onOpenAuth('signup');
-                } else {
-                  handleNav('wizard');
-                }
+                handleNav('wizard');
               }}
               className="w-full py-3 bg-emerald-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 min-h-[48px]"
             >

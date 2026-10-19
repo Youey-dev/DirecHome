@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { savePendingMessage } from '../lib/pendingMessage';
+import { trackEvent } from '../lib/analytics';
 import { Listing, UserProfile, ConversationThread } from '../types/listing';
-import { db } from '../lib/db';
+import { db, isGuestUser } from '../lib/db';
 import { Send, X, ShieldAlert, Sparkles, AlertCircle } from 'lucide-react';
 import { stripHtml, stripHtmlKeepLines } from '../lib/security';
 
@@ -9,14 +11,18 @@ interface MessageModalProps {
   activeUser: UserProfile;
   isOpen: boolean;
   onClose: () => void;
+  /** Visitors without an account: called after their message is saved, to open sign-up. */
+  onRequireAuth?: () => void;
 }
 
 export const MessageModal: React.FC<MessageModalProps> = ({
   listing,
   activeUser,
   isOpen,
-  onClose
+  onClose,
+  onRequireAuth
 }) => {
+  const isGuest = isGuestUser(activeUser);
   const [inputText, setInputText] = useState('');
   const [threads, setThreads] = useState<ConversationThread[]>([]);
   const [rateLimitError, setRateLimitError] = useState<string | null>(null);
@@ -50,11 +56,21 @@ export const MessageModal: React.FC<MessageModalProps> = ({
     const cleanText = stripHtmlKeepLines(inputText);
     if (!cleanText || sending) return;
 
+    // No account yet: keep the message on this device and send it after sign-up
+    if (isGuest) {
+      savePendingMessage(listing.id, cleanText);
+      trackEvent('signup_prompt', { from: 'message' });
+      onClose();
+      onRequireAuth?.();
+      return;
+    }
+
     setSending(true);
     setRateLimitError(null);
     try {
       // Spam limits (5 new conversations per hour) are enforced by the server.
       await db.sendMessageToSeller(listing, cleanText);
+      trackEvent('send_message', { first: !currentThread });
       setInputText('');
     } catch (err: any) {
       setRateLimitError(err.message || 'Your message could not be sent. Please try again.');
@@ -156,7 +172,11 @@ export const MessageModal: React.FC<MessageModalProps> = ({
         <div className="px-4 py-1.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
           <span className="flex items-center gap-1.5 truncate">
             <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
-            <span>Sending as: <strong className="text-slate-800">{activeUser.name}</strong> ({activeUser.email || 'your account'})</span>
+            {isGuest ? (
+              <span>Write your message, then create a free account (or sign in) to send it. Your message is kept.</span>
+            ) : (
+              <span>Sending as: <strong className="text-slate-800">{activeUser.name}</strong> ({activeUser.email || 'your account'})</span>
+            )}
           </span>
           <span className="text-[10px] text-slate-400 shrink-0">Direct to owner</span>
         </div>
