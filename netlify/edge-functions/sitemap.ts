@@ -3,16 +3,25 @@
  * Submit https://ownersmarket.ca/sitemap.xml in Google Search Console once.
  */
 import { SITE_URL, SITEMAP_PATHS, lastReadStatus, readPublic } from './lib/site.ts';
+import { CITY_PAGE_MIN_LISTINGS, PROVINCE_PAGES, cityPath, countCities } from './lib/regions.ts';
 
-type Row = { id: string; updated_at: string | null };
+type Row = { id: string; updated_at: string | null; city: string | null; province: string | null };
 
 const xml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export default async () => {
-  const listings = (await readPublic<Row[]>('listings?select=id,updated_at&order=updated_at.desc&limit=5000')) ?? [];
+  const listings = (await readPublic<Row[]>('listings?select=id,updated_at,city,province&order=updated_at.desc&limit=5000')) ?? [];
+
+  // City pages that have enough live listings to be indexed (see CITY_PAGE_MIN_LISTINGS)
+  const cityPages = PROVINCE_PAGES.flatMap((p) =>
+    countCities(listings.filter((l) => l.province === p.code))
+      .filter((c) => c.count >= CITY_PAGE_MIN_LISTINGS)
+      .map((c) => cityPath(p.slug, c.city)),
+  );
 
   const urls = [
     ...SITEMAP_PATHS.map((p) => `  <url><loc>${xml(SITE_URL + p)}</loc></url>`),
+    ...cityPages.map((p) => `  <url><loc>${xml(SITE_URL + p)}</loc></url>`),
     ...listings.map(
       (l) =>
         `  <url><loc>${xml(`${SITE_URL}/listing/${l.id}`)}</loc>${
