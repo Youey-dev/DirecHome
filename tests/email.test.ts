@@ -18,6 +18,7 @@ export function runEmailTests() {
   if (actionFor('listing_in_review').path !== '/admin') fail('Admin notices link to the admin console');
   if (actionFor('viewing_confirmed').path !== '/dashboard?tab=viewings') fail('Viewing notices link to viewings');
   if (actionFor('listing_paused_admin').path !== '/dashboard?tab=listings') fail('Listing notices link to listings');
+  if (actionFor('activation_reminder').path !== '/dashboard?tab=listings' || actionFor('activation_reminder').button !== 'Activate your listing') fail('Activation reminders link to the owner’s listings');
 
   const withAddress = buildEmail({ ...base, type: 'listing_live', title: 'Your listing is live', body: '' }, { site: 'https://x.ca', address: 'PO Box 1, Mission BC' });
   if (!withAddress.text.includes('PO Box 1, Mission BC')) fail('Mailing address shows when set');
