@@ -40,6 +40,12 @@ export function actionFor(type: string): Action {
     case "listing_rereview":
     case "listing_paused_admin":
       return { path: "/dashboard?tab=listings", button: "Open your listings" };
+    case "activation_reminder":
+      return {
+        path: "/dashboard?tab=listings",
+        button: "Activate your listing",
+        note: "You can cancel any time from your dashboard. To stop these emails, turn off listing updates in your email preferences.",
+      };
     case "listing_deleted_admin":
       return { path: "/dashboard?tab=listings", button: "Open your dashboard", note: "Questions? Reply to this email." };
     case "listing_in_review":

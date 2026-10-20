@@ -247,7 +247,7 @@ function MainApp() {
     } else if (n.type.startsWith('viewing_')) {
       setDashboardIntent({ tab: 'viewings', nonce });
       handleNavigate('dashboard');
-    } else if (['listing_live', 'listing_rejected', 'listing_rereview', 'listing_paused_admin', 'listing_deleted_admin'].includes(n.type)) {
+    } else if (['listing_live', 'listing_rejected', 'listing_rereview', 'listing_paused_admin', 'listing_deleted_admin', 'activation_reminder'].includes(n.type)) {
       setDashboardIntent({ tab: 'listings', nonce });
       handleNavigate('dashboard');
     } else if (n.type === 'listing_in_review' || n.type === 'new_report') {
