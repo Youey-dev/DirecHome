@@ -966,16 +966,21 @@ class DataStore {
    */
   async adminSetFreeListing(listingId: string, free: boolean): Promise<void> {
     this.requireUser();
+    // payment_status is a private column: signed-in users may write it (admins only, enforced by a
+    // database trigger) but not filter on it, so the current state is checked from the admin's copy.
+    await this.refresh();
+    const current = this.getListingById(listingId)?.paymentStatus ?? 'unpaid';
+    if (free && !['unpaid', 'canceled'].includes(current)) {
+      throw new Error('This listing already has billing set up, so it can’t be made free.');
+    }
+    if (!free && current !== 'complimentary_launch') throw new Error('This listing isn’t a free listing any more.');
     const { data, error } = await supabase
       .from('listings')
       .update(free ? { payment_status: 'complimentary_launch', past_due_since: null } : { payment_status: 'unpaid' })
       .eq('id', listingId)
-      .in('payment_status', free ? ['unpaid', 'canceled'] : ['complimentary_launch'])
       .select('id');
     if (error) fail(error);
-    if (!data?.length) {
-      throw new Error(free ? 'This listing already has billing set up, so it can’t be made free.' : 'This listing isn’t a free listing any more.');
-    }
+    if (!data?.length) throw new Error('Could not update this listing. Refresh the page and try again.');
     await this.refresh();
   }
 
