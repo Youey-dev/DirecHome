@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   Pause,
+  Gift,
   Play,
   Search,
   Send,
@@ -34,7 +35,9 @@ type Pending =
   | { kind: 'takedown'; listing: Listing; reportId?: string }
   | { kind: 'reject'; listing: Listing }
   | { kind: 'delete'; listing: Listing }
-  | { kind: 'message'; listing: Listing };
+  | { kind: 'message'; listing: Listing }
+  | { kind: 'free'; listing: Listing }
+  | { kind: 'endfree'; listing: Listing };
 
 const STATUS_LABEL: Record<ListingStatus, string> = {
   draft: 'Draft',
@@ -57,7 +60,7 @@ const STATUS_STYLE: Record<string, string> = {
 const BILLING_LABEL: Record<string, string> = {
   active: 'Paying',
   past_due: 'Payment failed',
-  complimentary_launch: 'Free (launch)',
+  complimentary_launch: 'Free · not paid',
   unpaid: 'Not activated',
   canceled: 'Cancelled',
 };
@@ -83,7 +86,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
 
   // Listings tab filters
   const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | ListingStatus | 'held'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | ListingStatus | 'held' | 'free'>('all');
   const [ownerFilter, setOwnerFilter] = useState<AdminUserRow | null>(null);
   const [peopleQuery, setPeopleQuery] = useState('');
 
@@ -162,7 +165,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
     return listings.filter((l) => {
       if (ownerFilter && l.userId !== ownerFilter.id) return false;
       if (statusFilter === 'held' && !l.adminHold) return false;
-      if (statusFilter !== 'all' && statusFilter !== 'held' && l.status !== statusFilter) return false;
+      if (statusFilter === 'free' && l.paymentStatus !== 'complimentary_launch') return false;
+      if (statusFilter !== 'all' && statusFilter !== 'held' && statusFilter !== 'free' && l.status !== statusFilter) return false;
       if (!q) return true;
       return [l.headline, l.city, l.neighborhood, l.province, l.sellerName, l.sellerEmail, l.streetAddress ?? '', l.postalCode ?? '']
         .join(' ')
@@ -206,6 +210,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
       } finally {
         setBusy(false);
       }
+      return;
+    }
+    if (pending.kind === 'free' || pending.kind === 'endfree') {
+      const free = pending.kind === 'free';
+      if (free && !confirmed) return flash('Tick the box to confirm you know this listing isn’t paid.', true);
+      const ok = await run(
+        async () => {
+          await db.adminSetFreeListing(listing.id, free);
+          if (reason) await db.adminMessageSeller(listing.id, reason);
+        },
+        free
+          ? `“${listing.headline}” is now showing to buyers for free. It is NOT paid.`
+          : `Free listing ended. “${listing.headline}” is hidden until the owner activates it.`,
+      );
+      if (ok) close();
       return;
     }
     if (reason.length < 5) return flash('Give the owner a reason they can act on (at least 5 characters).', true);
@@ -268,6 +287,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
         {STATUS_LABEL[l.status] ?? l.status}
       </span>
       {l.adminHold && <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-300 text-amber-950">Paused by admin</span>}
+      {l.paymentStatus === 'complimentary_launch' && (
+        <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 ring-1 ring-amber-300" title="Showing to buyers without payment. OwnersMarket collects nothing for it.">
+          Free · not paid
+        </span>
+      )}
       {l.status === 'live' && !isListingLive(l) && (
         <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">Hidden: not paid</span>
       )}
@@ -332,6 +356,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
         {l.status === 'paused' && l.adminHold && (
           <ActionButton tone="primary" onClick={() => resume(l)}>
             <Play className="w-3.5 h-3.5" /> Resume
+          </ActionButton>
+        )}
+        {l.status === 'live' && !l.adminHold && ['unpaid', 'canceled', undefined].includes(l.paymentStatus) && (
+          <ActionButton onClick={() => open({ kind: 'free', listing: l })} title="Show it to buyers without payment">
+            <Gift className="w-3.5 h-3.5" /> Make live without payment
+          </ActionButton>
+        )}
+        {l.paymentStatus === 'complimentary_launch' && (
+          <ActionButton onClick={() => open({ kind: 'endfree', listing: l })}>
+            End free listing
           </ActionButton>
         )}
         {['live', 'paused'].includes(l.status) && (
@@ -458,6 +492,24 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
           button: 'Delete for good',
           danger: true,
         };
+      case 'free':
+        return {
+          title: `Make “${l.headline}” live without payment`,
+          body: `This listing has NOT been paid. It will show to buyers right away and stay up, free, until you end it here. OwnersMarket collects no money for it, and ${l.sellerName} won’t be charged. It will be marked “Free · not paid” in this console.`,
+          label: `Message to ${l.sellerName} (optional)`,
+          placeholder: `Hi ${l.sellerName.split(' ')[0] || 'there'}, your listing is now live on OwnersMarket, free of charge for now…`,
+          button: 'Make live, not paid',
+          danger: false,
+        };
+      case 'endfree':
+        return {
+          title: `End the free listing for “${l.headline}”`,
+          body: `It's hidden from buyers right away. ${l.sellerName} will see an “Activate listing” button to start paying $24.99 a month and put it back up.`,
+          label: `Message to ${l.sellerName} (optional)`,
+          placeholder: 'e.g. Your free period has ended. Tap “Activate listing” in your dashboard to keep it up.',
+          button: 'End free listing',
+          danger: true,
+        };
       case 'message':
         return {
           title: `Message ${l.sellerName}`,
@@ -565,7 +617,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <Stat label="Paying listings" value={listings.filter((l) => l.paymentStatus === 'active').length} onClick={() => showListings('all')} />
               <Stat label="Payment failed" value={listings.filter((l) => l.paymentStatus === 'past_due').length} onClick={() => showListings('all')} />
-              <Stat label="Free (launch)" value={listings.filter((l) => l.paymentStatus === 'complimentary_launch').length} onClick={() => showListings('all')} />
+              <Stat label="Free · not paid" value={listings.filter((l) => l.paymentStatus === 'complimentary_launch').length} onClick={() => showListings('free')} tone="ring-1 ring-amber-300" />
               <Stat label="Accounts" value={people.length} onClick={() => setTab('people')} />
               <Stat label="Paused by admin" value={listings.filter((l) => l.adminHold).length} onClick={() => showListings('held')} />
               <Stat label="Open reports" value={openReports.length} onClick={() => setTab('reports')} />
@@ -601,6 +653,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
               <option value="live">Up</option>
               <option value="paused">Paused</option>
               <option value="held">Paused by admin</option>
+              <option value="free">Free · not paid</option>
               <option value="in_review">In review</option>
               <option value="rejected">Needs changes</option>
               <option value="sold">Sold</option>
@@ -911,6 +964,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
               <label className="flex items-start gap-2 text-sm text-slate-800">
                 <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-1 w-4 h-4" />
                 I understand this deletes the listing for good.
+              </label>
+            )}
+            {pending.kind === 'free' && (
+              <label className="flex items-start gap-2 text-sm text-slate-800 rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-1 w-4 h-4" />
+                I understand this listing is not paid and OwnersMarket collects no money for it.
               </label>
             )}
             <div className="flex justify-end gap-2 pt-1">

@@ -536,6 +536,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     </div>
                   )}
 
+                  {/* Put up free of charge by OwnersMarket */}
+                  {listing.status === 'live' && listing.paymentStatus === 'complimentary_launch' && (
+                    <div className="px-5 py-3 border-t border-emerald-100 bg-emerald-50 text-xs text-emerald-950">
+                      <strong>Free listing:</strong> OwnersMarket has put this listing up at no charge. You won’t be billed for it.
+                    </div>
+                  )}
+
                   {/* Billing */}
                   {(listing.status === 'live' || listing.status === 'paused') && listing.paymentStatus !== 'complimentary_launch' && (
                     <div className={`px-5 py-3 border-t text-xs flex items-center justify-between gap-3 flex-wrap ${

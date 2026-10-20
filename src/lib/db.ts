@@ -960,6 +960,25 @@ class DataStore {
     await this.refresh();
   }
 
+  /**
+   * Admin: show an approved listing to buyers without payment ("Free · not paid"), or end that.
+   * Only for listings with no Stripe subscription running, so Stripe can't overwrite it.
+   */
+  async adminSetFreeListing(listingId: string, free: boolean): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase
+      .from('listings')
+      .update(free ? { payment_status: 'complimentary_launch', past_due_since: null } : { payment_status: 'unpaid' })
+      .eq('id', listingId)
+      .in('payment_status', free ? ['unpaid', 'canceled'] : ['complimentary_launch'])
+      .select('id');
+    if (error) fail(error);
+    if (!data?.length) {
+      throw new Error(free ? 'This listing already has billing set up, so it can’t be made free.' : 'This listing isn’t a free listing any more.');
+    }
+    await this.refresh();
+  }
+
   /** Admin: lift a pause and put the listing back up (it shows to buyers if its billing is in order). */
   async adminResumeListing(listingId: string): Promise<void> {
     this.requireUser();
