@@ -1,5 +1,5 @@
 /**
- * The public view count shown on listings ("51 views").
+ * The public view count shown on listings ("51 Views").
  *
  * It counts visits to the listing page (once per browser tab session, not the owner's own
  * visits), not unique people, so the wording is "views", never "people".
@@ -12,5 +12,5 @@ export function publicViewsLabel(listing: { viewsCount?: number; isExample?: boo
   if (listing.isExample) return null;
   const n = Math.floor(Number(listing.viewsCount) || 0);
   if (n < PUBLIC_VIEWS_MIN) return null;
-  return `${n.toLocaleString('en-CA')} views`;
+  return `${n.toLocaleString('en-CA')} Views`;
 }

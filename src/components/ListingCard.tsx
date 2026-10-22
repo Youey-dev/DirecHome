@@ -1,7 +1,7 @@
 import React from 'react';
 import { Listing } from '../types/listing';
 import { formatCAD } from '../lib/commissionCalc';
-import { Eye, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { publicViewsLabel } from '../lib/viewCount';
 
 interface ListingCardProps {
@@ -95,9 +95,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         </span>
         <span className="text-[15px] text-slate-600 truncate">{place}</span>
         {publicViewsLabel(listing) && (
-          <span className="text-[13px] text-slate-500 inline-flex items-center gap-1">
-            <Eye className="w-3.5 h-3.5" aria-hidden="true" /> {publicViewsLabel(listing)}
-          </span>
+          <span className="text-[13px] text-slate-500">{publicViewsLabel(listing)}</span>
         )}
         <h3 className="text-sm font-semibold text-emerald-700 pt-1 line-clamp-1 group-hover:underline underline-offset-4">
           <a

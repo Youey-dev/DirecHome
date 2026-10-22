@@ -18,7 +18,6 @@ import {
   Calendar, 
   MessageSquare, 
   MapPin, 
-  Eye,
   Check, 
   AlertTriangle, 
   Home, 
@@ -179,10 +178,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             </h1>
 
             {!isPreview && publicViewsLabel(listing) && (
-              <div className="inline-flex items-center gap-1.5 text-sm text-slate-600">
-                <Eye className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
-                <span>{publicViewsLabel(listing)}</span>
-              </div>
+              <div className="text-sm text-slate-600">{publicViewsLabel(listing)}</div>
             )}
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-slate-600">

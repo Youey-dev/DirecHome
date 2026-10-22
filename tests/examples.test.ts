@@ -5,8 +5,8 @@ import { publicViewsLabel } from '../src/lib/viewCount';
 
 export function runExampleTests() {
   // Public view count: hidden on examples and on brand-new listings, "views" not "people"
-  if (publicViewsLabel({ viewsCount: 51 }) !== '51 views') throw new Error('51 views should show as "51 views"');
-  if (publicViewsLabel({ viewsCount: 1234 }) !== '1,234 views') throw new Error('Large view counts need a thousands separator');
+  if (publicViewsLabel({ viewsCount: 51 }) !== '51 Views') throw new Error('51 views should show as "51 Views"');
+  if (publicViewsLabel({ viewsCount: 1234 }) !== '1,234 Views') throw new Error('Large view counts need a thousands separator');
   if (publicViewsLabel({ viewsCount: 3 }) !== null) throw new Error('A handful of views should not be shown');
   if (publicViewsLabel({ viewsCount: 500, isExample: true }) !== null) throw new Error('Example listings never show a view count');
 
