@@ -8,6 +8,7 @@ import { ViewingModal } from '../components/ViewingModal';
 import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
 import { formatCAD } from '../lib/commissionCalc';
+import { publicViewsLabel } from '../lib/viewCount';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { 
@@ -175,6 +176,10 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <h1 className="text-2xl font-bold text-slate-900 leading-snug">
               {listing.headline}
             </h1>
+
+            {!isPreview && publicViewsLabel(listing) && (
+              <div className="text-sm text-slate-600">{publicViewsLabel(listing)}</div>
+            )}
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-slate-600">
               <div className="flex items-center gap-1.5">
