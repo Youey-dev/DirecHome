@@ -8,6 +8,7 @@ import { ViewingModal } from '../components/ViewingModal';
 import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
 import { formatCAD } from '../lib/commissionCalc';
+import { publicViewsLabel } from '../lib/viewCount';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { 
@@ -17,6 +18,7 @@ import {
   Calendar, 
   MessageSquare, 
   MapPin, 
+  Eye,
   Check, 
   AlertTriangle, 
   Home, 
@@ -175,6 +177,13 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <h1 className="text-2xl font-bold text-slate-900 leading-snug">
               {listing.headline}
             </h1>
+
+            {!isPreview && publicViewsLabel(listing) && (
+              <div className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+                <Eye className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
+                <span>{publicViewsLabel(listing)}</span>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-slate-600">
               <div className="flex items-center gap-1.5">

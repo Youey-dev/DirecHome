@@ -1,7 +1,15 @@
 import { EXAMPLE_LISTINGS, examplesToShow, findExample } from '../src/data/exampleListings';
 import { pathFor } from '../src/lib/routes';
 
+import { publicViewsLabel } from '../src/lib/viewCount';
+
 export function runExampleTests() {
+  // Public view count: hidden on examples and on brand-new listings, "views" not "people"
+  if (publicViewsLabel({ viewsCount: 51 }) !== '51 views') throw new Error('51 views should show as "51 views"');
+  if (publicViewsLabel({ viewsCount: 1234 }) !== '1,234 views') throw new Error('Large view counts need a thousands separator');
+  if (publicViewsLabel({ viewsCount: 3 }) !== null) throw new Error('A handful of views should not be shown');
+  if (publicViewsLabel({ viewsCount: 500, isExample: true }) !== null) throw new Error('Example listings never show a view count');
+
   console.log('🧪 Testing example listings...');
   const fail = (m: string) => { throw new Error(m); };
   if (EXAMPLE_LISTINGS.length !== 6) fail('There should be 6 example listings');
