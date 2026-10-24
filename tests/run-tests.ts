@@ -18,6 +18,7 @@ import { runEmailTests } from './email.test';
 import { runTextTests } from './text.test';
 import { runAgentTests } from './agents.test';
 import { runPrerenderTests } from './prerender.test';
+import { runShareTests } from './share.test';
 
 async function main() {
   console.log('====================================================');
@@ -33,6 +34,7 @@ async function main() {
     runBillingTests();
     runReviewTests();
     runExampleTests();
+    runShareTests();
     runEmailTests();
     runTextTests();
     runAgentTests();

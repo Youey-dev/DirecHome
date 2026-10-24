@@ -3,6 +3,7 @@ import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfi
 import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { SellerChecklist } from '../components/SellerChecklist';
+import { PromoteListing } from '../components/PromoteListing';
 import { DeleteListingDialog } from '../components/DeleteListingDialog';
 
 // The feature sheet (and its QR code library) loads only when a seller opens it
@@ -599,6 +600,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       </button>
                     </div>
                   )}
+
+                  {/* Share the listing: ready-made posts, share buttons, weekly reminder (live listings only) */}
+                  {isListingLive(listing) && <PromoteListing listing={listing} />}
 
                   {/* Printable for-sale signs (live listings only) */}
                   {isListingLive(listing) && (
