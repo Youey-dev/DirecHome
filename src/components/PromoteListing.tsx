@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Check, ChevronDown, Copy, Mail, Megaphone, MessageCircle, Share2, Smartphone } from 'lucide-react';
 import type { Listing } from '../types/listing';
 import {
-  REPOST_DAYS,
   SHARE_PLACES,
   ShareChannel,
   friendMessage,
@@ -10,7 +9,6 @@ import {
   marketplacePost,
   readShareState,
   shareLinks,
-  shareNudge,
   shareUrl,
   writeShareState,
 } from '../lib/sharePosts';
@@ -23,7 +21,7 @@ const btn =
 
 /**
  * Dashboard panel that makes sharing a live listing quick: ready-made posts, one-tap share
- * buttons, a checklist of places to share, and a weekly "share it again" reminder.
+ * buttons and a checklist of places to share.
  */
 export const PromoteListing: React.FC<{ listing: Listing }> = ({ listing }) => {
   const [state, setState] = useState(() => readShareState(listing.id));
@@ -36,27 +34,14 @@ export const PromoteListing: React.FC<{ listing: Listing }> = ({ listing }) => {
     setCanNativeShare(typeof navigator !== 'undefined' && typeof navigator.share === 'function');
   }, []);
 
-  const nudge = shareNudge(state.lastSharedAt);
-  // Open the panel by itself when a share is due, so the reminder can't be missed
-  useEffect(() => {
-    if (nudge.due) setOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const save = (next: typeof state) => {
     setState(next);
     writeShareState(listing.id, next);
   };
-  const markShared = (channel: ShareChannel | string) => {
-    save({ ...state, lastSharedAt: new Date().toISOString() });
-    trackEvent('share_listing', { channel });
-  };
+  const markShared = (channel: ShareChannel | string) => trackEvent('share_listing', { channel });
   const togglePlace = (key: string) => {
     const has = state.done.includes(key);
-    save({
-      done: has ? state.done.filter((k) => k !== key) : [...state.done, key],
-      lastSharedAt: has ? state.lastSharedAt : new Date().toISOString(),
-    });
+    save({ ...state, done: has ? state.done.filter((k) => k !== key) : [...state.done, key] });
     if (!has) trackEvent('share_listing', { channel: key });
   };
 
@@ -116,16 +101,12 @@ export const PromoteListing: React.FC<{ listing: Listing }> = ({ listing }) => {
   const placesDone = SHARE_PLACES.filter((p) => state.done.includes(p.key)).length;
 
   return (
-    <div className={`px-5 py-3 border-t text-xs ${nudge.due ? 'bg-amber-50/60 border-amber-200' : 'bg-white border-slate-100'}`}>
+    <div className="px-5 py-3 border-t border-slate-100 bg-white text-xs">
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="w-full flex items-center gap-3 min-h-[44px] cursor-pointer text-left">
         <Megaphone className="w-4 h-4 text-emerald-700 shrink-0" aria-hidden="true" />
         <span className="text-sm font-bold text-slate-900">Share your listing</span>
-        <span className={`flex-1 ${nudge.due ? 'text-amber-900 font-semibold' : 'text-slate-500'}`}>
-          {nudge.days === null
-            ? 'Not shared yet: start with 2–3 local Facebook groups'
-            : nudge.due
-              ? `Last shared ${nudge.days} days ago. Time to share it again`
-              : `Shared ${nudge.days === 0 ? 'today' : nudge.days === 1 ? 'yesterday' : `${nudge.days} days ago`} · ${placesDone} of ${SHARE_PLACES.length} places`}
+        <span className="flex-1 text-slate-500">
+          Ready-made posts and share buttons · {placesDone} of {SHARE_PLACES.length} places
         </span>
         <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
@@ -228,7 +209,7 @@ export const PromoteListing: React.FC<{ listing: Listing }> = ({ listing }) => {
           </div>
 
           <p className="text-slate-500 leading-relaxed">
-            <b>Tips:</b> share again about once a week ({REPOST_DAYS} days), since group posts get buried; we’ll remind you here. Reply to comments
+            <b>Tips:</b> share again about once a week, since group posts get buried. Reply to comments
             quickly, and invite people to message you through the listing rather than sharing your phone number.
           </p>
         </div>

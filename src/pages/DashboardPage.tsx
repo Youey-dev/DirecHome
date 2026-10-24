@@ -463,11 +463,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {myListings.map((listing) => (
                 <div
                   key={listing.id}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col"
                 >
                   <div className="p-5 flex gap-4">
                     {/* Cover photo thumbnail */}
@@ -648,8 +648,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <SellerChecklist listingId={listing.id} userId={activeUser.id} onNavigate={(tab) => onNavigate(tab)} />
                   )}
 
-                  {/* Actions Toolbar */}
-                  <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap text-xs">
+                  {/* Actions Toolbar (kept at the bottom of the card) */}
+                  <div className="mt-auto px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap text-xs">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onNavigate('detail', listing.id)}

@@ -1,4 +1,4 @@
-import { friendMessage, groupPost, marketplacePost, shareLinks, shareNudge, shareUrl } from '../src/lib/sharePosts';
+import { friendMessage, groupPost, marketplacePost, shareLinks, shareUrl } from '../src/lib/sharePosts';
 
 export function runShareTests() {
   console.log('🧪 Testing share-your-listing posts...');
@@ -27,10 +27,5 @@ export function runShareTests() {
   if (!groupPost({ ...l, agentsWelcome: true }).includes('agent are welcome')) fail('Agents-welcome listings should say so');
   if (/finder|verified/i.test(all)) fail('No "finder\'s fee" or "verified" wording');
   if (!decodeURIComponent(shareLinks(l).facebook).includes(`/listing/${l.id}`)) fail('Facebook share must link to the listing');
-  // Reminder: due when never shared or 7+ days ago
-  const now = Date.parse('2026-10-23T12:00:00Z');
-  if (!shareNudge(null, now).due) fail('Never shared should be due');
-  if (shareNudge('2026-10-20T12:00:00Z', now).due) fail('Shared 3 days ago is not due');
-  if (!shareNudge('2026-10-16T12:00:00Z', now).due) fail('Shared 7 days ago is due');
-  console.log('✅ Share posts: no address or phone, price and area, UTM links, weekly reminder\n');
+  console.log('✅ Share posts: no address or phone, price and area, UTM links\n');
 }

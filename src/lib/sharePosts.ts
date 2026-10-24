@@ -101,16 +101,6 @@ export const SHARE_PLACES: { key: string; label: string; tip?: string }[] = [
   { key: 'boards', label: 'Pin a feature sheet on community boards', tip: 'Grocery stores, libraries, community centres and workplaces.' },
 ];
 
-/** Days between reposts suggested to the seller (groups bury older posts within a week). */
-export const REPOST_DAYS = 7;
-
-/** "Share again" nudge: never shared, or last shared at least REPOST_DAYS ago. */
-export function shareNudge(lastSharedAt: string | null, now = Date.now()): { due: boolean; days: number | null } {
-  if (!lastSharedAt) return { due: true, days: null };
-  const days = Math.floor((now - new Date(lastSharedAt).getTime()) / 86_400_000);
-  return { due: days >= REPOST_DAYS, days };
-}
-
 // What the seller has shared, kept on this device (a convenience, not account data)
 const key = (listingId: string) => `om-share-${listingId}`;
 
