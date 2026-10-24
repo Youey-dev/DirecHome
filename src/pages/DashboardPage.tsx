@@ -3,6 +3,7 @@ import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfi
 import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { SellerChecklist } from '../components/SellerChecklist';
+import { PromoteListing } from '../components/PromoteListing';
 import { DeleteListingDialog } from '../components/DeleteListingDialog';
 
 // The feature sheet (and its QR code library) loads only when a seller opens it
@@ -462,11 +463,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {myListings.map((listing) => (
                 <div
                   key={listing.id}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col"
                 >
                   <div className="p-5 flex gap-4">
                     {/* Cover photo thumbnail */}
@@ -600,6 +601,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     </div>
                   )}
 
+                  {/* Share the listing: ready-made posts, share buttons, weekly reminder (live listings only) */}
+                  {isListingLive(listing) && <PromoteListing listing={listing} />}
+
                   {/* Printable for-sale signs (live listings only) */}
                   {isListingLive(listing) && (
                     <div className="px-5 py-4 border-t border-slate-100 bg-white text-xs space-y-2.5">
@@ -644,8 +648,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <SellerChecklist listingId={listing.id} userId={activeUser.id} onNavigate={(tab) => onNavigate(tab)} />
                   )}
 
-                  {/* Actions Toolbar */}
-                  <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap text-xs">
+                  {/* Actions Toolbar (kept at the bottom of the card) */}
+                  <div className="mt-auto px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap text-xs">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onNavigate('detail', listing.id)}
