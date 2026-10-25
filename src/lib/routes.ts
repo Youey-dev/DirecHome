@@ -21,6 +21,7 @@ export const TAB_PATHS: Record<string, string> = {
   'guide-bc': '/guides/selling-without-a-realtor-bc',
   about: '/about',
   regions: '/for-sale-by-owner',
+  guides: '/guides',
 };
 
 export function pathFor(tab: string, listingId?: string | null): string {
@@ -28,5 +29,7 @@ export function pathFor(tab: string, listingId?: string | null): string {
   if (tab === 'example' && listingId) return `/example/${listingId.replace(/^example-/, '')}`;
   // Province pages use the province slug ('alberta'), city pages 'alberta/edmonton'
   if ((tab === 'province' || tab === 'city') && listingId) return `/for-sale-by-owner/${listingId}`;
+  // Seller guides written in Markdown (src/content/articles)
+  if (tab === 'article' && listingId) return `/guides/${listingId}`;
   return TAB_PATHS[tab] ?? '/';
 }

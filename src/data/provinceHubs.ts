@@ -10,6 +10,7 @@
  * whenever a provincial budget changes a transfer tax.
  */
 import { PROVINCE_PAGES, ProvincePage } from '../../netlify/edge-functions/lib/regions.ts';
+import { ARTICLE_META } from '../../netlify/edge-functions/lib/articles.ts';
 
 export const PROVINCE_FACTS_CHECKED = 'October 18, 2026';
 
@@ -36,7 +37,7 @@ export interface ProvinceHub {
   /** Where property assessments come from (for your own research). */
   assessment?: string;
   sources: HubLink[];
-  /** A deeper guide for this province, when there is one. */
+  /** The tab of a deeper guide for this province that has its own page (BC). Others come from the Markdown guides. */
   guideTab?: string;
 }
 
@@ -359,6 +360,13 @@ export const PROVINCE_HUBS: ProvinceHub[] = [
     sources: [{ label: 'Land Titles Office (Nunavut Legal Registries)', url: 'https://www.nunavutlegalregistries.ca/lt_index_en.shtml' }],
   }),
 ];
+
+/** The full seller guide for a province, if there is one: { tab, id } for NavLink. */
+export function provinceGuide(hub: ProvinceHub): { to: string; id?: string } | null {
+  if (hub.guideTab) return { to: hub.guideTab };
+  const path = `/guides/selling-without-a-realtor-${hub.page.code === 'PE' ? 'pei' : hub.page.slug}`;
+  return ARTICLE_META.some((a) => a.path === path) ? { to: 'article', id: path.replace('/guides/', '') } : null;
+}
 
 export const hubByCode = (code: string) => PROVINCE_HUBS.find((h) => h.page.code === code);
 export const hubBySlug = (slug: string) => PROVINCE_HUBS.find((h) => h.page.slug === slug);

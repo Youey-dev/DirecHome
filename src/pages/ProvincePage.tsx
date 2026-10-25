@@ -3,7 +3,7 @@ import { ArrowRight, ExternalLink, FileText, Home, Landmark, MapPin, Receipt, Sc
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { NavLink } from '../components/NavLink';
-import { PROVINCE_FACTS_CHECKED, PROVINCE_HUBS, ProvinceHub, hubBySlug } from '../data/provinceHubs';
+import { PROVINCE_FACTS_CHECKED, PROVINCE_HUBS, ProvinceHub, hubBySlug, provinceGuide } from '../data/provinceHubs';
 import { CITY_PAGE_MIN_LISTINGS, countCities, citySlug } from '../../netlify/edge-functions/lib/regions.ts';
 import { LISTING_FEE_LABEL } from '../lib/commissionCalc';
 
@@ -98,6 +98,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
   const live = prerender ? [] : liveIn(listings, page.code);
   const cities = countCities(live);
   const cityPages = cities.filter((c) => c.count >= CITY_PAGE_MIN_LISTINGS);
+  const guide = provinceGuide(hub);
 
   return (
     <div className="text-slate-900">
@@ -108,19 +109,29 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
           </NavLink>{' '}
           / <span className="text-slate-900">{page.name}</span>
         </nav>
-        <h1 className="font-display font-bold text-[42px] sm:text-[58px] leading-[0.95]">For sale by owner in {page.name}</h1>
+        <h1 className="font-display font-bold text-[42px] sm:text-[58px] leading-[0.95]">Homes for sale by owner in {page.name}</h1>
         <p className="text-lg text-slate-700 leading-relaxed max-w-[44em]">{hub.lead}</p>
         <p className="text-[16px] text-slate-700 leading-relaxed max-w-[44em]">
           On OwnersMarket you list your home for a flat {LISTING_FEE_LABEL} a month with no commission, and buyers message you directly to book a
           viewing.
         </p>
         <CtaButtons onNavigate={onNavigate} />
+        {guide && (
+          <NavLink
+            to={guide.to}
+            listingId={guide.id}
+            onNavigate={onNavigate}
+            className="self-start inline-flex items-center gap-2 rounded-[10px] bg-fern px-4 py-3 text-[16px] font-semibold text-emerald-900 hover:bg-emerald-100"
+          >
+            Selling in {page.name}? Read the full guide to selling your house privately <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+          </NavLink>
+        )}
       </section>
 
       {/* Homes for sale */}
       <section className="bg-slate-50 border-y border-slate-200">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-12 flex flex-col gap-6">
-          <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">Homes for sale by owner in {page.name}</h2>
+          <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">Listed by their owners in {page.name}</h2>
           {prerender ? (
             <p className="text-[16px] text-slate-700">
               Every home here is listed by its owner. Message them directly to ask questions or book a viewing.
@@ -153,7 +164,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
       {/* Selling in this province */}
       <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-14 flex flex-col gap-8">
         <div className="flex flex-col gap-3 max-w-[44em]">
-          <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">Selling your home without a realtor in {page.name}</h2>
+          <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">Selling your home in {page.name}: the basics</h2>
           <p className="text-[17px] text-slate-700 leading-relaxed">
             Selling privately is legal in every province and territory. You take on the jobs an agent would do: photos, the listing, viewings and
             talking to buyers. Here’s what’s specific to {page.name}.
@@ -174,6 +185,13 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
           </Card>
           <Card icon={<FileText className="w-5 h-5" />} title="What to get ready before you list">
             <Bullets items={hub.prepare} />
+            <p>
+              See the full{' '}
+              <NavLink to="article" listingId="paperwork-to-sell-your-house-privately" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
+                paperwork checklist
+              </NavLink>
+              .
+            </p>
           </Card>
           <Card icon={<MapPin className="w-5 h-5" />} title={`Good to know in ${page.name}`}>
             <Bullets items={hub.goodToKnow} />
@@ -183,14 +201,15 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
         <div className="rounded-[10px] bg-fern p-5 text-[16px] text-slate-800 leading-relaxed">
           <b>Pricing your home.</b> We don’t give price advice. Most private sellers research recent sales of similar homes nearby, look at their
           assessed value, and some pay for an independent appraisal. Our{' '}
-          <NavLink to="guide-selling" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
-            seller guide
+          <NavLink to="article" listingId="how-to-research-your-asking-price" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
+            guide to researching your asking price
           </NavLink>{' '}
           walks through how.
         </div>
-        {hub.guideTab && (
+        {guide && (
           <NavLink
-            to={hub.guideTab}
+            to={guide.to}
+            listingId={guide.id}
             onNavigate={onNavigate}
             className="self-start inline-flex items-center gap-2 font-semibold text-emerald-800 underline underline-offset-2"
           >

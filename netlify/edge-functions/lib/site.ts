@@ -7,6 +7,7 @@
  */
 import { SUPABASE_ANON_KEY as BUILD_KEY, SUPABASE_URL as BUILD_URL } from './config.ts';
 import { PROVINCE_PAGES, PROVINCE_PAGE_BASE, provincePath } from './regions.ts';
+import { ARTICLE_META } from './articles.ts';
 
 // The address and key are written at build time; if the build couldn't see them, fall back to
 // the site's environment variables at run time (when they are available to edge functions).
@@ -77,6 +78,12 @@ export const PAGES: Record<string, PageMeta> = {
     description: 'Homes for sale by owner in every province and territory except Québec, and what selling your own home involves in each: closing, transfer tax and fees.',
   },
   ...Object.fromEntries(PROVINCE_PAGES.map((p) => [provincePath(p.slug), { title: p.title, description: p.description }])),
+  '/guides': {
+    title: 'Seller Guides: Selling Your Home Yourself in Canada · OwnersMarket',
+    description: 'Free guides to selling your home without a realtor in Canada: should you, the paperwork, pricing research, viewings, buyers’ agents and your province.',
+  },
+  // Seller guides written in Markdown (src/content/articles); these override any entry above
+  ...Object.fromEntries(ARTICLE_META.map((a) => [a.path, { title: a.title, description: a.description }])),
   '/terms': { title: 'Terms of use · OwnersMarket', description: 'The terms for using OwnersMarket, a Canadian advertising site for homes for sale by owner.' },
   '/privacy': { title: 'Privacy policy · OwnersMarket', description: 'How OwnersMarket collects, uses and protects your personal information.' },
   '/rules': { title: 'Listing rules · OwnersMarket', description: 'Standards for sellers and buyers on OwnersMarket across Canada.' },
@@ -95,6 +102,8 @@ export const SITEMAP_PATHS = [
   '/about',
   PROVINCE_PAGE_BASE,
   ...PROVINCE_PAGES.map((p) => provincePath(p.slug)),
+  '/guides',
+  ...ARTICLE_META.map((a) => a.path).filter((p) => p !== '/guides/selling-your-home'),
 ];
 
 /** Signed-in pages: real app pages, but never shown in search. */
@@ -155,7 +164,7 @@ const WEBSITE = {
 
 /** First published and last changed, for each guide. Update dateModified when a guide changes. */
 const GUIDE_DATES: Record<string, { published: string; modified: string }> = {
-  '/guides/selling-your-home': { published: '2026-10-14', modified: '2026-10-15' },
+  ...Object.fromEntries(ARTICLE_META.map((a) => [a.path, { published: a.published, modified: a.modified }])),
   '/guides/buying-a-home': { published: '2026-10-14', modified: '2026-10-15' },
   '/guides/selling-without-a-realtor-bc': { published: '2026-10-15', modified: '2026-10-15' },
 };
@@ -193,6 +202,7 @@ export function structuredData(path: string, meta: PageMeta): Record<string, unk
       },
       breadcrumbs([
         { name: 'Home', path: '/' },
+        { name: 'Seller guides', path: '/guides' },
         { name: headline, path },
       ]),
     ];

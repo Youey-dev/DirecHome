@@ -24,7 +24,7 @@ const page = (code: string, slug: string, name: string, short = name): ProvinceP
   code,
   slug,
   name,
-  title: `For Sale by Owner in ${short}: Sell Without a Realtor · OwnersMarket`,
+  title: `Homes for Sale by Owner in ${short} · OwnersMarket`,
   description: `Homes for sale by owner in ${name}, and how to sell yours without a realtor: closing, transfer tax and fees. $24.99 a month, no commission.`,
 });
 

@@ -10,7 +10,8 @@
     "clean": "rm -rf dist",
     "lint": "node scripts/write-edge-config.mjs && tsc --noEmit",
     "test": "tsx tests/run-tests.ts",
-    "signs": "tsx scripts/make-sign-templates.mts"
+    "signs": "tsx scripts/make-sign-templates.mts",
+    "articles": "node scripts/build-articles.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
@@ -31,6 +32,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.21",
+    "marked": "^15.0.12",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^7.0.2"
