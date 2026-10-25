@@ -120,3 +120,43 @@ body {
     print-color-adjust: exact;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Seller guides written in Markdown (src/content/articles, ArticlePage.tsx)
+   --------------------------------------------------------------------------- */
+.om-article { color: var(--color-slate-700); font-size: 17px; line-height: 1.65; }
+.om-article > * + * { margin-top: 1rem; }
+.om-article h2 { font-family: var(--font-display, inherit); font-weight: 700; color: var(--color-slate-900); font-size: 30px; line-height: 1.1; margin-top: 2.75rem; scroll-margin-top: 90px; }
+.om-article h3 { font-weight: 700; color: var(--color-slate-900); font-size: 19px; margin-top: 1.75rem; }
+.om-article h2 + p > em:only-child { display: block; color: var(--color-slate-500); font-style: normal; font-size: 16px; }
+.om-article a { color: var(--color-emerald-800); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.om-article a:hover { color: var(--color-emerald-950); }
+.om-article strong { color: var(--color-slate-900); }
+.om-article ul, .om-article ol { padding-left: 1.4rem; }
+.om-article ul { list-style: disc; }
+.om-article ol { list-style: decimal; }
+.om-article li + li { margin-top: 0.4rem; }
+.om-article li::marker { color: var(--color-emerald-700); }
+.om-article .om-checklist { list-style: none; padding-left: 0; }
+.om-article .om-checklist li { display: flex; gap: 0.6rem; align-items: flex-start; }
+.om-article .om-checklist input { margin-top: 0.35rem; width: 18px; height: 18px; accent-color: var(--color-emerald-700); flex-shrink: 0; }
+.om-article .om-table { overflow-x: auto; border: 1px solid var(--color-slate-200); border-radius: 10px; }
+.om-article table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
+.om-article th { background: var(--color-mist); color: var(--color-slate-900); text-align: left; font-weight: 700; }
+.om-article th, .om-article td { padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--color-slate-200); vertical-align: top; min-width: 9rem; }
+.om-article tr:last-child td { border-bottom: 0; }
+.om-article .om-callout { border-radius: 10px; padding: 0.9rem 1.15rem; font-size: 16px; }
+.om-article .om-callout > * + * { margin-top: 0.5rem; }
+.om-article .om-callout-province { background: var(--color-fern); color: var(--color-slate-900); }
+.om-article .om-callout-lawyer { background: #fff; border: 1px solid var(--color-slate-200); border-left: 4px solid var(--color-emerald-700); }
+.om-article .om-callout-warning { background: #FFFBEB; border: 1px solid #FCD34D; color: #451A03; }
+.om-article .om-callout-warning strong { color: #78350F; }
+.om-article .om-callout-info { background: var(--color-surface); border: 1px solid var(--color-slate-200); color: var(--color-slate-600); }
+.om-article .om-cta { margin-top: 2.75rem; background: var(--color-emerald-950); color: #E6EFE9; border-radius: 14px; padding: 1.5rem; }
+.om-article .om-cta strong { color: #fff; }
+.om-article .om-cta a { color: #fff; }
+.om-article .om-cta .om-cta-actions { margin-top: 1rem; }
+.om-article .om-cta .om-cta-button { display: inline-block; background: var(--color-sign); color: var(--color-slate-900); text-decoration: none; font-weight: 700; padding: 0.8rem 1.4rem; border-radius: 8px; }
+.om-article .om-cta .om-cta-button:hover { background: #E8B43A; color: var(--color-slate-900); }
+.om-article .om-cta .om-callout { background: rgba(255,255,255,0.08); border: 0; color: #CFE0D5; font-size: 14px; }
+.om-article .om-cta .om-callout strong { color: #fff; }

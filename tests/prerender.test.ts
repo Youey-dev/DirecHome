@@ -1,11 +1,12 @@
 import { PRERENDER_PATHS, render } from '../src/prerender/entry';
 import { PROVINCE_PAGES, citySlug, countCities } from '../netlify/edge-functions/lib/regions.ts';
 import { PROVINCE_HUBS } from '../src/data/provinceHubs';
+import { ARTICLES } from '../src/content/articles';
 
 export function runPrerenderTests() {
   console.log('🧪 Testing pre-built page HTML for search engines...');
   const fail = (m: string) => { throw new Error(m); };
-  for (const path of ['/', '/how-it-works', '/calculator', '/guides/selling-your-home', '/guides/buying-a-home', '/guides/selling-without-a-realtor-bc', '/about', '/for-sale-by-owner', ...PROVINCE_PAGES.map((p) => `/for-sale-by-owner/${p.slug}`)]) {
+  for (const path of ['/', '/how-it-works', '/calculator', '/guides/selling-your-home', '/guides/buying-a-home', '/guides/selling-without-a-realtor-bc', '/about', '/for-sale-by-owner', ...PROVINCE_PAGES.map((p) => `/for-sale-by-owner/${p.slug}`), '/guides', ...ARTICLES.map((a) => a.path)]) {
     if (!PRERENDER_PATHS.includes(path)) fail(`${path} should be pre-built`);
     const html = render(path) ?? '';
     const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');

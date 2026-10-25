@@ -14,6 +14,7 @@ import { HowItWorksPage } from './pages/HowItWorksPage';
 import { AboutPage } from './pages/AboutPage';
 import { CityPage, ProvincePage, RegionsPage } from './pages/ProvincePage';
 import { CITY_PATH_RE, PROVINCE_PATH_RE, cityTitle, provinceBySlug } from '../netlify/edge-functions/lib/regions.ts';
+import { ARTICLE_META } from '../netlify/edge-functions/lib/articles.ts';
 import { SavingsCalculator } from './components/SavingsCalculator';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AuthModal } from './components/AuthModal';
@@ -30,6 +31,10 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ 
 type DashboardIntent = { tab: 'listings' | 'viewings' | 'messages'; threadId?: string; nonce: number };
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
+// Seller guides written in Markdown: a separate download, only fetched when a guide is opened
+const ArticleRoute = lazy(() => import('./pages/ArticlePage').then((m) => ({ default: m.ArticlePage })));
+const GuidesIndexRoute = lazy(() => import('./pages/ArticlePage').then((m) => ({ default: m.GuidesIndexPage })));
+
 const GuideRoute = lazy(() =>
   Promise.all([import('./pages/GuidePage'), import('./data/guides')]).then(([page, data]) => ({
     default: ({ tab, onNavigate }: { tab: string; onNavigate: (tab: string) => void }) => (
@@ -60,7 +65,8 @@ const TAB_TITLES: Record<string, string> = {
   calculator: 'Real Estate Commission Calculator · OwnersMarket',
   'not-found': 'Page not found · OwnersMarket',
   example: 'Example listing (not for sale) · OwnersMarket',
-  'guide-selling': 'How to Sell Your House Without a Realtor in Canada · OwnersMarket',
+  'guide-selling': ARTICLE_META.find((m) => m.path === '/guides/selling-your-home')?.title ?? 'How to Sell Your House Privately in Canada · OwnersMarket',
+  guides: 'Seller Guides: Selling Your Home Yourself in Canada · OwnersMarket',
   'guide-bc': 'How to Sell Your House Without a Realtor in BC · OwnersMarket',
   'guide-buying': 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
 };
@@ -76,13 +82,17 @@ function parsePath(pathname: string): { tab: string; listingId: string | null } 
   const city = clean.match(CITY_PATH_RE);
   if (city && provinceBySlug(city[1])) return { tab: 'city', listingId: `${city[1]}/${city[2]}` };
   const found = Object.entries(TAB_PATHS).find(([, p]) => p === clean);
-  return { tab: found ? found[0] : 'not-found', listingId: null };
+  if (found) return { tab: found[0], listingId: null };
+  const guide = clean.match(/^\/guides\/([a-z0-9-]{1,100})$/);
+  if (guide && ARTICLE_META.some((m) => m.path === clean)) return { tab: 'article', listingId: guide[1] };
+  return { tab: 'not-found', listingId: null };
 }
 
 
 /** The browser tab title: fixed per page, or built from the province or city in the address. */
 function titleFor(tab: string, id: string | null): string {
   if (tab === 'province' && id) return provinceBySlug(id)?.title ?? TAB_TITLES.landing;
+  if (tab === 'article' && id) return ARTICLE_META.find((m) => m.path === `/guides/${id}`)?.title ?? TAB_TITLES.landing;
   if (tab === 'city' && id) {
     const [p, c] = id.split('/');
     const prov = provinceBySlug(p);
@@ -222,7 +232,7 @@ function MainApp() {
   }, [showToast]);
 
   const handleNavigate = useCallback((tab: string, listingId?: string) => {
-    const nextListing = ['detail', 'example', 'province', 'city'].includes(tab) ? listingId ?? null : null;
+    const nextListing = ['detail', 'example', 'province', 'city', 'article'].includes(tab) ? listingId ?? null : null;
     setSelectedListingId(nextListing);
     setEditListing(null); // every normal "List your home" starts a NEW listing
     setCurrentTab(tab);
@@ -447,7 +457,11 @@ function MainApp() {
             );
           })()}
 
-          {currentTab.startsWith('guide-') && (
+          {/* The Canada-wide seller guide is now a Markdown article; the BC and buyer guides keep their own page */}
+          {currentTab === 'guide-selling' && <ArticleRoute key="selling-your-home" slug="selling-your-home" onNavigate={handleNavigate} />}
+          {currentTab === 'article' && selectedListingId && <ArticleRoute key={selectedListingId} slug={selectedListingId} onNavigate={handleNavigate} />}
+          {currentTab === 'guides' && <GuidesIndexRoute onNavigate={handleNavigate} />}
+          {(currentTab === 'guide-bc' || currentTab === 'guide-buying') && (
             <GuideRoute key={currentTab} tab={currentTab} onNavigate={handleNavigate} />
           )}
 

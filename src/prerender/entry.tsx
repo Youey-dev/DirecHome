@@ -17,7 +17,9 @@ import { ProvincePage, RegionsPage } from '../pages/ProvincePage';
 import { PROVINCE_PAGES, provincePath } from '../../netlify/edge-functions/lib/regions.ts';
 import { GuidePage } from '../pages/GuidePage';
 import { SavingsCalculator } from '../components/SavingsCalculator';
-import { BC_SELLER_GUIDE, BUYER_GUIDE, SELLER_GUIDE } from '../data/guides';
+import { BC_SELLER_GUIDE, BUYER_GUIDE } from '../data/guides';
+import { ArticlePage, GuidesIndexPage } from '../pages/ArticlePage';
+import { ARTICLES } from '../content/articles';
 import { TAB_PATHS } from '../lib/routes';
 
 const noop = () => {};
@@ -27,6 +29,7 @@ const NAV: [string, string][] = [
   ['/sell', 'List your home'],
   ['/how-it-works', 'How it works'],
   ['/calculator', 'Savings estimator'],
+  ['/guides', 'Seller guides'],
   ['/guides/selling-your-home', 'Selling without a realtor'],
   ['/guides/buying-a-home', 'Buying a home for sale by owner'],
   ['/for-sale-by-owner', 'For sale by owner by province'],
@@ -83,7 +86,9 @@ const PAGES: Record<string, () => React.ReactElement> = {
       <SavingsCalculator onApplyToListing={noop} />
     </div>
   ),
-  [TAB_PATHS['guide-selling']]: () => <GuidePage guide={SELLER_GUIDE} onNavigate={noop} />,
+  [TAB_PATHS.guides]: () => <GuidesIndexPage onNavigate={noop} />,
+  // Seller guides written in Markdown, including the Canada-wide seller guide at /guides/selling-your-home
+  ...Object.fromEntries(ARTICLES.map((a) => [a.path, () => <ArticlePage slug={a.slug} onNavigate={noop} />])),
   [TAB_PATHS['guide-bc']]: () => <GuidePage guide={BC_SELLER_GUIDE} onNavigate={noop} />,
   [TAB_PATHS['guide-buying']]: () => <GuidePage guide={BUYER_GUIDE} onNavigate={noop} />,
   [TAB_PATHS.about]: () => <AboutPage onNavigate={noop} />,

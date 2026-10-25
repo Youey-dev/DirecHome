@@ -112,10 +112,10 @@ export const Header: React.FC<HeaderProps> = ({
           </NavLink>
 
           <NavLink
-            to="guide-selling"
+            to="guides"
             onNavigate={handleNav}
             className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
-              currentTab.startsWith('guide-') ? 'text-emerald-700 font-semibold' : ''
+              currentTab.startsWith('guide') || currentTab === 'article' ? 'text-emerald-700 font-semibold' : ''
             }`}
           >
             Guides
@@ -371,12 +371,12 @@ export const Header: React.FC<HeaderProps> = ({
           </NavLink>
 
           <NavLink
-            to="guide-selling"
+            to="guides"
             onNavigate={handleNav}
             className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
           >
             <BookOpen className="w-5 h-5 text-slate-400" />
-            <span>Seller guide</span>
+            <span>Seller guides</span>
           </NavLink>
 
           <NavLink
