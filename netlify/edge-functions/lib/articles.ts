@@ -138,5 +138,117 @@ export const ARTICLE_META: ArticleMeta[] = [
     "h1": "How to sell your house privately in Newfoundland and Labrador",
     "published": "2026-10-24",
     "modified": "2026-10-24"
+  },
+  {
+    "path": "/guides/selling-without-a-realtor-bc",
+    "title": "Selling Your Own Home in BC Without a Realtor · OwnersMarket",
+    "description": "How to sell your own home in BC without a realtor: lawyer or notary, BC Assessment, disclosure, strata Form B, subjects and the 3-day rescission period.",
+    "h1": "How to sell your own home in BC without a realtor",
+    "published": "2026-10-15",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/cost-to-sell-a-house-in-bc",
+    "title": "How Much Does It Cost to Sell a House in BC? · OwnersMarket",
+    "description": "Every cost of selling a house in BC: realtor commission and GST, lawyer or notary, mortgage payout, strata forms and taxes, with or without a realtor.",
+    "h1": "How much does it cost to sell a house in BC?",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/cost-to-sell-a-house-in-ontario",
+    "title": "Cost to Sell a House in Ontario: Fees & HST · OwnersMarket",
+    "description": "Every cost of selling a house in Ontario: real estate commission plus 13% HST, your lawyer, mortgage payout and condo fees, with or without a realtor.",
+    "h1": "How much does it cost to sell a house in Ontario?",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/cost-to-sell-a-house-in-alberta",
+    "title": "Cost to Sell a House in Alberta: Fees & RPR · OwnersMarket",
+    "description": "Every cost of selling a house in Alberta: commission and GST, your lawyer, the Real Property Report, mortgage payout and condo fees.",
+    "h1": "How much does it cost to sell a house in Alberta?",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-a-house-with-a-mortgage",
+    "title": "Selling a House With a Mortgage in Canada · OwnersMarket",
+    "description": "Selling a house with a mortgage still on it? How the payout works, what a prepayment penalty is, porting, and buying your next home at the same time.",
+    "h1": "Selling a house with a mortgage still on it",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-a-house-with-tenants",
+    "title": "Selling a House With Tenants in Canada · OwnersMarket",
+    "description": "Selling a rented house? What happens to the tenancy, showing a tenanted home, and the BC, Ontario and Alberta rules if your buyer wants to move in.",
+    "h1": "Selling a house with tenants: what landlords need to know",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-an-inherited-house",
+    "title": "Selling an Inherited House in Canada · OwnersMarket",
+    "description": "Selling a house you inherited or that's in an estate? Who can sell it, probate, the taxes involved, and how to sell it privately in Canada.",
+    "h1": "Selling an inherited house in Canada",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-your-house-during-separation-or-divorce",
+    "title": "Selling Your House in a Separation or Divorce · OwnersMarket",
+    "description": "Selling the family home during a separation or divorce in Canada: who has to sign, spousal consent by province, taxes and how to keep the sale on track.",
+    "h1": "Selling your house during a separation or divorce",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-a-house-as-is",
+    "title": "Selling a House As-Is in Canada · OwnersMarket",
+    "description": "Selling a house as-is in Canada? What \"as is\" does and doesn't protect you from, what you still have to disclose, and how to sell a fixer-upper privately.",
+    "h1": "Selling a house as-is: what it does and doesn't mean",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-a-vacant-house",
+    "title": "Selling a Vacant House in Canada · OwnersMarket",
+    "description": "Selling a house that's empty? Insurance on vacant homes, vacancy taxes, keeping it safe in winter, and showing an empty home when you've moved away.",
+    "h1": "Selling a vacant house: insurance, taxes and showings",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/how-long-does-it-take-to-sell-a-house-privately",
+    "title": "How Long Does It Take to Sell a House? · OwnersMarket",
+    "description": "How long a private home sale takes in Canada, stage by stage: getting ready, finding a buyer, conditions and closing, and what speeds it up.",
+    "h1": "How long does it take to sell a house privately?",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/getting-your-home-ready-to-sell",
+    "title": "Getting Your Home Ready to Sell · OwnersMarket",
+    "description": "How to get your home ready to sell privately: decluttering, small fixes, staging while you live there, and whether a pre-listing inspection pays off.",
+    "h1": "Getting your home ready to sell: staging, repairs and a pre-listing inspection",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-a-condo-privately",
+    "title": "How to Sell a Condo Privately in Canada · OwnersMarket",
+    "description": "Selling your condo without a realtor? The documents buyers need in each province (Form B, status certificate, estoppel), fees, deadlines and condo rules.",
+    "h1": "How to sell a condo privately in Canada",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/selling-an-acreage-or-rural-home-privately",
+    "title": "Selling an Acreage or Rural Home Privately · OwnersMarket",
+    "description": "Selling an acreage or rural home without a realtor? Wells, septic, surveys, access, BC's ALR and PEI land limits: what buyers will ask about.",
+    "h1": "Selling an acreage or rural home privately",
+    "published": "2026-10-30",
+    "modified": "2026-10-30"
   }
 ];

@@ -20,13 +20,32 @@ export const GUIDE_GROUPS: { title: string; slugs: string[] }[] = [
       'how-to-research-your-asking-price',
       'what-a-real-estate-lawyer-does-when-you-sell',
       'selling-privately-when-buyer-has-an-agent',
+      'getting-your-home-ready-to-sell',
       'how-to-show-your-home-safely',
+      'how-long-does-it-take-to-sell-a-house-privately',
       'selling-privately-vs-discount-brokerage-vs-flat-fee-mls',
+    ],
+  },
+  {
+    title: 'What it costs',
+    slugs: ['cost-to-sell-a-house-in-bc', 'cost-to-sell-a-house-in-ontario', 'cost-to-sell-a-house-in-alberta', 'selling-a-house-with-a-mortgage'],
+  },
+  {
+    title: 'Your situation',
+    slugs: [
+      'selling-a-condo-privately',
+      'selling-a-house-with-tenants',
+      'selling-an-inherited-house',
+      'selling-your-house-during-separation-or-divorce',
+      'selling-a-house-as-is',
+      'selling-a-vacant-house',
+      'selling-an-acreage-or-rural-home-privately',
     ],
   },
   {
     title: 'Selling in your province',
     slugs: [
+      'selling-without-a-realtor-bc',
       'selling-without-a-realtor-alberta',
       'selling-without-a-realtor-saskatchewan',
       'selling-without-a-realtor-ontario',
@@ -38,8 +57,9 @@ export const GUIDE_GROUPS: { title: string; slugs: string[] }[] = [
   },
 ];
 
-/** The tab and id that open a guide in the app (the Canada-wide seller guide keeps its own tab name). */
-export const guideLink = (slug: string): { to: string; id?: string } => (slug === 'selling-your-home' ? { to: 'guide-selling' } : { to: 'article', id: slug });
+/** The tab and id that open a guide in the app (the Canada-wide and BC guides keep their own tab names). */
+const OWN_TABS: Record<string, string> = { 'selling-your-home': 'guide-selling', 'selling-without-a-realtor-bc': 'guide-bc' };
+export const guideLink = (slug: string): { to: string; id?: string } => (OWN_TABS[slug] ? { to: OWN_TABS[slug] } : { to: 'article', id: slug });
 
 const shortTitle = (a: Article) => a.title.replace(/ · OwnersMarket$/, '');
 
@@ -150,7 +170,7 @@ export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) =
       <h1 className="font-display font-bold text-[42px] sm:text-[58px] leading-[0.95]">Guides to selling your home yourself</h1>
       <p className="text-lg text-slate-700 leading-relaxed max-w-[44em]">
         Free, plain-English guides to selling your home without a realtor in Canada: deciding if it’s right for you, the paperwork, pricing
-        research, viewings, buyers’ agents and what’s different in your province. Every fact links to an official source.
+        research, viewings, buyers’ agents, what it costs, situations like tenants or an estate, and what’s different in your province. Every fact links to an official source.
       </p>
     </div>
     {GUIDE_GROUPS.map((g) => (
@@ -159,11 +179,7 @@ export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) =
         <GuideList slugs={g.slugs} onNavigate={onNavigate} />
         {g.title === 'Selling in your province' && (
           <p className="text-[15px] text-slate-600">
-            Selling in British Columbia? Read the{' '}
-            <NavLink to="guide-bc" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
-              BC guide
-            </NavLink>
-            . For Manitoba and the territories, see the{' '}
+            For Manitoba and the territories, see the{' '}
             <NavLink to="regions" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
               province pages
             </NavLink>

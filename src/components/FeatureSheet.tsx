@@ -38,7 +38,7 @@ const List: React.FC<{ title: string; items: string[] }> = ({ title, items }) =>
 
 export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> = ({ listing, onClose }) => {
   const [qrSvg, setQrSvg] = useState('');
-  const url = `${SITE}/listing/${listing.id}?src=feature-sheet`;
+  const url = `${SITE}/listing/${listing.id}?utm_source=feature_sheet&utm_medium=qr&utm_campaign=feature_sheet`;
 
   useEffect(() => {
     QRCode.toString(url, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#16261D', light: '#FFFFFF' } }).then(setQrSvg);

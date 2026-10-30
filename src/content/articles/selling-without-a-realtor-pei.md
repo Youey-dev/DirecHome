@@ -99,6 +99,8 @@ Under PEI's *Family Law Act*, a married spouse can't sell or mortgage an interes
 
 Tell your lawyer early if you're married, separated, or the home is in one name only.
 
+Separating or divorcing? See [Selling your house during a separation or divorce](/guides/selling-your-house-during-separation-or-divorce).
+
 ---
 
 ## 7. Offers and transfer tax

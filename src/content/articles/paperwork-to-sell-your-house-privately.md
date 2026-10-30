@@ -39,7 +39,7 @@ Here's every document you're likely to meet, in the order you'll need it, with w
 | Rental contracts | For anything you rent and leave behind, like a water heater or furnace | The rental company |
 | Survey or real property report | A drawing of the lot showing where the buildings sit | Your files or your lawyer; a land surveyor if you need a new one |
 | Rural extras | Well water test, septic records, oil tank information | Your files, a water lab, a septic contractor |
-| Condo documents | Bylaws, budget, financial statements, reserve fund study, recent minutes, and the corporation's certificate for buyers | Your condo's property manager (fees and timelines vary) |
+| Condo documents | Bylaws, budget, financial statements, reserve fund study, recent minutes, and the corporation's certificate for buyers | Your condo's property manager (fees and timelines vary). See [Selling a condo privately](/guides/selling-a-condo-privately) |
 
 **Disclosure.** In most provinces, sellers must tell buyers about known hidden defects that make a home dangerous or unfit to live in. Some provinces use a standard disclosure statement; others don't. Write down every problem you know of, fixed or not, and take the list to your lawyer.
 

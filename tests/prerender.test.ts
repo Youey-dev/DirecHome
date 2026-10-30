@@ -25,7 +25,8 @@ export function runPrerenderTests() {
     if (h.page.title.length > 75) fail(`${h.page.name} title is too long`);
     if (h.page.description.length > 165) fail(`${h.page.name} description is too long (${h.page.description.length})`);
     const html = render(`/for-sale-by-owner/${h.page.slug}`) ?? '';
-    if (/verified/i.test(html)) fail(`${h.page.name} page must not say "verified"`);
+    // "ownership is not verified" (the site-wide footer disclaimer) is fine; claiming anything is verified isn't
+    if (/verified/i.test(html.replace(/ownership is not verified/gi, ''))) fail(`${h.page.name} page must not say "verified"`);
     if (/finder.?s fee/i.test(html)) fail(`${h.page.name} page must say buyer's agent commission, not finder's fee`);
   }
   if (citySlug("St. John's") !== 'st-johns' || citySlug('Grand Forks') !== 'grand-forks' || citySlug('Montréal') !== 'montreal') fail('City addresses are wrong');

@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
-import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH, LISTING_FEE_LABEL } from '../lib/commissionCalc';
+import {
+  calculateBCCommission,
+  COMMISSION_TAX,
+  commissionTax,
+  DEFAULT_TAX_PROVINCE,
+  formatCAD,
+  formatCADCents,
+  LISTING_FEE_CAD_PER_MONTH,
+  LISTING_FEE_LABEL,
+} from '../lib/commissionCalc';
 import { CASHBACK_LENDER_NOTICE } from '../lib/legalText';
+import { NavLink } from './NavLink';
 import { DollarSign, CheckCircle2, Info, ArrowRight, Sparkles } from 'lucide-react';
 
 interface SavingsCalculatorProps {
@@ -8,22 +18,61 @@ interface SavingsCalculatorProps {
   initialCashback?: number;
   onApplyToListing?: (price: number, cashback: number) => void;
   compact?: boolean;
+  /** Province code for the GST/HST on the commission. Defaults to the last province page visited, or BC. */
+  initialProvince?: string;
+  /** When given, the result links to the province's "cost to sell" guide (BC, Ontario, Alberta). */
+  onNavigate?: (tab: string, id?: string) => void;
+}
+
+/** The "cost to sell a house" guide for each province that has one. */
+const COST_GUIDES: Record<string, string> = {
+  BC: 'cost-to-sell-a-house-in-bc',
+  ON: 'cost-to-sell-a-house-in-ontario',
+  AB: 'cost-to-sell-a-house-in-alberta',
+};
+
+const LAST_PROVINCE_KEY = 'om-last-province';
+
+/** Remember the province page a visitor last looked at, so the calculator can start there. */
+export function rememberProvince(code: string) {
+  try {
+    window.sessionStorage.setItem(LAST_PROVINCE_KEY, code);
+  } catch {
+    // Storage blocked (private window, preview): the calculator falls back to BC
+  }
+}
+
+function startingProvince(initial?: string): string {
+  const known = (code: string | null | undefined) => (code && COMMISSION_TAX.some((t) => t.code === code) ? code : null);
+  if (known(initial)) return initial!;
+  if (typeof window === 'undefined') return DEFAULT_TAX_PROVINCE;
+  try {
+    const fromUrl = new URLSearchParams(window.location.search).get('province')?.toUpperCase();
+    return known(fromUrl) ?? known(window.sessionStorage.getItem(LAST_PROVINCE_KEY)) ?? DEFAULT_TAX_PROVINCE;
+  } catch {
+    return DEFAULT_TAX_PROVINCE;
+  }
 }
 
 export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
   initialPrice = 1250000,
   initialCashback = 15000,
   onApplyToListing,
-  compact = false
+  compact = false,
+  initialProvince,
+  onNavigate,
 }) => {
   const [price, setPrice] = useState<number>(initialPrice);
+  const [province, setProvince] = useState<string>(() => startingProvince(initialProvince));
+  const tax = commissionTax(province);
+  const costGuide = COST_GUIDES[tax.code];
   const [offersCashback, setOffersCashback] = useState<boolean>(true);
   const [cashbackType, setCashbackType] = useState<'fixed' | 'percentage'>('fixed');
   const [cashbackValue, setCashbackValue] = useState<number>(initialCashback);
 
   const [monthsListed, setMonthsListed] = useState<number>(3);
 
-  const breakdown = calculateBCCommission(price, offersCashback, cashbackType, cashbackValue);
+  const breakdown = calculateBCCommission(price, offersCashback, cashbackType, cashbackValue, tax.code);
   const listingFees = LISTING_FEE_CAD_PER_MONTH * monthsListed;
   const estimatedNet = Math.max(0, breakdown.netSellerSavingsWithCashback - listingFees);
 
@@ -66,6 +115,25 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left: Interactive Controls */}
         <div className="lg:col-span-6 space-y-6">
+          {/* Province: sets the GST or HST on the commission */}
+          <div>
+            <label htmlFor="calculator-province" className="text-sm font-semibold text-slate-900 block mb-2">
+              Your province or territory
+            </label>
+            <select
+              id="calculator-province"
+              value={tax.code}
+              onChange={(e) => setProvince(e.target.value)}
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-[15px] bg-white text-slate-900"
+            >
+              {COMMISSION_TAX.map((t) => (
+                <option key={t.code} value={t.code}>
+                  {t.name} ({t.label} on commission)
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Price Input */}
           <div>
             <div className="flex justify-between items-center mb-2">
@@ -198,7 +266,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
           <div className="flex items-start gap-2.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
             <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
             <p>
-              <strong>Example commission rate used for this estimate:</strong> 7% on the first $100k + 2.5% on the balance + 5% GST. This is an example only, not a standard or required rate. Commissions in Canada are negotiable, vary by brokerage and province, and are not set by law. Provinces with HST pay more tax than this example shows. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
+              <strong>Example commission rate used for this estimate:</strong> 7% on the first $100k + 2.5% on the balance, plus {tax.label} on the commission in {tax.name}. This is an example only, not a standard or required rate. Commissions in Canada are negotiable, vary by brokerage and province, and are not set by law. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
             </p>
           </div>
         </div>
@@ -211,7 +279,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
 
           {/* Traditional Cost */}
           <div className="flex items-center justify-between py-2.5 border-b border-slate-200 text-sm">
-            <span className="text-slate-600">Estimated commission at example rate (7% / 2.5% + GST)</span>
+            <span className="text-slate-600">Estimated commission at example rate (7% / 2.5% + {tax.label})</span>
             <span className="font-semibold text-rose-700 tabular-nums">
               {formatCAD(breakdown.traditionalTotalCommission)}
             </span>
@@ -305,6 +373,15 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
             </p>
             <p className="font-medium text-slate-800">* {CASHBACK_LENDER_NOTICE}</p>
           </div>
+
+          {onNavigate && costGuide && (
+            <p className="mt-4 text-sm text-slate-700">
+              <NavLink to="article" listingId={costGuide} onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
+                Every cost of selling a house in {tax.code === 'BC' ? 'BC' : tax.name}
+              </NavLink>
+              : commission, your lawyer, your mortgage and who pays which taxes.
+            </p>
+          )}
 
           {onApplyToListing && (
             <button

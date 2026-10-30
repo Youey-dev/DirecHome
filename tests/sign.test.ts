@@ -6,9 +6,10 @@ export async function runSignTests() {
   console.log('🧪 Testing printable for-sale signs...');
   const id = '3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90';
 
-  if (signUrl(id, 'lawn') !== `https://ownersmarket.ca/listing/${id}?src=lawn-sign`) {
+  if (signUrl(id, 'lawn') !== `https://ownersmarket.ca/listing/${id}?utm_source=sign&utm_medium=qr&utm_campaign=lawn_sign`) {
     throw new Error(`Unexpected lawn sign address: ${signUrl(id, 'lawn')}`);
   }
+  if (!signUrl(id, 'window').endsWith('utm_campaign=window_sign')) throw new Error(`Unexpected window sign address: ${signUrl(id, 'window')}`);
 
   const sizes = { lawn: [1728, 1296], window: [612, 792] } as const; // 24 × 18 in and Letter, in points
   for (const kind of ['lawn', 'window'] as const) {

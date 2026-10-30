@@ -61,10 +61,6 @@ export const PAGES: Record<string, PageMeta> = {
     title: 'How to Sell Your House Without a Realtor in Canada · OwnersMarket',
     description: 'A free 9-step guide to selling your house without a realtor in Canada: hiring your lawyer, pricing research, disclosure, photos, safe viewings, offers and closing.',
   },
-  '/guides/selling-without-a-realtor-bc': {
-    title: 'How to Sell Your House Without a Realtor in BC · OwnersMarket',
-    description: 'Selling your home privately in British Columbia: lawyer or notary, BC Assessment, disclosure, strata Form B, subjects, the 3-day rescission period and the BC home flipping tax.',
-  },
   '/guides/buying-a-home': {
     title: 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
     description: 'A free 8-step guide to buying a house for sale by owner in Canada: budgeting, checking the title, inspections, making an offer through your lawyer and keeping your deposit safe.',
@@ -97,7 +93,6 @@ export const SITEMAP_PATHS = [
   '/how-it-works',
   '/calculator',
   '/guides/selling-your-home',
-  '/guides/selling-without-a-realtor-bc',
   '/guides/buying-a-home',
   '/about',
   PROVINCE_PAGE_BASE,
@@ -166,8 +161,10 @@ const WEBSITE = {
 const GUIDE_DATES: Record<string, { published: string; modified: string }> = {
   ...Object.fromEntries(ARTICLE_META.map((a) => [a.path, { published: a.published, modified: a.modified }])),
   '/guides/buying-a-home': { published: '2026-10-14', modified: '2026-10-15' },
-  '/guides/selling-without-a-realtor-bc': { published: '2026-10-15', modified: '2026-10-15' },
 };
+
+/** The sitemap's <lastmod> for a page: when the guide's content last changed (never the deploy date). */
+export const lastModified = (path: string): string | undefined => GUIDE_DATES[path]?.modified;
 
 const breadcrumbs = (items: { name: string; path: string }[]) => ({
   '@type': 'BreadcrumbList',
