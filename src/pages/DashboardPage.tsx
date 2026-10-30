@@ -28,7 +28,8 @@ import {
   AlertCircle,
   CreditCard,
   Printer,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
 
 export interface DashboardIntent {
@@ -130,9 +131,32 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   };
 
-  const handleActivate = (id: string) => {
-    void run(() => db.startCheckout(id), 'Opening secure checkout…');
+  // Which listing's checkout is opening: the button changes straight away, while the server works
+  const [checkoutBusy, setCheckoutBusy] = useState<string | null>(null);
+  const handleActivate = async (id: string) => {
+    if (checkoutBusy) return;
+    setCheckoutBusy(id);
+    try {
+      await db.startCheckout(id); // goes to Stripe; the page is left behind
+    } catch (err: any) {
+      setCheckoutBusy(null);
+      showToast(`⚠️ ${err.message || 'We could not start checkout. Please try again.'}`);
+    }
   };
+  // Coming back from Stripe with the browser's Back button: the old page can be restored as it was
+  useEffect(() => {
+    const reset = (e: PageTransitionEvent) => e.persisted && setCheckoutBusy(null);
+    window.addEventListener('pageshow', reset);
+    return () => window.removeEventListener('pageshow', reset);
+  }, []);
+
+  // A listing waiting to be activated: wake the checkout server now, so the click is quick
+  const needsActivation = myListings.some(
+    (l) => (l.status === 'live' || l.status === 'paused') && ['unpaid', 'canceled', undefined].includes(l.paymentStatus),
+  );
+  useEffect(() => {
+    if (needsActivation) db.warmCheckout();
+  }, [needsActivation]);
 
   const handleBilling = () => {
     void run(() => db.openBillingPortal(), 'Opening billing…');
@@ -565,11 +589,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       </div>
                       {(listing.paymentStatus === 'unpaid' || listing.paymentStatus === 'canceled' || !listing.paymentStatus) ? (
                         <button
-                          onClick={() => handleActivate(listing.id)}
-                          className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer min-h-[44px]"
+                          onClick={() => void handleActivate(listing.id)}
+                          disabled={checkoutBusy !== null}
+                          aria-busy={checkoutBusy === listing.id}
+                          className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-80 disabled:cursor-wait text-white font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                         >
-                          <CreditCard className="w-3.5 h-3.5" />
-                          <span>Activate listing</span>
+                          {checkoutBusy === listing.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                          ) : (
+                            <CreditCard className="w-3.5 h-3.5" />
+                          )}
+                          <span>{checkoutBusy === listing.id ? 'Opening secure checkout…' : 'Activate listing'}</span>
                         </button>
                       ) : (
                         <button
