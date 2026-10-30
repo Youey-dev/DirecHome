@@ -26,12 +26,10 @@ export default async () => {
       return `  <url><loc>${xml(SITE_URL + p)}</loc>${mod ? `<lastmod>${mod}</lastmod>` : ''}</url>`;
     }),
     ...cityPages.map((p) => `  <url><loc>${xml(SITE_URL + p)}</loc></url>`),
-    ...listings.map(
-      (l) =>
-        `  <url><loc>${xml(`${SITE_URL}/listing/${l.id}`)}</loc>${
-          l.updated_at ? `<lastmod>${xml(l.updated_at.slice(0, 10))}</lastmod>` : ''
-        }</url>`,
-    ),
+    // No <lastmod> for listings: updated_at changes on every save, including each page view count,
+    // so it would say "changed today" every day. Google stops trusting lastmod in a sitemap when
+    // it's always today, and would then ignore the guides' real dates too.
+    ...listings.map((l) => `  <url><loc>${xml(`${SITE_URL}/listing/${l.id}`)}</loc></url>`),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<!-- listings: ${xml(lastReadStatus)}, ${listings.length} public -->\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;

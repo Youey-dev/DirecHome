@@ -21,6 +21,7 @@ import { BUYER_GUIDE } from '../data/guides';
 import { ArticlePage, GuidesIndexPage } from '../pages/ArticlePage';
 import { ARTICLES } from '../content/articles';
 import { TAB_PATHS } from '../lib/routes';
+import { Footer } from '../components/Footer';
 
 const noop = () => {};
 
@@ -36,7 +37,7 @@ const NAV: [string, string][] = [
   ['/about', 'About and contact'],
 ];
 
-/** A plain header and footer so crawlers can follow links between pages. */
+/** A plain header and the site footer so crawlers can follow links between pages. */
 const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="min-h-screen flex flex-col bg-white text-slate-900">
     <header className="border-b border-slate-200">
@@ -54,18 +55,8 @@ const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
       </div>
     </header>
     <main className="flex-1">{children}</main>
-    <footer className="bg-slate-900 text-slate-200">
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-10 flex flex-col gap-4 text-sm">
-        <p>OwnersMarket is an advertising platform, not a real estate brokerage, and does not give real estate advice.</p>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-          {[...NAV, ['/terms', 'Terms of use'], ['/privacy', 'Privacy policy'], ['/rules', 'Community and listing rules']].map(([href, label]) => (
-            <a key={href} href={href} className="underline-offset-2 hover:underline">
-              {label}
-            </a>
-          ))}
-        </nav>
-      </div>
-    </footer>
+    {/* The same footer visitors see, so every page links to the guides and every province page */}
+    <Footer onNavigate={noop} />
   </div>
 );
 

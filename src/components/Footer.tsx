@@ -1,15 +1,18 @@
 import React from 'react';
 import { NavLink } from './NavLink';
 import { analyticsAvailable, openCookieSettings } from '../lib/analytics';
+import { PROVINCE_PAGES } from '../../netlify/edge-functions/lib/regions.ts';
 
-const FooterLink: React.FC<{ to: string; onNavigate: (tab: string) => void; children: React.ReactNode }> = ({
+const FooterLink: React.FC<{ to: string; id?: string; onNavigate: (tab: string, id?: string) => void; children: React.ReactNode }> = ({
   to,
+  id,
   onNavigate,
   children,
 }) => (
   <li>
     <NavLink
       to={to}
+      listingId={id}
       onNavigate={onNavigate}
       className="inline-flex items-center text-left text-white hover:text-sign underline-offset-4 hover:underline transition-colors min-h-[32px]"
     >
@@ -18,11 +21,11 @@ const FooterLink: React.FC<{ to: string; onNavigate: (tab: string) => void; chil
   </li>
 );
 
-export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavigate }) => {
+export const Footer: React.FC<{ onNavigate: (tab: string, id?: string) => void }> = ({ onNavigate }) => {
   return (
     <footer className="bg-slate-900 text-slate-300 text-sm mt-20">
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-10">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <span className="w-11 h-11 rounded-md bg-white flex items-center justify-center shrink-0">
@@ -51,6 +54,17 @@ export const Footer: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavi
               <FooterLink to="guide-bc" onNavigate={onNavigate}>Selling without a realtor in BC</FooterLink>
               <FooterLink to="guide-buying" onNavigate={onNavigate}>Buying a house for sale by owner</FooterLink>
               <FooterLink to="dashboard" onNavigate={onNavigate}>My dashboard and messages</FooterLink>
+            </ul>
+          </nav>
+
+          {/* Every province page, so search engines (and people) can reach them from any page */}
+          <nav aria-label="For sale by owner by province">
+            <ul className="space-y-2">
+              {PROVINCE_PAGES.map((p) => (
+                <FooterLink key={p.slug} to="province" id={p.slug} onNavigate={onNavigate}>
+                  For sale by owner in {p.name}
+                </FooterLink>
+              ))}
             </ul>
           </nav>
 
