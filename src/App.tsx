@@ -38,7 +38,7 @@ const GuidesIndexRoute = lazy(() => import('./pages/ArticlePage').then((m) => ({
 const GuideRoute = lazy(() =>
   Promise.all([import('./pages/GuidePage'), import('./data/guides')]).then(([page, data]) => ({
     default: ({ tab, onNavigate }: { tab: string; onNavigate: (tab: string) => void }) => (
-      <page.GuidePage guide={tab === 'guide-buying' ? data.BUYER_GUIDE : tab === 'guide-bc' ? data.BC_SELLER_GUIDE : data.SELLER_GUIDE} onNavigate={onNavigate} />
+      <page.GuidePage guide={tab === 'guide-buying' ? data.BUYER_GUIDE : data.SELLER_GUIDE} onNavigate={onNavigate} />
     ),
   })),
 );
@@ -67,7 +67,7 @@ const TAB_TITLES: Record<string, string> = {
   example: 'Example listing (not for sale) · OwnersMarket',
   'guide-selling': ARTICLE_META.find((m) => m.path === '/guides/selling-your-home')?.title ?? 'How to Sell Your House Privately in Canada · OwnersMarket',
   guides: 'Seller Guides: Selling Your Home Yourself in Canada · OwnersMarket',
-  'guide-bc': 'How to Sell Your House Without a Realtor in BC · OwnersMarket',
+  'guide-bc': ARTICLE_META.find((m) => m.path === '/guides/selling-without-a-realtor-bc')?.title ?? 'Selling Your Own Home in BC Without a Realtor · OwnersMarket',
   'guide-buying': 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
 };
 
@@ -457,11 +457,12 @@ function MainApp() {
             );
           })()}
 
-          {/* The Canada-wide seller guide is now a Markdown article; the BC and buyer guides keep their own page */}
+          {/* The Canada-wide and BC seller guides are Markdown articles; the buyer guide keeps its own page */}
           {currentTab === 'guide-selling' && <ArticleRoute key="selling-your-home" slug="selling-your-home" onNavigate={handleNavigate} />}
+          {currentTab === 'guide-bc' && <ArticleRoute key="selling-without-a-realtor-bc" slug="selling-without-a-realtor-bc" onNavigate={handleNavigate} />}
           {currentTab === 'article' && selectedListingId && <ArticleRoute key={selectedListingId} slug={selectedListingId} onNavigate={handleNavigate} />}
           {currentTab === 'guides' && <GuidesIndexRoute onNavigate={handleNavigate} />}
-          {(currentTab === 'guide-bc' || currentTab === 'guide-buying') && (
+          {currentTab === 'guide-buying' && (
             <GuideRoute key={currentTab} tab={currentTab} onNavigate={handleNavigate} />
           )}
 
@@ -479,7 +480,7 @@ function MainApp() {
                   Estimate what you could save using an example commission rate, and how much closing cash back you could offer. Commission rates vary by province and are negotiable. All figures are estimates.
                 </p>
               </div>
-              <SavingsCalculator onApplyToListing={() => handleNavigate('wizard')} />
+              <SavingsCalculator onApplyToListing={() => handleNavigate('wizard')} onNavigate={handleNavigate} />
             </div>
           )}
         </Suspense>

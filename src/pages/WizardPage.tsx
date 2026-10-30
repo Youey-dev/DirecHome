@@ -7,7 +7,7 @@ import { coachListing, measureDarkPhotos } from '../lib/listingCoach';
 import { geocodeAddress } from '../lib/geocode';
 import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
-import { calculateBCCommission, formatCAD, LISTING_FEE_LABEL } from '../lib/commissionCalc';
+import { calculateBCCommission, commissionTax, formatCAD, LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import { AGENT_FIXED_RANGE, AGENT_OFFER_NOTICE, AGENT_PERCENT_RANGE, describeAgentCommission, validateAgentOffer, type AgentCommissionType } from '../lib/agentCommission';
 import { 
   Building2, 
@@ -264,7 +264,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   ]);
 
   // Live Commission calculations
-  const commissionBreakdown = calculateBCCommission(price, offersCashback, cashbackType, cashbackAmount);
+  const commissionBreakdown = calculateBCCommission(price, offersCashback, cashbackType, cashbackAmount, province || undefined);
 
   // Photo Upload Handler with Browser Resizing & Validation
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1207,7 +1207,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span>Optional: offer a buyer cash back</span>
               </div>
               <p className="text-xs text-emerald-950/90 leading-relaxed">
-                At an example commission rate (7% on the first $100k + 2.5% on the balance + GST; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. OwnersMarket charges no commission, just a flat $24.99/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
+                At an example commission rate (7% on the first $100k + 2.5% on the balance + {commissionTax(province).label}; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. OwnersMarket charges no commission, just a flat $24.99/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
               </p>
             </div>
 

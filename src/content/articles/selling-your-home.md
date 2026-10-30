@@ -51,7 +51,7 @@ In a private sale, your real estate lawyer is the person who protects you. They 
 
 Ask for a fixed-fee quote, and ask whether they've handled private sales without agents. Your provincial law society can help you find one. More in [What a real estate lawyer does when you sell](/guides/what-a-real-estate-lawyer-does-when-you-sell).
 
-**Then call your mortgage lender.** If you have a closed mortgage and sell before the term ends, breaking it usually means a prepayment penalty, which can cost thousands of dollars. Ask for an estimate of the penalty and the discharge fee, and whether you can take the mortgage with you to your next home. That number belongs in your plans before you set a price.
+**Then call your mortgage lender.** If you have a closed mortgage and sell before the term ends, breaking it usually means a prepayment penalty, which can cost thousands of dollars. Ask for an estimate of the penalty and the discharge fee, and whether you can take the mortgage with you to your next home. That number belongs in your plans before you set a price. More in [Selling a house with a mortgage](/guides/selling-a-house-with-a-mortgage).
 
 > **Province note: British Columbia.** A notary public can handle your sale instead of a lawyer.
 
@@ -113,7 +113,7 @@ See the full [paperwork checklist](/guides/paperwork-to-sell-your-house-privatel
 - Start with the front of the home, then every main room, the kitchen, bathrooms, yard and parking. 10 to 25 photos is plenty.
 - Measure rooms or check your measurements. Square footage and room sizes must be accurate.
 
-Describe the home honestly. Mention what's updated and what's original. Buyers trust a listing that doesn't oversell, and an honest listing protects you later. More tips in [How to list your house for sale by owner](/guides/how-to-list-your-house-for-sale-by-owner).
+Describe the home honestly. Mention what's updated and what's original. Buyers trust a listing that doesn't oversell, and an honest listing protects you later. For decluttering, small repairs and staging, see [Getting your home ready to sell](/guides/getting-your-home-ready-to-sell). More tips in [How to list your house for sale by owner](/guides/how-to-list-your-house-for-sale-by-owner).
 
 ---
 

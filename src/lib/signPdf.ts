@@ -17,9 +17,9 @@ export type SignKind = 'lawn' | 'window';
 const SITE = 'https://ownersmarket.ca';
 const INK = rgb(22 / 255, 38 / 255, 29 / 255);
 
-/** The address the QR code opens. The src tag shows which sign brought each visit. */
+/** The address the QR code opens. The campaign tags show in Google Analytics which sign brought each visit. */
 export const signUrl = (listingId: string, kind: SignKind) =>
-  `${SITE}/listing/${listingId}?src=${kind === 'lawn' ? 'lawn-sign' : 'window-sign'}`;
+  `${SITE}/listing/${listingId}?utm_source=sign&utm_medium=qr&utm_campaign=${kind === 'lawn' ? 'lawn_sign' : 'window_sign'}`;
 
 export async function makeSignPdf(listingId: string, kind: SignKind, template?: ArrayBuffer | Uint8Array): Promise<Uint8Array> {
   const bytes = template ?? (await (await fetch(`/signs/${kind}.pdf`)).arrayBuffer());

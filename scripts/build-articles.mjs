@@ -39,10 +39,47 @@ const ORDER = [
   'selling-without-a-realtor-nova-scotia',
   'selling-without-a-realtor-pei',
   'selling-without-a-realtor-newfoundland-and-labrador',
+  // Batch of October 30, 2026: the BC guide, cost pages, then situations, then the rest
+  'selling-without-a-realtor-bc',
+  'cost-to-sell-a-house-in-bc',
+  'cost-to-sell-a-house-in-ontario',
+  'cost-to-sell-a-house-in-alberta',
+  'selling-a-house-with-a-mortgage',
+  'selling-a-house-with-tenants',
+  'selling-an-inherited-house',
+  'selling-your-house-during-separation-or-divorce',
+  'selling-a-house-as-is',
+  'selling-a-vacant-house',
+  'how-long-does-it-take-to-sell-a-house-privately',
+  'getting-your-home-ready-to-sell',
+  'selling-a-condo-privately',
+  'selling-an-acreage-or-rural-home-privately',
 ];
 
-/** When each guide first went live (the seller guide existed before; the rest are new). */
-const PUBLISHED = { 'selling-your-home': '2026-10-14' };
+/** When each guide first went live. Guides not listed here went live on FIRST_PUBLISHED. */
+const BATCH_OCT30 = '2026-10-30';
+const PUBLISHED = {
+  'selling-your-home': '2026-10-14',
+  // The BC guide existed before as a page of its own; only its `modified` date changes
+  'selling-without-a-realtor-bc': '2026-10-15',
+  ...Object.fromEntries(
+    [
+      'cost-to-sell-a-house-in-bc',
+      'cost-to-sell-a-house-in-ontario',
+      'cost-to-sell-a-house-in-alberta',
+      'selling-a-house-with-a-mortgage',
+      'selling-a-house-with-tenants',
+      'selling-an-inherited-house',
+      'selling-your-house-during-separation-or-divorce',
+      'selling-a-house-as-is',
+      'selling-a-vacant-house',
+      'how-long-does-it-take-to-sell-a-house-privately',
+      'getting-your-home-ready-to-sell',
+      'selling-a-condo-privately',
+      'selling-an-acreage-or-rural-home-privately',
+    ].map((slug) => [slug, BATCH_OCT30]),
+  ),
+};
 const FIRST_PUBLISHED = '2026-10-24';
 
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
@@ -70,7 +107,7 @@ function calloutKind(label) {
   const l = label.toLowerCase();
   if (l.startsWith('warning') || l.startsWith('safety')) return 'warning';
   if (l.startsWith('a note')) return 'info';
-  if (l.startsWith('ask your lawyer')) return 'lawyer';
+  if (l.startsWith('ask your lawyer') || l.startsWith('ask an accountant') || l.startsWith('ask your lender')) return 'lawyer';
   if (l.includes('note') || l.startsWith('in british columbia') || l.startsWith('in ')) return 'province';
   return 'info';
 }

@@ -120,6 +120,8 @@ Under Nova Scotia's *Matrimonial Property Act*, a spouse's consent is needed to 
 
 Your lawyer will arrange the consent. Tell them early if you're married, separated or the home is in one name only.
 
+Separating or divorcing? See [Selling your house during a separation or divorce](/guides/selling-your-house-during-separation-or-divorce).
+
 ---
 
 ## 8. Offers and deed transfer tax

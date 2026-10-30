@@ -6,6 +6,14 @@ import { NavLink } from '../components/NavLink';
 import { PROVINCE_FACTS_CHECKED, PROVINCE_HUBS, ProvinceHub, hubBySlug, provinceGuide } from '../data/provinceHubs';
 import { CITY_PAGE_MIN_LISTINGS, countCities, citySlug } from '../../netlify/edge-functions/lib/regions.ts';
 import { LISTING_FEE_LABEL } from '../lib/commissionCalc';
+import { rememberProvince } from '../components/SavingsCalculator';
+
+/** The "cost to sell a house" guide for provinces that have one. */
+const COST_GUIDES: Record<string, { slug: string; label: string }> = {
+  BC: { slug: 'cost-to-sell-a-house-in-bc', label: 'How much does it cost to sell a house in BC?' },
+  ON: { slug: 'cost-to-sell-a-house-in-ontario', label: 'How much does it cost to sell a house in Ontario?' },
+  AB: { slug: 'cost-to-sell-a-house-in-alberta', label: 'How much does it cost to sell a house in Alberta?' },
+};
 
 type Nav = (tab: string, id?: string) => void;
 
@@ -99,6 +107,9 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
   const cities = countCities(live);
   const cityPages = cities.filter((c) => c.count >= CITY_PAGE_MIN_LISTINGS);
   const guide = provinceGuide(hub);
+  const costGuide = COST_GUIDES[page.code];
+  // The commission calculator starts with this province's GST or HST
+  React.useEffect(() => rememberProvince(page.code), [page.code]);
 
   return (
     <div className="text-slate-900">
@@ -214,6 +225,16 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
             className="self-start inline-flex items-center gap-2 font-semibold text-emerald-800 underline underline-offset-2"
           >
             Read the full guide to selling without a realtor in {page.name} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </NavLink>
+        )}
+        {costGuide && (
+          <NavLink
+            to="article"
+            listingId={costGuide.slug}
+            onNavigate={onNavigate}
+            className="self-start inline-flex items-center gap-2 font-semibold text-emerald-800 underline underline-offset-2"
+          >
+            {costGuide.label} <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </NavLink>
         )}
       </section>

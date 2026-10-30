@@ -2,7 +2,7 @@
  * /sitemap.xml: the public pages plus every public listing, read live from the database.
  * Submit https://ownersmarket.ca/sitemap.xml in Google Search Console once.
  */
-import { SITE_URL, SITEMAP_PATHS, lastReadStatus, readPublic } from './lib/site.ts';
+import { SITE_URL, SITEMAP_PATHS, lastModified, lastReadStatus, readPublic } from './lib/site.ts';
 import { CITY_PAGE_MIN_LISTINGS, PROVINCE_PAGES, cityPath, countCities } from './lib/regions.ts';
 
 type Row = { id: string; updated_at: string | null; city: string | null; province: string | null };
@@ -20,7 +20,11 @@ export default async () => {
   );
 
   const urls = [
-    ...SITEMAP_PATHS.map((p) => `  <url><loc>${xml(SITE_URL + p)}</loc></url>`),
+    // Guides carry the date their content last changed; other pages change with the listings, so no date
+    ...SITEMAP_PATHS.map((p) => {
+      const mod = lastModified(p);
+      return `  <url><loc>${xml(SITE_URL + p)}</loc>${mod ? `<lastmod>${mod}</lastmod>` : ''}</url>`;
+    }),
     ...cityPages.map((p) => `  <url><loc>${xml(SITE_URL + p)}</loc></url>`),
     ...listings.map(
       (l) =>

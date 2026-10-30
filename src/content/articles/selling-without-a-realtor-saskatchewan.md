@@ -92,6 +92,8 @@ Under Saskatchewan's *Homesteads Act, 1989*, the family home can't be sold or mo
 
 Your lawyer prepares the consent and arranges for your spouse to sign it properly. Tell them early if you're married, common-law, separated, or the home is in one name only.
 
+Separating or divorcing? See [Selling your house during a separation or divorce](/guides/selling-your-house-during-separation-or-divorce).
+
 ---
 
 ## 6. Offers in Saskatchewan

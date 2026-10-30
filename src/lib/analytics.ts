@@ -129,11 +129,31 @@ export function trackPageView(path: string, title: string): void {
   sendPageView(path, title);
 }
 
+/**
+ * Campaign tags (utm_*) on the address the visitor arrived at, such as a lawn sign's QR code or a
+ * share link. They go with the first page view only, so Google Analytics credits the right source.
+ */
+let arrivalCampaign = (() => {
+  try {
+    if (typeof window === 'undefined') return '';
+    const keep = new URLSearchParams();
+    new URLSearchParams(window.location.search).forEach((v, k) => {
+      if (k.startsWith('utm_')) keep.set(k, v);
+    });
+    const s = keep.toString();
+    return s ? `?${s}` : '';
+  } catch {
+    return '';
+  }
+})();
+
 function sendPageView(path: string, title = document.title): void {
   if (!window.gtag || NEVER_TRACK.test(path)) return;
+  const campaign = arrivalCampaign;
+  arrivalCampaign = '';
   window.gtag('event', 'page_view', {
     page_path: path,
-    page_location: `${location.origin}${path}`,
+    page_location: `${location.origin}${path}${campaign}`,
     page_title: title.replace(/^\(\d+\)\s*/, ''), // drop the unread-message count from the title
   });
 }

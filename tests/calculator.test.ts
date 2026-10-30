@@ -1,4 +1,4 @@
-import { calculateBCCommission, formatCAD } from '../src/lib/commissionCalc';
+import { calculateBCCommission, COMMISSION_TAX, formatCAD } from '../src/lib/commissionCalc';
 
 export function runCalculatorTests() {
   console.log('🧪 Testing BC Real Estate Commission & Cash-Back Calculator...');
@@ -51,6 +51,23 @@ export function runCalculatorTests() {
     throw new Error(`Expected '$0', got '${formatCAD(0)}'`);
   }
   console.log('  ✅ Currency formatter passes');
+
+  // Test 5: GST or HST by province (matches the examples in the "cost to sell" guides)
+  const examples: [string, number, number][] = [
+    ['ON', 850000, 29098], // 13% HST
+    ['BC', 900000, 28350], // 5% GST
+    ['AB', 500000, 17850], // 5% GST
+  ];
+  for (const [prov, price, total] of examples) {
+    const got = calculateBCCommission(price, false, 'fixed', 0, prov).traditionalTotalCommission;
+    if (got !== total) throw new Error(`Expected ${formatCAD(total)} on ${formatCAD(price)} in ${prov}, got ${formatCAD(got)}`);
+  }
+  const rates = Object.fromEntries(COMMISSION_TAX.map((t) => [t.code, t.rate]));
+  if (rates.NS !== 0.14 || rates.NB !== 0.15 || rates.PE !== 0.15 || rates.NL !== 0.15 || rates.SK !== 0.05 || 'QC' in rates) {
+    throw new Error('Commission tax rates by province are wrong');
+  }
+  if (!calculateBCCommission(850000, false, 'fixed', 0, 'ON').assumptions.includes('13% HST')) throw new Error('Assumptions must name the tax used');
+  console.log('  ✅ GST/HST by province passes (Ontario $850,000 → $29,098)');
 
   console.log('🎉 All Calculator tests passed successfully!\n');
 }
