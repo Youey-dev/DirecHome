@@ -853,6 +853,24 @@ class DataStore {
     window.location.assign(data.url);
   }
 
+  /**
+   * Wakes the checkout server and opens a connection to Stripe while the person is still reading,
+   * so "Activate listing" opens checkout faster. Safe to call more than once; never throws.
+   */
+  warmCheckout(): void {
+    if (typeof document !== 'undefined' && !document.querySelector('link[data-om-preconnect]')) {
+      for (const href of ['https://checkout.stripe.com', 'https://js.stripe.com']) {
+        const link = document.createElement('link');
+        link.rel = 'preconnect';
+        link.href = href;
+        link.crossOrigin = 'anonymous';
+        link.setAttribute('data-om-preconnect', '');
+        document.head.appendChild(link);
+      }
+    }
+    void supabase.functions.invoke('create-checkout', { body: { warm: true } }).catch(() => {});
+  }
+
   /** Opens Stripe's billing portal (update card, invoices, cancel). */
   async openBillingPortal(): Promise<void> {
     this.requireUser();

@@ -20,28 +20,56 @@ type Db = any;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
+// Created once per server instance, not on every click
+const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+const stripe = stripeKey ? new Stripe(stripeKey, { httpClient: Stripe.createFetchHttpClient() }) : null;
+
+/** The user id in the caller's sign-in token. Only used to START a lookup early; getUser() below is what's trusted. */
+function tokenSubject(auth: string): string | null {
+  try {
+    const payload = JSON.parse(atob(auth.replace(/^Bearer\s+/i, "").split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload?.sub === "string" ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
+    const body = await req.json().catch(() => ({}));
+    // The dashboard calls this once when it shows an "Activate listing" button, so the server is
+    // already awake when the person clicks (a cold start adds about a second).
+    if (body?.warm === true) return json({ ok: true });
+
     const missing = ["STRIPE_SECRET_KEY", "STRIPE_PRICE_ID", "SITE_URL"].filter((k) => !Deno.env.get(k));
-    if (missing.length) {
+    if (missing.length || !stripe) {
       console.error("Missing secrets:", missing.join(", "));
       return json({ error: `Setup incomplete: missing secret ${missing.join(", ")} in Supabase.` }, 500);
     }
+    const { listingId } = body;
+    if (typeof listingId !== "string") return json({ error: "Missing listing." }, 400);
+
     const auth = req.headers.get("Authorization") ?? "";
     const url = Deno.env.get("SUPABASE_URL")!;
     const asUser = createClient(url, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: auth } } });
-    const { data: u } = await asUser.auth.getUser();
-    if (!u?.user) return json({ error: "Please sign in first." }, 401);
-
-    const { listingId } = await req.json().catch(() => ({}));
-    if (typeof listingId !== "string") return json({ error: "Missing listing." }, 400);
-
-    // Read with the server key (billing columns are private), then check the person owns it
+    // Read with the server key (billing columns are private); ownership is checked below
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: listing } = await admin
-      .from("listings").select("id,user_id,status,payment_status,headline").eq("id", listingId).maybeSingle();
-    if (!listing || listing.user_id !== u.user.id) return json({ error: "Listing not found." }, 404);
+    const sub = tokenSubject(auth);
+
+    // Everything that doesn't depend on another answer is asked at the same time
+    const [userRes, listingRes, billingRes, customerRes] = await Promise.all([
+      asUser.auth.getUser(),
+      admin.from("listings").select("id,user_id,status,payment_status,headline").eq("id", listingId).maybeSingle(),
+      admin.from("listing_billing").select("stripe_subscription_id").eq("listing_id", listingId).maybeSingle(),
+      sub
+        ? admin.from("billing_customers").select("stripe_customer_id").eq("user_id", sub).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const user = userRes.data?.user;
+    if (!user) return json({ error: "Please sign in first." }, 401);
+    const listing = listingRes.data;
+    if (!listing || listing.user_id !== user.id) return json({ error: "Listing not found." }, 404);
     if (!["live", "paused"].includes(listing.status)) {
       return json({ error: "Your listing must be approved by our review team before it can be activated." }, 400);
     }
@@ -49,22 +77,20 @@ Deno.serve(async (req) => {
       return json({ error: "This listing already has an active subscription." }, 400);
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { httpClient: Stripe.createFetchHttpClient() });
+    // The customer found early only counts if the token's user is the verified user
+    const knownCustomer = sub === user.id ? ((customerRes.data as { stripe_customer_id?: string } | null)?.stripe_customer_id ?? null) : null;
+    const customerId = knownCustomer ?? (await customerFor(admin, stripe, user.id, user.email ?? undefined));
+    const subscriptionId = (billingRes.data as { stripe_subscription_id?: string } | null)?.stripe_subscription_id;
 
-    // The payment may have gone through a moment ago, before the webhook updated the listing
-    const { data: billing } = await admin
-      .from("listing_billing").select("stripe_subscription_id").eq("listing_id", listing.id).maybeSingle();
-    if (billing?.stripe_subscription_id) {
-      const existing = await stripe.subscriptions.retrieve(billing.stripe_subscription_id);
-      if (isRunning(existing.status) && existing.status !== "incomplete") {
-        return json({ error: "This listing already has an active subscription. Refresh the page in a moment." }, 400);
-      }
+    // Both Stripe checks at once: a payment that went through a moment ago (before the webhook
+    // updated the listing), and a checkout already open for this listing (another tab, a double tap)
+    const [existing, open] = await Promise.all([
+      subscriptionId ? stripe.subscriptions.retrieve(subscriptionId) : Promise.resolve(null),
+      stripe.checkout.sessions.list({ customer: customerId, status: "open", limit: 20 }),
+    ]);
+    if (existing && isRunning(existing.status) && existing.status !== "incomplete") {
+      return json({ error: "This listing already has an active subscription. Refresh the page in a moment." }, 400);
     }
-
-    const customerId = await customerFor(admin, stripe, u.user.id, u.user.email ?? undefined);
-
-    // Reuse a checkout that is already open for this listing (another tab, a double tap)
-    const open = await stripe.checkout.sessions.list({ customer: customerId, status: "open", limit: 20 });
     const reusable = open.data.find((s) => s.metadata?.listing_id === listing.id && s.url);
     if (reusable) return json({ url: reusable.url });
 
@@ -75,12 +101,12 @@ Deno.serve(async (req) => {
       customer: customerId,
       client_reference_id: listing.id,
       allow_promotion_codes: true,
-      metadata: { listing_id: listing.id, user_id: u.user.id },
+      metadata: { listing_id: listing.id, user_id: user.id },
       // Each listing is its OWN subscription. Label it so the owner can tell them apart
       // on the checkout page, receipts and in "Manage billing".
       subscription_data: {
         description: `OwnersMarket listing: ${String(listing.headline ?? "").slice(0, 200)}`,
-        metadata: { listing_id: listing.id, user_id: u.user.id },
+        metadata: { listing_id: listing.id, user_id: user.id },
       },
       custom_text: {
         submit: { message: `New monthly subscription for "${String(listing.headline ?? "your home").slice(0, 150)}". Your other listings are billed separately.` },
