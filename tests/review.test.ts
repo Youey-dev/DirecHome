@@ -1,5 +1,6 @@
 import { editNeedsReview, withPendingEdit, type ReviewableEdit } from '../src/lib/reviewRules';
 import type { Listing } from '../src/types/listing';
+import { movePhoto, withCoverFirst } from '../src/lib/photoOrder';
 
 export function runReviewTests() {
   console.log('🧪 Testing which edits go back to review...');
@@ -43,5 +44,14 @@ export function runReviewTests() {
   check(withEdit.headline === current.headline, 'The live listing keeps its own words while changes wait');
   check(!editNeedsReview(same, withEdit), 'Saving the live version again needs no review (and drops the waiting changes)');
   check(withPendingEdit({ ...withEdit, status: 'rejected' } as Listing).headline === current.headline, 'Waiting changes are ignored once a listing is taken down');
+
+  // Changing the photo order in the listing form
+  const four = ['a', 'b', 'c', 'd'].map((id, i) => ({ id, url: `https://x/${id}.jpg`, thumbnailUrl: '', isCover: i === 0 }));
+  const ids = (ps: { id: string }[]) => ps.map((p) => p.id).join('');
+  check(ids(movePhoto(four, 2, 0)) === 'cabd' && movePhoto(four, 2, 0)[0].isCover && !movePhoto(four, 2, 0)[1].isCover, 'Moving a photo to the front makes it the cover');
+  check(ids(movePhoto(four, 0, 3)) === 'bcda' && movePhoto(four, 0, 3)[0].id === 'b' && movePhoto(four, 0, 3)[0].isCover, 'Moving the cover back makes the next photo the cover');
+  check(movePhoto(four, 0, -1) === four && movePhoto(four, 3, 4) === four, 'Moves past either end change nothing');
+  check(ids(withCoverFirst([four[1], { ...four[2], isCover: true }, four[3]].map((p) => ({ ...p, isCover: p.id === 'c' })))) === 'cbd', 'Older listings open with their cover first');
+  check(!editNeedsReview({ ...same, photos: movePhoto(photos, 1, 0) }, current), 'A new photo order on a live listing stays live (no review)');
   console.log('🎉 Review rule tests passed.\n');
 }
