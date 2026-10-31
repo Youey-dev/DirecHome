@@ -34,6 +34,7 @@ type Pending =
   | { kind: 'pause'; listing: Listing }
   | { kind: 'takedown'; listing: Listing; reportId?: string }
   | { kind: 'reject'; listing: Listing }
+  | { kind: 'rejectEdit'; listing: Listing }
   | { kind: 'delete'; listing: Listing }
   | { kind: 'message'; listing: Listing }
   | { kind: 'free'; listing: Listing }
@@ -148,6 +149,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
   // ---------------------------------------------------------------------------
   const count = (s: ListingStatus) => listings.filter((l) => l.status === s).length;
   const reviewQueue = listings.filter((l) => l.status === 'in_review');
+  // Changes to live listings: the listing stays up while these wait
+  const editQueue = listings.filter((l) => l.pendingEdit?.status === 'pending' && ['live', 'paused'].includes(l.status) && !l.adminHold);
   const openReports = reports.filter((r) => r.status === 'pending');
   const adminThreads = threads.filter((t) => t.isAdminThread);
   const unreadAdmin = adminThreads.reduce((n, t) => n + t.unreadCount, 0);
@@ -234,6 +237,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
       ok = await run(() => db.adminPauseListing(listing.id, reason), 'Listing paused. The owner sees your reason and can’t put it back up.');
     } else if (pending.kind === 'reject') {
       ok = await run(() => db.rejectListing(listing.id, reason), 'Sent back to the owner with your reason.');
+    } else if (pending.kind === 'rejectEdit') {
+      ok = await run(() => db.rejectListingEdit(listing.id, reason), 'Changes sent back. The live listing stays as it was.');
     } else if (pending.kind === 'takedown') {
       const reportId = pending.reportId;
       ok = await run(async () => {
@@ -246,6 +251,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
 
   const resume = (l: Listing) =>
     void run(() => db.adminResumeListing(l.id), 'Listing is back up. The owner has been told.');
+
+  const approveEdit = (l: Listing) =>
+    void run(() => db.approveListingEdit(l.id), 'Changes approved. Buyers now see the new version.');
 
   const approve = (l: Listing) =>
     void run(() => db.approveListing(l.id), 'Approved. The owner can now activate it to publish.');
@@ -275,7 +283,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
   const tabs: { id: AdminTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'listings', label: 'All listings', icon: <Home className="w-4 h-4" />, badge: listings.length },
-    { id: 'review', label: 'Review queue', icon: <ShieldCheck className="w-4 h-4" />, badge: reviewQueue.length },
+    { id: 'review', label: 'Review queue', icon: <ShieldCheck className="w-4 h-4" />, badge: reviewQueue.length + editQueue.length },
     { id: 'people', label: 'People', icon: <Users className="w-4 h-4" />, badge: people.length },
     { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" />, badge: unreadAdmin },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" />, badge: openReports.length },
@@ -425,6 +433,105 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
     );
   };
 
+  /** One listing's waiting changes: only what changed, live version next to the new one. */
+  const EditReview = ({ l }: { l: Listing }) => {
+    const e = l.pendingEdit!;
+    const list = (a?: string[]) => (a ?? []).join(', ');
+    const address = (s?: string, u?: string, pc?: string) => [s, u ? `#${u}` : '', pc].filter(Boolean).join(' ');
+    const rows: [string, string, string][] = [
+      ['Headline', l.headline, e.headline],
+      ['Description', l.description, e.description],
+      ['Neighbourhood', l.neighborhood, e.neighborhood],
+      ['Highlights', l.neighborhoodHighlights ?? '', e.neighborhoodHighlights ?? ''],
+      ['Upgrades', list(l.recentUpgrades), list(e.recentUpgrades)],
+      ['Included', list(l.inclusions), list(e.inclusions)],
+      ['City', `${l.city}, ${l.province}`, `${e.city}, ${e.province}`],
+      ['Address', address(l.streetAddress, l.unitNumber, l.postalCode), address(e.streetAddress, e.unitNumber, e.postalCode)],
+    ];
+    const changed = rows.filter(([, a, b]) => (a ?? '').trim() !== (b ?? '').trim());
+    const liveUrls = new Set(l.photos.map((p) => p.url));
+    const newUrls = new Set(e.photos.map((p) => p.url));
+    const added = e.photos.filter((p) => !liveUrls.has(p.url));
+    const removed = l.photos.filter((p) => !newUrls.has(p.url));
+    const recaptioned = e.photos.filter((p) => {
+      const old = l.photos.find((o) => o.url === p.url);
+      return old && (old.caption ?? '') !== (p.caption ?? '');
+    });
+    return (
+      <div className="bg-white rounded-xl border border-sky-200 p-4 space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <StatusBadge l={l} />
+            <h3 className="font-bold text-slate-900 mt-1 truncate">{l.headline}</h3>
+            <div className="text-xs text-slate-600">
+              {l.sellerName}
+              {l.sellerEmail ? ` · ${l.sellerEmail}` : ''} · changes saved {fmtDate(e.updatedAt)}
+            </div>
+          </div>
+        </div>
+        {changed.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="text-left text-slate-500">
+                  <th className="py-1 pr-3 font-semibold w-28">Field</th>
+                  <th className="py-1 pr-3 font-semibold">Live now</th>
+                  <th className="py-1 font-semibold">Proposed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {changed.map(([label, a, b]) => (
+                  <tr key={label} className="border-t border-slate-100 align-top">
+                    <td className="py-2 pr-3 font-semibold text-slate-800">{label}</td>
+                    <td className="py-2 pr-3 text-slate-500 whitespace-pre-line max-w-[28em]">{a || '—'}</td>
+                    <td className="py-2 text-slate-900 whitespace-pre-line max-w-[28em] bg-sky-50/60">{b || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {(added.length > 0 || removed.length > 0 || recaptioned.length > 0) && (
+          <div className="space-y-2 text-xs">
+            {added.length > 0 && (
+              <div>
+                <div className="font-semibold text-slate-800 mb-1">New photos ({added.length})</div>
+                <div className="flex flex-wrap gap-2">
+                  {added.map((p) => (
+                    <a key={p.url} href={p.url} target="_blank" rel="noopener noreferrer" className="block w-28">
+                      <img src={p.thumbnailUrl || p.url} alt="" className="w-28 h-20 object-cover rounded-md border border-slate-200" loading="lazy" />
+                      {p.caption && <span className="block mt-0.5 text-slate-600 truncate">{p.caption}</span>}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+            {removed.length > 0 && <div className="text-slate-700"><strong>Photos removed:</strong> {removed.length}</div>}
+            {recaptioned.length > 0 && (
+              <div className="text-slate-700">
+                <strong>New captions:</strong> {recaptioned.map((p) => `“${p.caption ?? ''}”`).join(', ')}
+              </div>
+            )}
+          </div>
+        )}
+        {changed.length === 0 && added.length === 0 && removed.length === 0 && recaptioned.length === 0 && (
+          <p className="text-xs text-slate-600">Only small changes (spacing or map position). Approving is safe.</p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <ActionButton onClick={() => onNavigate('detail', l.id)}>
+            <Eye className="w-3.5 h-3.5" /> View live listing
+          </ActionButton>
+          <ActionButton tone="primary" onClick={() => approveEdit(l)}>
+            <CheckCircle2 className="w-3.5 h-3.5" /> Approve changes
+          </ActionButton>
+          <ActionButton tone="danger" onClick={() => open({ kind: 'rejectEdit', listing: l })}>
+            Send back
+          </ActionButton>
+        </div>
+      </div>
+    );
+  };
+
   const Stat = ({ label, value, onClick, tone }: { label: string; value: number; onClick?: () => void; tone?: string }) => (
     <button
       type="button"
@@ -460,6 +567,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
           placeholder: 'e.g. Your photos include a phone number. Please message us once you’ve replaced them.',
           button: 'Pause listing',
           danger: false,
+        };
+      case 'rejectEdit':
+        return {
+          title: `Send back the changes to “${l.headline}”`,
+          body: 'The listing stays live exactly as it is now. The owner sees your reason on their dashboard and can fix the changes or discard them.',
+          label: 'What needs to change',
+          placeholder: 'e.g. Please remove the phone number from the new description.',
+          button: 'Send back changes',
+          danger: true,
         };
       case 'reject':
         return {
@@ -605,7 +721,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <Stat label="Up for buyers" value={listings.filter((l) => isListingLive(l)).length} onClick={() => showListings('live')} />
               <Stat label="Paused" value={count('paused')} onClick={() => showListings('paused')} />
-              <Stat label="In review" value={reviewQueue.length} onClick={() => setTab('review')} />
+              <Stat label="In review" value={reviewQueue.length + editQueue.length} onClick={() => setTab('review')} />
               <Stat label="Needs changes" value={count('rejected')} onClick={() => showListings('rejected')} />
               <Stat label="Sold" value={count('sold')} onClick={() => showListings('sold')} />
               <Stat label="Drafts" value={count('draft')} onClick={() => showListings('draft')} />
@@ -696,7 +812,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
               <li>Nothing discriminatory or otherwise against the terms of use</li>
             </ul>
           </div>
-          {reviewQueue.length === 0 ? (
+          {editQueue.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="font-bold text-slate-900">Edits to live listings ({editQueue.length})</h2>
+              <p className="text-xs text-slate-600">These listings stay up as they are while you check the changes. Approve to replace the live version.</p>
+              {editQueue.map((l) => (
+                <EditReview key={l.id} l={l} />
+              ))}
+            </section>
+          )}
+          {editQueue.length > 0 && reviewQueue.length > 0 && (
+            <h2 className="font-bold text-slate-900 pt-2">New listings ({reviewQueue.length})</h2>
+          )}
+          {reviewQueue.length === 0 && editQueue.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
               Nothing waiting for review.
             </div>

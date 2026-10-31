@@ -628,7 +628,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             {submittedSummary.outcome === 'updated' ? (
               <>Your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong> has been updated.</>
             ) : submittedSummary.outcome === 'rereview' ? (
-              <>You changed the words, photos or address of <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>, so our team will give it a quick review (usually within 1 business day). It’s hidden from buyers until then. Your subscription isn’t affected.</>
+              <>You changed the words, photos or address of <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>, so our team will give them a quick review (usually within 1 business day). Your listing stays live as it was until then, and your new version replaces it once it’s approved. Your subscription isn’t affected.</>
             ) : (
               <>We’ve received your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>. Our team will give it a quick review (usually within 1 business day). Once approved, tap "Activate listing" in your dashboard to publish it.</>
             )}
@@ -1430,9 +1430,15 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
             )}
 
-            {editListing && ['live', 'paused'].includes(editListing.status) && (
+            {editListing?.pendingEdit?.status === 'rejected' && (
+              <div className="bg-rose-50 p-4 rounded-xl border border-rose-200 text-xs text-rose-900 leading-relaxed">
+                <strong>Our note on your changes:</strong> {editListing.pendingEdit.reviewNotes || 'Please review your changes and save them again.'}
+              </div>
+            )}
+
+            {editListing && ['live', 'paused'].includes(editListing.status) && !editListing.adminHold && (
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs text-amber-950 leading-relaxed">
-                <strong>Editing an approved listing.</strong> Changes to the headline, description, photos or address send it back for a quick review, and it’s hidden from buyers until it’s approved (usually within 1 business day). Changes to the price and home details (rooms, size, fees, cash-back) go live right away.
+                <strong>Editing an approved listing.</strong> Changes to the headline, description, photos or address get a quick review (usually within 1 business day). Your listing stays live as it is meanwhile, and the new version replaces it once approved. Changes to the price and home details (rooms, size, fees, cash-back) go live right away.
               </div>
             )}
 

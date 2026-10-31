@@ -131,6 +131,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   };
 
+  // Changes waiting for review: "Discard" asks once before dropping them
+  const [discardAsk, setDiscardAsk] = useState<string | null>(null);
+  const handleDiscardChanges = (id: string) => {
+    setDiscardAsk(null);
+    void run(() => db.discardPendingEdit(id), 'Changes discarded. Your listing stays as it is.');
+  };
+
   // Which listing's checkout is opening: the button changes straight away, while the server works
   const [checkoutBusy, setCheckoutBusy] = useState<string | null>(null);
   const handleActivate = async (id: string) => {
@@ -558,6 +565,55 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <div className="px-5 py-3 border-t border-rose-100 bg-rose-50 text-xs text-rose-900">
                       <strong>Changes needed:</strong> {listing.reviewNotes || 'Please review your listing and resubmit.'}{' '}
                       Tap <strong>Edit</strong>, fix it, and submit again.
+                    </div>
+                  )}
+
+                  {/* Changes waiting for review (the live version stays up meanwhile) */}
+                  {listing.pendingEdit && ['live', 'paused'].includes(listing.status) && !listing.adminHold && (
+                    <div
+                      className={`px-5 py-3 border-t text-xs flex flex-col gap-2 ${
+                        listing.pendingEdit.status === 'rejected' ? 'border-rose-100 bg-rose-50 text-rose-900' : 'border-sky-100 bg-sky-50 text-sky-950'
+                      }`}
+                    >
+                      <p>
+                        {listing.pendingEdit.status === 'rejected' ? (
+                          <>
+                            <strong>Your changes need a fix:</strong> {listing.pendingEdit.reviewNotes || 'Please review your changes and save them again.'}{' '}
+                            Your listing is still showing as it was.
+                          </>
+                        ) : (
+                          <>
+                            <strong>Changes in review.</strong> Your listing stays {listing.status === 'paused' ? 'as it is' : 'live'} while we check them, usually within 1
+                            business day.
+                          </>
+                        )}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={() => onEditListing(listing)}
+                          className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 font-semibold rounded-lg border border-slate-300 cursor-pointer min-h-[44px]"
+                        >
+                          {listing.pendingEdit.status === 'rejected' ? 'Fix my changes' : 'Edit my changes'}
+                        </button>
+                        {discardAsk === listing.id ? (
+                          <>
+                            <span className="font-medium">Discard your changes?</span>
+                            <button
+                              onClick={() => handleDiscardChanges(listing.id)}
+                              className="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white font-semibold rounded-lg cursor-pointer min-h-[44px]"
+                            >
+                              Yes, discard
+                            </button>
+                            <button onClick={() => setDiscardAsk(null)} className="px-3 py-1.5 font-medium underline cursor-pointer min-h-[44px]">
+                              Keep them
+                            </button>
+                          </>
+                        ) : (
+                          <button onClick={() => setDiscardAsk(listing.id)} className="px-3 py-1.5 font-medium underline cursor-pointer min-h-[44px]">
+                            Discard changes
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 

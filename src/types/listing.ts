@@ -28,6 +28,32 @@ export interface PhotoItem {
   fileSize?: number;
 }
 
+/**
+ * Changes an owner made to the words, address or photos of an approved listing. They wait here
+ * for review while the listing stays live as it was (see supabase/migrations/20261031_pending_listing_edits.sql).
+ */
+export interface PendingEdit {
+  /** 'pending': waiting for review. 'rejected': sent back with reviewNotes; the live version is unchanged. */
+  status: 'pending' | 'rejected';
+  reviewNotes?: string;
+  headline: string;
+  description: string;
+  neighborhood: string;
+  neighborhoodHighlights?: string;
+  recentUpgrades: string[];
+  inclusions: string[];
+  city: string;
+  province: string;
+  postalFsa?: string;
+  lat: number;
+  lng: number;
+  streetAddress: string;
+  unitNumber?: string;
+  postalCode: string;
+  photos: PhotoItem[];
+  updatedAt: string;
+}
+
 export interface ViewingRequest {
   id: string;
   listingId: string;
@@ -161,6 +187,8 @@ export interface Listing {
   pastDueSince?: string;
   cancelAtPeriodEnd?: boolean;
   nextBillingAt?: string;
+  /** Owner and admins only: changes waiting for review while the listing stays live. */
+  pendingEdit?: PendingEdit;
   // Terms & Privacy Acceptance (Audit Log)
   termsAcceptedAt?: string;
   termsVersion?: string; // e.g. "2026-v1.0-draft"
