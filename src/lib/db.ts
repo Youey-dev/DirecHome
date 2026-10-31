@@ -74,6 +74,8 @@ export interface ListingSubmission {
   cashbackAmount: number;
   estimatedCommissionSaved: number;
   agentsWelcome?: boolean;
+  /** Show the exact address on the public listing. */
+  showAddress?: boolean;
   agentCommissionType?: 'percent' | 'fixed' | 'negotiable';
   agentCommissionValue?: number;
   headline: string;
@@ -166,8 +168,11 @@ const LISTING_COLUMNS = [
   'offers_cashback', 'cashback_type', 'cashback_amount', 'estimated_commission_saved',
   'headline', 'description', 'neighborhood_highlights', 'recent_upgrades', 'inclusions',
   'views_count', 'saves_count', 'inquiries_count', 'created_at', 'updated_at', 'admin_hold',
-  'agents_welcome', 'agent_commission_type', 'agent_commission_value',
+  'agents_welcome', 'agent_commission_type', 'agent_commission_value', 'show_address',
 ].join(',');
+
+/** The exact address (owner, admins, buyers with a confirmed viewing, or everyone when the owner shows it). */
+const PRIVATE_DETAIL_COLUMNS = 'listing_id,street_address,unit_number,postal_code,exact_lat,exact_lng';
 
 /** The name sellers see on messages from the OwnersMarket admin. */
 export const ADMIN_DISPLAY_NAME = 'Charles - Admin';
@@ -388,9 +393,18 @@ class DataStore {
     let ownerFieldRows: Row[] = [];
     let pendingRows: Row[] = [];
 
+    if (!signedIn && listingRows.some((l) => l.show_address)) {
+      // Visitors: only the addresses owners chose to show (the database returns nothing else)
+      const { data, error } = await supabase
+        .from('listing_private_details')
+        .select(PRIVATE_DETAIL_COLUMNS)
+        .in('listing_id', listingRows.filter((l) => l.show_address).map((l) => l.id));
+      privates = error ? [] : ((data as Row[]) ?? []);
+    }
+
     if (signedIn) {
       const [p, vr, c, f, r, nt, of] = await Promise.all([
-        supabase.from('listing_private_details').select('*'),
+        supabase.from('listing_private_details').select(PRIVATE_DETAIL_COLUMNS),
         supabase.from('viewing_requests').select('*').order('created_at', { ascending: false }),
         supabase.from('conversations').select('*, messages(*)').order('last_message_at', { ascending: false }),
         supabase.from('favourites').select('listing_id'),
@@ -673,8 +687,9 @@ class DataStore {
       city: row.city,
       province: row.province ?? 'BC',
       neighborhood: row.neighborhood,
-      lat: Number(row.lat),
-      lng: Number(row.lng),
+      // The map shows the real spot only when the owner chose to show the address
+      lat: row.show_address && priv?.exact_lat != null ? Number(priv.exact_lat) : Number(row.lat),
+      lng: row.show_address && priv?.exact_lng != null ? Number(priv.exact_lng) : Number(row.lng),
       propertyType: row.property_type,
       price: Number(row.price),
       bedrooms: Number(row.bedrooms),
@@ -690,6 +705,7 @@ class DataStore {
       cashbackType: row.cashback_type,
       cashbackAmount: Number(row.cashback_amount),
       agentsWelcome: !!row.agents_welcome,
+      showAddress: !!row.show_address,
       agentCommissionType: row.agent_commission_type ?? undefined,
       agentCommissionValue: num(row.agent_commission_value),
       estimatedCommissionSaved: Number(row.estimated_commission_saved),
@@ -770,6 +786,7 @@ class DataStore {
       cashback_amount: input.cashbackAmount,
       estimated_commission_saved: input.estimatedCommissionSaved,
       ...agentOfferColumns(input),
+      show_address: !!input.showAddress,
       headline: input.headline,
       description: input.description,
       neighborhood_highlights: input.neighborhoodHighlights ?? null,

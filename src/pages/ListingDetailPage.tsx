@@ -131,7 +131,9 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         <div role="note" className="rounded-xl border-2 border-sign bg-amber-50 p-4 sm:p-5">
           <div className="text-base font-extrabold text-slate-900">Preview: this is how buyers will see your listing</div>
           <p className="text-sm text-slate-700 mt-1">
-            Your exact address stays private; buyers see the neighbourhood and city until you confirm a viewing.
+            {listing.showAddress
+              ? 'You chose to show your exact address, so buyers see it and your home’s spot on the map.'
+              : 'Your exact address stays private; buyers see the neighbourhood and city until you confirm a viewing.'}
           </p>
         </div>
       )}
@@ -191,7 +193,7 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 </span>
               </div>
 
-              {hasApprovedViewing ? (
+              {listing.showAddress ? null : hasApprovedViewing ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 w-fit">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Exact address shared with you
