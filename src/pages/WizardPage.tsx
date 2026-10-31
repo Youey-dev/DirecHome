@@ -7,6 +7,7 @@ import { coachListing, measureDarkPhotos } from '../lib/listingCoach';
 import { geocodeAddress } from '../lib/geocode';
 import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
 import { validateImageFile, processAndResizeImage } from '../lib/imageUtils';
+import { coverFirst, movePhoto, withCoverFirst } from '../lib/photoOrder';
 import { calculateBCCommission, commissionTax, formatCAD, LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import { AGENT_FIXED_RANGE, AGENT_OFFER_NOTICE, AGENT_PERCENT_RANGE, describeAgentCommission, validateAgentOffer, type AgentCommissionType } from '../lib/agentCommission';
 import { 
@@ -28,7 +29,9 @@ import {
   Sparkles,
   HelpCircle,
   Eye,
-  ShieldAlert
+  ShieldAlert,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { sanitizeHtml, stripHtml, stripHtmlKeepLines, validateCanadianPostalCode } from '../lib/security';
 import { isGuestUser } from '../lib/db';
@@ -173,7 +176,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (draft.agentCommissionValue) setAgentCommissionValue(Number(draft.agentCommissionValue));
     // Only photos that are already uploaded come back; new photos are not stored on the device
     if (Array.isArray(draft.photos)) {
-      setPhotos(draft.photos.filter((p: PhotoItem) => typeof p.url === 'string' && p.url.startsWith('http')));
+      setPhotos(withCoverFirst(draft.photos.filter((p: PhotoItem) => typeof p.url === 'string' && p.url.startsWith('http'))));
     }
   }, []);
 
@@ -190,7 +193,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       .then((saved) => (saved.length || isGuestUser(activeUser) ? saved : loadDraftPhotos(db.guestDraftPhotosKey())))
       .then((saved) => {
       if (cancelled) return;
-      if (saved.length) setPhotos((cur) => (cur.length ? cur : saved));
+      if (saved.length) setPhotos((cur) => (cur.length ? cur : withCoverFirst(saved)));
       photosRestored.current = true;
     });
     return () => {
@@ -322,24 +325,13 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     e.target.value = '';
   };
 
-  const setCoverPhoto = (photoId: string) => {
-    setPhotos((prev) =>
-      prev.map((p) => ({
-        ...p,
-        isCover: p.id === photoId
-      }))
-    );
-  };
-
-  const removePhoto = (photoId: string) => {
-    setPhotos((prev) => {
-      const remaining = prev.filter((p) => p.id !== photoId);
-      if (remaining.length > 0 && !remaining.some((p) => p.isCover)) {
-        remaining[0].isCover = true;
-      }
-      return remaining;
-    });
-  };
+  // The first photo is the cover. Sellers move photos with the arrows (any screen) or by dragging (computer).
+  const moveTo = (from: number, to: number) => setPhotos((prev) => movePhoto(prev, from, to));
+  const setCoverPhoto = (photoId: string) =>
+    setPhotos((prev) => movePhoto(prev, prev.findIndex((p) => p.id === photoId), 0));
+  const removePhoto = (photoId: string) => setPhotos((prev) => coverFirst(prev.filter((p) => p.id !== photoId)));
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
 
   useEffect(() => {
     if (currentStep !== 6 || photos.length === 0) return;
@@ -1054,55 +1046,107 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span className="font-semibold text-slate-700">
                   {photos.length} {photos.length === 1 ? 'photo' : 'photos'} uploaded
                 </span>
-                <span className="text-slate-400">
-                  Tap "Set Cover" to choose the main search photo
+                <span className="text-slate-500 text-right">
+                  The first photo is your cover. Use the arrows{' '}
+                  <span className="hidden sm:inline">or drag photos </span>to change the order.
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {photos.map((photo) => (
-                  <div
+              <ol className="grid grid-cols-2 sm:grid-cols-3 gap-3" aria-label="Your photos, in the order buyers will see them">
+                {photos.map((photo, index) => (
+                  <li
                     key={photo.id}
-                    className="relative group aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 border border-slate-200"
+                    draggable
+                    onDragStart={(e) => {
+                      setDragFrom(index);
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => {
+                      if (dragFrom === null) return;
+                      e.preventDefault();
+                      if (dragOver !== index) setDragOver(index);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragFrom !== null) moveTo(dragFrom, index);
+                      setDragFrom(null);
+                      setDragOver(null);
+                    }}
+                    onDragEnd={() => {
+                      setDragFrom(null);
+                      setDragOver(null);
+                    }}
+                    className={`rounded-xl overflow-hidden bg-white border flex flex-col sm:cursor-grab ${
+                      dragOver === index && dragFrom !== index ? 'border-emerald-600 ring-2 ring-emerald-600' : 'border-slate-200'
+                    } ${dragFrom === index ? 'opacity-50' : ''}`}
                   >
-                    <img
-                      src={photo.thumbnailUrl || photo.url}
-                      alt={photo.caption || 'Home photo'}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                      <img
+                        src={photo.thumbnailUrl || photo.url}
+                        alt={photo.caption || `Photo ${index + 1}`}
+                        referrerPolicy="no-referrer"
+                        draggable={false}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <span className="absolute top-2 left-2 bg-white/95 text-slate-900 text-[11px] font-bold min-w-[22px] h-[22px] px-1.5 rounded-full shadow-sm flex items-center justify-center tabular-nums">
+                        {index + 1}
+                      </span>
+                      {index === 0 && (
+                        <span className="absolute top-2 left-9 bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-white" aria-hidden="true" />
+                          Cover
+                        </span>
+                      )}
+                    </div>
 
-                    {/* Cover badge */}
-                    {photo.isCover && (
-                      <div className="absolute top-2 left-2 bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-white" />
-                        <span>Cover</span>
-                      </div>
-                    )}
-
-                    {/* Overlay actions */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-                      {!photo.isCover && (
+                    {/* Always visible, so they work on phones too */}
+                    <div className="flex items-center justify-between px-0.5 py-0.5 border-t border-slate-100">
+                      <div className="flex items-center">
                         <button
                           type="button"
-                          onClick={() => setCoverPhoto(photo.id)}
-                          className="px-2 py-1 bg-white text-slate-800 text-[10px] font-bold rounded shadow-sm hover:bg-slate-100 cursor-pointer"
+                          onClick={() => moveTo(index, index - 1)}
+                          disabled={index === 0}
+                          aria-label={`Move photo ${index + 1} earlier`}
+                          className="w-9 h-10 flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-25 disabled:cursor-default cursor-pointer"
                         >
-                          Set cover
+                          <ChevronLeft className="w-5 h-5" aria-hidden="true" />
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(photo.id)}
-                        className="p-1.5 bg-rose-600 text-white rounded shadow-sm hover:bg-rose-700 cursor-pointer"
-                        title="Remove photo"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => moveTo(index, index + 1)}
+                          disabled={index === photos.length - 1}
+                          aria-label={`Move photo ${index + 1} later`}
+                          className="w-9 h-10 flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 disabled:opacity-25 disabled:cursor-default cursor-pointer"
+                        >
+                          <ChevronRight className="w-5 h-5" aria-hidden="true" />
+                        </button>
+                      </div>
+                      <div className="flex items-center">
+                        {index !== 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setCoverPhoto(photo.id)}
+                            aria-label={`Make photo ${index + 1} the cover`}
+                            title="Make cover"
+                            className="w-9 h-10 flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer"
+                          >
+                            <Star className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(photo.id)}
+                          aria-label={`Remove photo ${index + 1}`}
+                          title="Remove photo"
+                          className="w-9 h-10 flex items-center justify-center rounded-lg text-rose-700 hover:bg-rose-50 cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             </div>
           </div>
         )}
