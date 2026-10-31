@@ -14,7 +14,8 @@ import { trackEvent } from './analytics';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
 import { stripHtml, stripHtmlKeepLines } from './security';
-import { editNeedsReview } from './reviewRules';
+import { editNeedsReview, withPendingEdit } from './reviewRules';
+export { withPendingEdit };
 import { agentOfferColumns } from './agentCommission';
 import { deleteDraftPhotos, moveDraftPhotos } from './draftPhotos';
 import type {
@@ -23,6 +24,7 @@ import type {
   ListingReport,
   ListingStatus,
   ConversationThread,
+  PendingEdit,
   PhotoItem,
   PropertyType,
   UserProfile,
@@ -105,6 +107,52 @@ const pathFromPublicUrl = (url: string): string | null => {
   const i = url.indexOf(marker);
   if (i < 0) return null;
   return decodeURIComponent(url.slice(i + marker.length).split('?')[0]);
+};
+
+/** Turns a row of listing_pending_edits into the app's shape. */
+function mapPendingEdit(r: Row): PendingEdit {
+  const photos: PhotoItem[] = (Array.isArray(r.photos) ? r.photos : []).map((p: Row) => ({
+    id: String(p.id),
+    url: p.url,
+    thumbnailUrl: p.thumbnail_url ?? p.url,
+    caption: p.caption ?? undefined,
+    isCover: !!p.is_cover,
+    width: p.width ?? undefined,
+    height: p.height ?? undefined,
+    fileSize: p.file_size ?? undefined,
+  }));
+  return {
+    status: r.status === 'rejected' ? 'rejected' : 'pending',
+    reviewNotes: r.review_notes ?? undefined,
+    headline: r.headline,
+    description: r.description,
+    neighborhood: r.neighborhood,
+    neighborhoodHighlights: r.neighborhood_highlights ?? undefined,
+    recentUpgrades: Array.isArray(r.recent_upgrades) ? r.recent_upgrades : [],
+    inclusions: Array.isArray(r.inclusions) ? r.inclusions : [],
+    city: r.city,
+    province: r.province,
+    postalFsa: r.postal_fsa ?? undefined,
+    lat: Number(r.lat),
+    lng: Number(r.lng),
+    streetAddress: r.street_address,
+    unitNumber: r.unit_number ?? undefined,
+    postalCode: r.postal_code,
+    photos,
+    updatedAt: r.updated_at,
+  };
+}
+
+
+/** Photo files in a pending edit that the live listing doesn't use (uploaded for the edit only). */
+const pendingOnlyFiles = (edit: PendingEdit | undefined, live: PhotoItem[], keep: PhotoItem[] = []): string[] => {
+  if (!edit) return [];
+  const used = new Set([...live, ...keep].flatMap((p) => [p.url, p.thumbnailUrl]));
+  return edit.photos
+    .flatMap((p) => [p.url, p.thumbnailUrl])
+    .filter((u) => u && !used.has(u))
+    .map(pathFromPublicUrl)
+    .filter((p): p is string => !!p);
 };
 
 /**
@@ -338,6 +386,7 @@ class DataStore {
     let reportRows: Row[] = [];
     let notificationRows: Row[] = [];
     let ownerFieldRows: Row[] = [];
+    let pendingRows: Row[] = [];
 
     if (signedIn) {
       const [p, vr, c, f, r, nt, of] = await Promise.all([
@@ -367,6 +416,11 @@ class DataStore {
       reportRows = (r.data as Row[]) ?? [];
       notificationRows = nt.data ?? [];
       ownerFieldRows = (ownerFields.data as Row[]) ?? [];
+
+      // Changes waiting for review (own listings; admins: all). Never stops the site loading.
+      const pe = await supabase.from('listing_pending_edits').select('*');
+      pendingRows = pe.error ? [] : ((pe.data as Row[]) ?? []);
+      void this.cleanUpPhotoFiles();
     }
 
     // Names of people we deal with. Only admins get email and phone; everyone else gets the
@@ -406,6 +460,7 @@ class DataStore {
 
     const privateById = new Map<string, Row>(privates.map((p) => [p.listing_id, p]));
     const ownerFieldsById = new Map<string, Row>(ownerFieldRows.map((o) => [o.id, o]));
+    const pendingById = new Map<string, PendingEdit>(pendingRows.map((r) => [r.listing_id, mapPendingEdit(r)]));
 
     const listings = listingRows.map((row) =>
       this.mapListing(
@@ -419,7 +474,7 @@ class DataStore {
         privateById.get(row.id),
         people.get(row.user_id)
       )
-    );
+    ).map((l) => (pendingById.has(l.id) ? { ...l, pendingEdit: pendingById.get(l.id) } : l));
     const byId = new Map(listings.map((l) => [l.id, l]));
 
     const viewings: ViewingRequest[] = viewingRows.map((v) => {
@@ -722,6 +777,18 @@ class DataStore {
       inclusions: input.inclusions,
     };
 
+    // An approved listing keeps showing its current version while changes to its words, address
+    // or photos wait for review. Price and home details still go live straight away.
+    if (existing && ['live', 'paused'].includes(existing.status) && !existing.adminHold) {
+      await this.saveApprovedListingEdit(existing, ownerId, input, payload);
+      await this.recordTerms();
+      await this.refresh();
+      return id;
+    }
+
+    // Changes left waiting from when the listing was live no longer apply (taken down, on hold...)
+    if (existing?.pendingEdit) await this.discardPendingEdit(id, { refresh: false });
+
     // 1. The listing itself
     if (!isEdit) {
       const { error } = await supabase.from('listings').insert({ id, user_id: me.id, ...payload });
@@ -768,7 +835,122 @@ class DataStore {
     return id;
   }
 
-  /** True when saving these changes will send an approved listing back for review (see reviewRules). */
+  /**
+   * Saves an edit to an approved (live or paused) listing without taking it down:
+   *  - price and home details go straight onto the listing;
+   *  - changes to the words, address or photos are stored in listing_pending_edits for review;
+   *  - saving the live version again (no reviewed changes) drops any changes waiting for review.
+   */
+  private async saveApprovedListingEdit(existing: Listing, ownerId: string, input: ListingSubmission, payload: Row) {
+    const id = existing.id;
+    const {
+      headline, description, neighborhood, neighborhood_highlights, recent_upgrades, inclusions,
+      city, province, postal_fsa, lat, lng, ...details
+    } = payload;
+
+    const { data, error } = await supabase.from('listings').update(details).eq('id', id).select('id');
+    if (error) fail(error, 'We could not update your listing.');
+    if (!data?.length) throw new Error('You do not have permission to edit this listing.');
+
+    if (!editNeedsReview(input, existing)) {
+      // Same words, address and photos as the live listing: nothing to review
+      if (existing.pendingEdit) await this.discardPendingEdit(id, { refresh: false });
+      await this.syncPhotos(id, ownerId, existing.photos, input.photos); // order and cover only
+      return;
+    }
+
+    const photos = await this.uploadNewPhotos(id, ownerId, input.photos);
+    const { error: saveError } = await supabase.from('listing_pending_edits').upsert(
+      {
+        listing_id: id,
+        user_id: existing.userId,
+        headline, description, neighborhood, neighborhood_highlights, recent_upgrades, inclusions,
+        city, province, postal_fsa, lat, lng,
+        street_address: input.streetAddress,
+        unit_number: input.unitNumber ?? null,
+        postal_code: input.postalCode,
+        photos: photos.map((p) => ({
+          id: p.id,
+          url: p.url,
+          thumbnail_url: p.thumbnailUrl,
+          caption: p.caption ? stripHtml(p.caption).slice(0, 120) : null,
+          is_cover: p.isCover,
+          width: p.width ? Math.round(p.width) : null,
+          height: p.height ? Math.round(p.height) : null,
+          file_size: p.fileSize ? Math.round(p.fileSize) : null,
+        })),
+      },
+      { onConflict: 'listing_id' }
+    );
+    if (saveError) fail(saveError, 'We could not save your changes.');
+
+    // Photos added in an earlier version of these changes and since removed
+    const stale = pendingOnlyFiles(existing.pendingEdit, existing.photos, photos);
+    if (stale.length) await supabase.storage.from(PHOTO_BUCKET).remove(stale);
+  }
+
+  /** Uploads photos that are still on the device (data: URLs) and returns the list with their web addresses. */
+  private async uploadNewPhotos(listingId: string, ownerId: string, wanted: PhotoItem[]): Promise<PhotoItem[]> {
+    const hasCover = wanted.some((p) => p.isCover);
+    const out: PhotoItem[] = [];
+    for (let i = 0; i < wanted.length; i++) {
+      const p = { ...wanted[i], isCover: hasCover ? wanted[i].isCover : i === 0 };
+      if (!p.url.startsWith('data:')) {
+        out.push(p);
+        continue;
+      }
+      const safeId = p.id.replace(/[^A-Za-z0-9_-]/g, '') || newId();
+      const base = `${ownerId}/${listingId}/${safeId}`;
+      const [full, thumb] = await Promise.all([fetch(p.url).then((r) => r.blob()), fetch(p.thumbnailUrl).then((r) => r.blob())]);
+      const [u1, u2] = await Promise.all([
+        supabase.storage.from(PHOTO_BUCKET).upload(`${base}.jpg`, full, { contentType: 'image/jpeg', upsert: true }),
+        supabase.storage.from(PHOTO_BUCKET).upload(`${base}_thumb.jpg`, thumb, { contentType: 'image/jpeg', upsert: true }),
+      ]);
+      if (u1.error) fail(u1.error, 'A photo could not be uploaded.');
+      if (u2.error) fail(u2.error, 'A photo could not be uploaded.');
+      out.push({
+        ...p,
+        id: safeId,
+        url: supabase.storage.from(PHOTO_BUCKET).getPublicUrl(`${base}.jpg`).data.publicUrl,
+        thumbnailUrl: supabase.storage.from(PHOTO_BUCKET).getPublicUrl(`${base}_thumb.jpg`).data.publicUrl,
+      });
+    }
+    return out;
+  }
+
+  /** Owner: drop the changes waiting for review. The live listing is not affected. */
+  async discardPendingEdit(listingId: string, opts: { refresh?: boolean } = {}): Promise<void> {
+    this.requireUser();
+    const l = this.getListingById(listingId);
+    const files = pendingOnlyFiles(l?.pendingEdit, l?.photos ?? []);
+    const { error } = await supabase.from('listing_pending_edits').delete().eq('listing_id', listingId);
+    if (error) fail(error, 'We could not discard your changes.');
+    if (files.length) await supabase.storage.from(PHOTO_BUCKET).remove(files);
+    if (opts.refresh !== false) await this.refresh();
+  }
+
+  /** Deletes photo files that approved changes took off a listing (only the owner may delete them). */
+  private cleaningPhotos = false;
+  private async cleanUpPhotoFiles(): Promise<void> {
+    if (this.cleaningPhotos) return;
+    this.cleaningPhotos = true;
+    try {
+      const { data, error } = await supabase.from('listing_photo_cleanup').select('id, url').limit(100);
+      if (error || !data?.length) return;
+      const paths = data.map((r) => pathFromPublicUrl(r.url)).filter((p): p is string => !!p);
+      if (paths.length) {
+        const { error: removeError } = await supabase.storage.from(PHOTO_BUCKET).remove(paths);
+        if (removeError) return;
+      }
+      await supabase.from('listing_photo_cleanup').delete().in('id', data.map((r) => r.id));
+    } catch {
+      // Try again next time
+    } finally {
+      this.cleaningPhotos = false;
+    }
+  }
+
+  /** True when saving these changes will send an approved listing's changes for review (see reviewRules). */
   editNeedsReview(input: ListingSubmission): boolean {
     return editNeedsReview(input, input.id ? this.getListingById(input.id) : undefined);
   }
@@ -948,6 +1130,20 @@ class DataStore {
       .select('id');
     if (error) fail(error);
     if (!data?.length) throw new Error('This listing is no longer waiting for review.');
+    await this.refresh();
+  }
+
+  /** Approve an owner's changes to a live listing: they replace the live version. */
+  async approveListingEdit(listingId: string): Promise<void> {
+    const { error } = await supabase.rpc('admin_approve_listing_edit', { _listing_id: listingId });
+    if (error) fail(error, 'We could not approve these changes.');
+    await this.refresh();
+  }
+
+  /** Send an owner's changes back with a reason. The live version stays up unchanged. */
+  async rejectListingEdit(listingId: string, reason: string): Promise<void> {
+    const { error } = await supabase.rpc('admin_reject_listing_edit', { _listing_id: listingId, _reason: stripHtml(reason).slice(0, 500) });
+    if (error) fail(error, 'We could not send these changes back.');
     await this.refresh();
   }
 

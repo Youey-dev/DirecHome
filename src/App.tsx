@@ -2,7 +2,7 @@ import React, { useRef, Suspense, lazy, useCallback, useEffect, useState } from 
 import { clearPendingMessage, readPendingMessage } from './lib/pendingMessage';
 import type { AppNotification, Listing } from './types/listing';
 import { isListingLive } from './types/listing';
-import { db, isGuestUser } from './lib/db';
+import { db, isGuestUser, withPendingEdit } from './lib/db';
 import { isSupabaseConfigured } from './lib/supabase';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -404,7 +404,8 @@ function MainApp() {
                 intent={dashboardIntent}
                 onEditListing={(listing) => {
                   handleNavigate('wizard');
-                  setEditListing(listing);
+                  // Continue any changes still waiting for review
+                  setEditListing(withPendingEdit(listing));
                 }}
               />
             ) : (

@@ -1,4 +1,4 @@
-import { editNeedsReview, type ReviewableEdit } from '../src/lib/reviewRules';
+import { editNeedsReview, withPendingEdit, type ReviewableEdit } from '../src/lib/reviewRules';
 import type { Listing } from '../src/types/listing';
 
 export function runReviewTests() {
@@ -30,5 +30,18 @@ export function runReviewTests() {
   check(editNeedsReview({ ...same, photos: [...photos, { id: 'c', url: 'data:image/jpeg;base64,xx', thumbnailUrl: 'data:', isCover: false }] }, current), 'A new photo goes back to review');
   check(editNeedsReview({ ...same, photos: [photos[0]] }, current), 'Removing a photo goes back to review');
   check(!editNeedsReview({ ...same, headline: 'Anything' }, { ...current, status: 'draft' } as Listing), 'Drafts are not affected (they are reviewed when submitted)');
+
+  // Changes waiting for review: the editor reopens them; the live listing is untouched
+  const pendingEdit = {
+    status: 'pending' as const, headline: 'Changed headline', description: 'New words for the listing here.', neighborhood: 'Clearbrook',
+    recentUpgrades: ['Roof', 'Deck'], inclusions: ['Fridge'], city: 'Abbotsford', province: 'BC', lat: 49.05, lng: -122.3,
+    streetAddress: '123 Test St', postalCode: 'V2S 1A1', photos: [photos[1]], updatedAt: '2026-10-31',
+  };
+  const withEdit = { ...current, pendingEdit } as Listing;
+  const forEditor = withPendingEdit(withEdit);
+  check(forEditor.headline === 'Changed headline' && forEditor.photos.length === 1, 'Reopening the editor continues the changes waiting for review');
+  check(withEdit.headline === current.headline, 'The live listing keeps its own words while changes wait');
+  check(!editNeedsReview(same, withEdit), 'Saving the live version again needs no review (and drops the waiting changes)');
+  check(withPendingEdit({ ...withEdit, status: 'rejected' } as Listing).headline === current.headline, 'Waiting changes are ignored once a listing is taken down');
   console.log('🎉 Review rule tests passed.\n');
 }

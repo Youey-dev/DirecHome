@@ -1,6 +1,7 @@
 /**
- * Which edits send an approved listing back for review. Mirrors the database rule in
- * supabase/migrations/20261020_review_and_privacy.sql, so sellers are told before they save.
+ * Which edits to an approved listing need review. Mirrors the database rule in
+ * supabase/migrations/20261020_review_and_privacy.sql. Since 20261031_pending_listing_edits.sql
+ * the website saves these changes for review separately and the listing stays live meanwhile.
  *
  * Back to review: headline, description, neighbourhood, highlights, upgrades, inclusions,
  * city, province, street address, unit, postal code, and photos (added, removed or re-captioned).
@@ -44,4 +45,32 @@ export function editNeedsReview(input: ReviewableEdit, current: Listing | undefi
     same(postal(input.postalCode), postal(current.postalCode)) &&
     same(photoKey(input.photos), photoKey(current.photos))
   );
+}
+
+/**
+ * The listing as its owner should see it in the editor: the live version, with any changes
+ * still waiting for review laid over it (so reopening the editor continues where they left off).
+ */
+export function withPendingEdit(l: Listing): Listing {
+  const e = l.pendingEdit;
+  // Only approved listings use pending changes (a listing taken down or on hold is edited directly)
+  if (!e || !['live', 'paused'].includes(l.status) || l.adminHold) return l;
+  return {
+    ...l,
+    headline: e.headline,
+    description: e.description,
+    neighborhood: e.neighborhood,
+    neighborhoodHighlights: e.neighborhoodHighlights,
+    recentUpgrades: e.recentUpgrades,
+    inclusions: e.inclusions,
+    city: e.city,
+    province: e.province,
+    postalFsa: e.postalFsa,
+    lat: e.lat,
+    lng: e.lng,
+    streetAddress: e.streetAddress,
+    unitNumber: e.unitNumber,
+    postalCode: e.postalCode,
+    photos: e.photos,
+  };
 }
