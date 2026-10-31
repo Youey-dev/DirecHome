@@ -155,6 +155,8 @@ export interface Listing {
 
   // "Agents welcome": the seller's buyer's agent commission offer (paid to the agent's brokerage)
   agentsWelcome?: boolean;
+  /** The owner chose to show the exact address to everyone (off by default). */
+  showAddress?: boolean;
   agentCommissionType?: 'percent' | 'fixed' | 'negotiable';
   agentCommissionValue?: number;
 

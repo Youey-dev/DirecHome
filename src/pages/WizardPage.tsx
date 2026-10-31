@@ -115,6 +115,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const [cashbackAmount, setCashbackAmount] = useState(10000);
   // "Agents welcome": the seller's own buyer's agent commission offer
   const [agentsWelcome, setAgentsWelcome] = useState(false);
+  const [showAddress, setShowAddress] = useState(false);
   const [agentCommissionType, setAgentCommissionType] = useState<AgentCommissionType>('negotiable');
   const [agentCommissionValue, setAgentCommissionValue] = useState<number | ''>('');
 
@@ -169,6 +170,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     if (draft.cashbackType) setCashbackType(draft.cashbackType);
     if (draft.cashbackAmount) setCashbackAmount(draft.cashbackAmount);
     if (typeof draft.agentsWelcome === 'boolean') setAgentsWelcome(draft.agentsWelcome);
+    if (typeof draft.showAddress === 'boolean') setShowAddress(draft.showAddress);
     if (draft.agentCommissionType) setAgentCommissionType(draft.agentCommissionType);
     if (draft.agentCommissionValue) setAgentCommissionValue(Number(draft.agentCommissionValue));
     // Only photos that are already uploaded come back; new photos are not stored on the device
@@ -250,7 +252,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         cashbackAmount,
         agentsWelcome,
         agentCommissionType,
-        agentCommissionValue
+        agentCommissionValue,
+        showAddress
       });
       setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }, 600);
@@ -260,7 +263,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     streetAddress, unitNumber, city, province, postalCode, neighborhood, propertyType, lat, lng,
     price, bedrooms, bathrooms, sqft, lotSqft, lotAcres, yearBuilt, parkingSpaces, strataFee, propertyTaxesAnnual,
     headline, description, neighborhoodHighlights, upgradesInput, inclusionsInput, photos,
-    offersCashback, cashbackType, cashbackAmount, agentsWelcome, agentCommissionType, agentCommissionValue, editingId, isSubmittedSuccess
+    offersCashback, cashbackType, cashbackAmount, agentsWelcome, agentCommissionType, agentCommissionValue, showAddress, editingId, isSubmittedSuccess
   ]);
 
   // Live Commission calculations
@@ -505,6 +508,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     agentsWelcome,
     agentCommissionType: agentsWelcome ? agentCommissionType : undefined,
     agentCommissionValue: agentsWelcome && agentCommissionType !== 'negotiable' ? Number(agentCommissionValue) || undefined : undefined,
+    showAddress,
     photos: [...photos].sort((a, b) => Number(b.isCover) - Number(a.isCover)),
     headline: headline || 'Your headline',
     description: stripHtmlKeepLines(description),
@@ -578,6 +582,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         agentsWelcome,
         agentCommissionType: agentsWelcome ? agentCommissionType : undefined,
         agentCommissionValue: agentsWelcome && agentCommissionType !== 'negotiable' ? Number(agentCommissionValue) : undefined,
+        showAddress,
         headline: stripHtml(headline),
         description: stripHtmlKeepLines(description),
         neighborhoodHighlights: neighborhoodHighlights ? stripHtmlKeepLines(neighborhoodHighlights) : undefined,
@@ -719,7 +724,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         {currentStep === 1 && (
           <div className="space-y-6">
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-900">
-              🔒 Your exact street address stays private. Buyers only see your neighbourhood and an approximate map area until you confirm a viewing.
+              🔒 Your exact street address stays private unless you choose to show it below. Buyers see your neighbourhood and an approximate map area until you confirm a viewing.
             </div>
 
             {/* Street Address */}
@@ -736,7 +741,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:bg-white min-h-[44px]"
               />
               <span className="text-[11px] text-slate-400 mt-1 block">
-                Your exact street number is kept private until you approve a buyer's viewing request.
+                Kept private until you approve a buyer's viewing request, unless you choose to show it below.
               </span>
             </div>
 
@@ -815,6 +820,25 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 onChange={(e) => setNeighborhood(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm min-h-[44px]"
               />
+            </div>
+
+            {/* Show the exact address to everyone (off by default) */}
+            <div className="rounded-xl border border-slate-200 p-4 space-y-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showAddress}
+                  onChange={(e) => setShowAddress(e.target.checked)}
+                  className="mt-1 w-5 h-5 accent-emerald-700 shrink-0"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-slate-900">Show my exact address on the listing</span>
+                  <span className="block text-xs text-slate-600 leading-relaxed mt-0.5">
+                    Anyone can then see your street address and where your home is on the map, and can drive by before booking a viewing. Leave
+                    it off to show only your neighbourhood and an approximate area. You can change this any time by editing your listing.
+                  </span>
+                </span>
+              </label>
             </div>
 
             {/* Property Type Radio Cards */}
