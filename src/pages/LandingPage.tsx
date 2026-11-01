@@ -7,12 +7,6 @@ import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_M
 import type { BrowseFilters } from './BrowsePage';
 import { NavLink } from '../components/NavLink';
 
-/**
- * Hero photo. Drop a licensed photo into /public (e.g. /hero-home.jpg) and set
- * its path here; until then the hero shows the illustrated lawn scene.
- */
-const HERO_PHOTO: string | null = null;
-
 /** Example used in the savings section; kept in step with the savings estimator. */
 const EXAMPLE_PRICE = 750000;
 const EXAMPLE_MONTHS = 3;
@@ -25,62 +19,6 @@ interface LandingPageProps {
   onNavigate: (tab: string, listingId?: string) => void;
   onSearch?: (filters: BrowseFilters) => void;
 }
-
-const LawnScene: React.FC = () => (
-  <svg
-    viewBox="0 0 640 560"
-    preserveAspectRatio="xMidYMax slice"
-    className="absolute inset-0 w-full h-full"
-    aria-hidden="true"
-  >
-    <rect width="640" height="560" fill="#DCE8DF" />
-    {/* Mountains, borrowed from the logo */}
-    <polygon points="0,330 120,190 210,280 300,150 420,300 500,220 640,330 640,400 0,400" fill="#BCD3C3" />
-    <polygon points="250,205 300,150 345,205 320,195 300,215 280,195" fill="#F4F6F4" />
-    {/* Tree line */}
-    {[20, 60, 100, 520, 560, 600].map((x, i) => (
-      <polygon key={x} points={`${x},${370 - (i % 2) * 18} ${x - 22},${430} ${x + 22},${430}`} fill="#6A9476" />
-    ))}
-    {/* House */}
-    <rect x="300" y="300" width="250" height="150" fill="#FFFFFF" />
-    <polygon points="280,305 425,210 570,305" fill="#0F5A40" />
-    <rect x="335" y="335" width="52" height="44" fill="#DCE8DF" stroke="#0F5A40" strokeWidth="4" />
-    <rect x="463" y="335" width="52" height="44" fill="#DCE8DF" stroke="#0F5A40" strokeWidth="4" />
-    <rect x="404" y="370" width="42" height="80" fill="#0F5A40" />
-    {/* Lawn */}
-    <rect x="0" y="440" width="640" height="120" fill="#8FA88A" />
-    <rect x="405" y="440" width="40" height="120" fill="#C9D3CC" />
-  </svg>
-);
-
-/** Lawn sign: post and crossbar, with the board and rider hanging in a column so text length never makes them overlap. */
-const YardSign: React.FC = () => (
-  <div
-    className="absolute left-6 sm:left-12 bottom-0 w-[264px] pb-14 origin-bottom-left scale-[0.82] sm:scale-100"
-    aria-hidden="true"
-  >
-    <div className="absolute left-5 top-0 bottom-0 w-3 bg-[#F7F7F2] rounded-sm shadow-sm" />
-    <div className="absolute left-5 top-4 w-[226px] h-3 bg-[#F7F7F2] rounded-sm" />
-    <div className="relative ml-11 w-[208px] pt-7 flex flex-col">
-      <div className="flex justify-between px-5 h-4">
-        <span className="w-0.5 h-full bg-slate-900" />
-        <span className="w-0.5 h-full bg-slate-900" />
-      </div>
-      <div className="bg-white border-[5px] border-emerald-700 rounded p-3.5 flex flex-col gap-1.5">
-        <span className="font-display font-bold text-[34px] leading-[0.92] text-emerald-700">For sale by owner</span>
-        <span className="text-[13px] leading-snug font-semibold text-slate-900">Message me to book a viewing</span>
-        <span className="text-[11px] text-slate-700">OwnersMarket</span>
-      </div>
-      <div className="flex justify-between px-5 h-2.5">
-        <span className="w-0.5 h-full bg-slate-900" />
-        <span className="w-0.5 h-full bg-slate-900" />
-      </div>
-      <div className="bg-sign rounded-sm px-3 py-2 font-display font-bold text-[21px] leading-tight text-slate-900">
-        Viewings by appointment
-      </div>
-    </div>
-  </div>
-);
 
 const CheckIcon: React.FC = () => (
   <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" className="shrink-0">
@@ -100,7 +38,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const liveListings = listings.filter((l) => isListingLive(l));
   // Until there are 6 real homes, fill the row with clearly labelled examples (not for sale).
   const examples = examplesToShow(liveListings.length);
-  const shownListings = [...liveListings.slice(0, 6), ...examples];
+  const shownListings = [...liveListings.slice(0, 8), ...examples];
 
   const [query, setQuery] = useState('');
   const [province, setProvince] = useState(ALL_PROVINCES);
@@ -128,49 +66,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="bg-mist -mb-20">
-      {/* Hero */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 flex flex-col lg:flex-row gap-10 lg:gap-12 items-stretch">
-        <div className="flex-1 flex flex-col justify-center gap-5 sm:gap-6 min-w-0">
-          <p className="text-sm font-bold text-emerald-700">For sale by owner, across Canada</p>
-          <h1 className="font-display font-bold text-slate-900 text-[56px] sm:text-[72px] lg:text-[84px] leading-[0.95] tracking-[-0.5px] text-balance">
-            Your home is ready. Let the photos sell it.
-          </h1>
-          <p className="text-lg sm:text-[19px] leading-relaxed text-slate-700 max-w-[34em]">
-            Put your home in front of buyers anywhere in Canada, with no commission. Buyers message you to book a viewing, and your own lawyer or notary handles the contract.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 pt-1">
-            <button
-              onClick={() => onNavigate('wizard')}
-              className="px-7 py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[17px] rounded-md cursor-pointer min-h-[52px]"
-            >
-              List your home
-            </button>
-            <NavLink
-              to="browse"
-              onNavigate={onNavigate}
-              className="inline-flex items-center justify-center px-7 py-4 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-[17px] rounded-md border-[1.5px] border-slate-900 min-h-[52px]"
-            >
-              Browse homes for sale
-            </NavLink>
-          </div>
-          <p className="text-sm text-slate-600">
-            Every listing is reviewed before it goes live. OwnersMarket is an advertising site, not a brokerage.
-          </p>
-        </div>
-
-        <div className="flex-[1.2] relative min-h-[420px] sm:min-h-[540px] rounded-[10px] overflow-hidden bg-emerald-100">
-          {HERO_PHOTO ? (
-            <img src={HERO_PHOTO} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <LawnScene />
-          )}
-          <YardSign />
-        </div>
-      </section>
-
-      {/* Search */}
-      <section aria-label="Search homes" className="max-w-[1240px] mx-auto px-4 sm:px-6 pb-16">
+      {/* Hero: buyers first, with search */}
+      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-8 sm:pt-14 pb-7 sm:pb-10 flex flex-col gap-4 sm:gap-5">
+        <p className="text-sm font-bold text-emerald-700">For sale by owner, across Canada</p>
+        <h1 className="font-display font-bold text-slate-900 text-[40px] sm:text-[64px] lg:text-[72px] leading-[0.95] tracking-[-0.5px] text-balance max-w-[13em]">
+          Homes for sale, straight from the people who live in them
+        </h1>
         <form
+          aria-label="Search homes"
           onSubmit={submitSearch}
           className="bg-white rounded-[10px] border border-slate-200 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1.2fr_1fr_1fr_auto] gap-3 items-end"
         >
@@ -184,7 +87,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className={fieldClass}
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-slate-700">
+          <label className="hidden sm:flex flex-col gap-1.5 text-[13px] font-semibold text-slate-700">
             Province
             <select value={province} onChange={(e) => setProvince(e.target.value)} className={fieldClass}>
               <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
@@ -193,7 +96,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-slate-700">
+          <label className="hidden sm:flex flex-col gap-1.5 text-[13px] font-semibold text-slate-700">
             Home type
             <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className={fieldClass}>
               <option value="All">Any type</option>
@@ -204,7 +107,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <option value="Acreage / Farm">Acreage or farm</option>
             </select>
           </label>
-          <label className="flex flex-col gap-1.5 text-[13px] font-semibold text-slate-700">
+          <label className="hidden sm:flex flex-col gap-1.5 text-[13px] font-semibold text-slate-700">
             Max price
             <select value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className={fieldClass}>
               <option value="">No max</option>
@@ -217,65 +120,103 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </label>
           <button
             type="submit"
-            className="font-semibold text-base bg-slate-900 hover:bg-slate-800 text-white rounded-md px-7 py-3 min-h-[48px] cursor-pointer sm:col-span-2 lg:col-span-1"
+            className="font-semibold text-base bg-emerald-700 hover:bg-emerald-800 text-white rounded-md px-7 py-3 min-h-[48px] cursor-pointer sm:col-span-2 lg:col-span-1"
           >
             Show homes
           </button>
         </form>
+        <p className="text-sm text-slate-600">
+          Every listing is reviewed before it goes live. OwnersMarket is an advertising site, not a brokerage.
+        </p>
       </section>
 
-      {/* New listings */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 pb-20 sm:pb-24">
-        <div className="flex flex-wrap items-baseline gap-4 pb-6">
-          <h2 className="font-display font-bold text-[40px] sm:text-[46px] leading-none text-slate-900">
-            Homes for sale, straight from owners
-          </h2>
-          {liveListings.length > 0 && (
+      {/* Homes for sale */}
+      <section aria-label="Homes for sale" className="bg-white border-t border-slate-200">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-16 sm:pb-20">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 pb-5">
+            <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none text-slate-900">Newest homes</h2>
             <NavLink
               to="browse"
               onNavigate={onNavigate}
-              className="ml-auto font-semibold text-base text-emerald-700 hover:text-slate-900 underline-offset-4 hover:underline cursor-pointer"
+              className="ml-auto font-semibold text-base text-emerald-700 hover:text-slate-900 underline underline-offset-4 cursor-pointer"
             >
-              See all {liveListings.length} {liveListings.length === 1 ? 'home' : 'homes'}
+              {liveListings.length > 0 ? `See all ${liveListings.length} ${liveListings.length === 1 ? 'home' : 'homes'}` : 'Browse homes'}
             </NavLink>
-          )}
-        </div>
-        {examples.length > 0 && (
-          <p className="-mt-2 mb-6 text-base text-slate-600">
-            Listings marked <span className="bg-sign text-slate-900 text-xs font-bold px-2 py-0.5 rounded">Example · not for sale</span>{' '}
-            show what a listing looks like. They aren’t real homes for sale.
-          </p>
-        )}
-        {shownListings.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-            {shownListings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                isFavorited={savedIds.includes(listing.id)}
-                onToggleFavorite={onToggleFavorite}
-                onSelect={onSelectListing}
-              />
-            ))}
           </div>
-        )}
-        {liveListings.length < 6 && (
-          <div className="mt-8 bg-white rounded-[10px] border border-slate-200 p-8 sm:p-10 flex flex-col sm:flex-row sm:items-center gap-5">
-            <p className="text-lg text-slate-700 flex-1">
-              The first homes are going up now. List yours and it will be one of the first buyers see.
+          {examples.length > 0 && (
+            <p className="-mt-1 mb-6 text-base text-slate-600">
+              Listings marked <span className="bg-sign text-slate-900 text-xs font-bold px-2 py-0.5 rounded">Example · not for sale</span>{' '}
+              show what a listing looks like. They aren’t real homes for sale.
             </p>
-            <button
-              onClick={() => onNavigate('wizard')}
-              className="px-6 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-md cursor-pointer min-h-[48px]"
-            >
-              List your home
-            </button>
+          )}
+          {shownListings.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7">
+              {shownListings.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  isFavorited={savedIds.includes(listing.id)}
+                  onToggleFavorite={onToggleFavorite}
+                  onSelect={onSelectListing}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Sellers */}
+          <div className="mt-12 bg-emerald-700 text-white rounded-[10px] p-7 sm:p-8 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
+            <h2 className="font-display font-bold text-[36px] sm:text-[40px] leading-none lg:flex-[1.1]">
+              Selling? Put your home here, with no commission.
+            </h2>
+            <p className="text-base leading-relaxed text-emerald-100 lg:flex-1">
+              Add your photos in about 15 minutes. Buyers message you to book a viewing, and your own lawyer or notary handles the contract.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => onNavigate('wizard')}
+                className="px-6 py-3.5 bg-sign hover:bg-[#E8B43A] text-slate-900 font-semibold rounded-md cursor-pointer min-h-[48px]"
+              >
+                List your home
+              </button>
+              <NavLink
+                to="pricing"
+                onNavigate={onNavigate}
+                className="inline-flex items-center px-6 py-3.5 border-[1.5px] border-white text-white hover:bg-emerald-800 font-semibold rounded-md min-h-[48px]"
+              >
+                See pricing
+              </NavLink>
+            </div>
           </div>
-        )}
+
+          {/* Buyers */}
+          <div className="mt-14 flex flex-col gap-7">
+            <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none text-slate-900">Buying a home for sale by owner</h2>
+            <ol className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { title: 'Message the owner', text: 'Ask questions and request a viewing time. No agent in the middle.' },
+                { title: 'See the home', text: 'The owner confirms a time and shares the exact address with you.' },
+                { title: 'Offer through your lawyer', text: 'Your lawyer or notary prepares the offer and handles the deposit and closing.' },
+              ].map((step, i) => (
+                <li key={step.title} className="flex flex-col gap-2 border-t-[3px] border-emerald-700 pt-4">
+                  <span className="font-display font-bold text-[36px] leading-none text-emerald-700">{i + 1}</span>
+                  <h3 className="text-[19px] font-bold text-slate-900">{step.title}</h3>
+                  <p className="text-base leading-relaxed text-slate-700">{step.text}</p>
+                </li>
+              ))}
+            </ol>
+            <NavLink
+              to="guide-buying"
+              onNavigate={onNavigate}
+              className="self-start font-semibold text-base text-emerald-700 hover:text-slate-900 underline underline-offset-4 min-h-[44px] inline-flex items-center"
+            >
+              Read the buyer’s guide
+            </NavLink>
+          </div>
+        </div>
       </section>
 
-      {/* How it works */}
-      <section className="bg-white border-y border-slate-200">
+      {/* How it works (for sellers) */}
+      <section className="bg-mist border-b border-slate-200">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-20 sm:py-24 flex flex-col gap-10">
           <h2 className="font-display font-bold text-[44px] sm:text-[52px] leading-none text-slate-900 max-w-[16em]">
             Three steps from photos to a sold sign
