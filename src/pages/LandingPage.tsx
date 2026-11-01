@@ -3,7 +3,7 @@ import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { examplesToShow } from '../data/exampleListings';
 import { OPEN_PROVINCES, ALL_PROVINCES } from '../data/cities';
-import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH, LISTING_FEE_LABEL } from '../lib/commissionCalc';
+import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH } from '../lib/commissionCalc';
 import type { BrowseFilters } from './BrowsePage';
 import { NavLink } from '../components/NavLink';
 
@@ -136,7 +136,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Your home is ready. Let the photos sell it.
           </h1>
           <p className="text-lg sm:text-[19px] leading-relaxed text-slate-700 max-w-[34em]">
-            Put your home in front of buyers anywhere in Canada for {LISTING_FEE_LABEL} a month, with no commission. Buyers message you to book a viewing, and your own lawyer or notary handles the contract.
+            Put your home in front of buyers anywhere in Canada, with no commission. Buyers message you to book a viewing, and your own lawyer or notary handles the contract.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 pt-1">
             <button
@@ -288,7 +288,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               },
               {
                 title: 'Go live after a quick review',
-                text: `We review it for spam, scams and anything inappropriate, usually within a day. Then you start your ${LISTING_FEE_LABEL} monthly plan and buyers can find it.`,
+                text: `We review it for spam, scams and anything inappropriate, usually within a day. Then you activate your listing on a flat monthly plan and buyers can find it.`,
               },
               {
                 title: 'Pick your viewing times',
@@ -323,6 +323,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className="self-start inline-flex items-center font-semibold text-base text-emerald-700 hover:text-slate-900 underline underline-offset-4 min-h-[44px]"
           >
             Estimate it with your own price
+          </NavLink>
+          <NavLink
+            to="pricing"
+            onNavigate={onNavigate}
+            className="self-start inline-flex items-center font-semibold text-base text-emerald-700 hover:text-slate-900 underline underline-offset-4 min-h-[44px]"
+          >
+            See pricing
           </NavLink>
         </div>
         <div className="flex-1 w-full min-w-0 bg-slate-900 text-white rounded-[10px] p-7 sm:p-9 flex flex-col gap-5">
@@ -464,7 +471,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           onClick={() => onNavigate('wizard')}
           className="self-start md:self-auto px-7 py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[17px] rounded-md cursor-pointer min-h-[52px]"
         >
-          List your home for {LISTING_FEE_LABEL} a month
+          List your home
         </button>
       </section>
     </div>

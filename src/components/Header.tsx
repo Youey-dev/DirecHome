@@ -15,7 +15,8 @@ import {
   User,
   MessageSquare,
   BookOpen,
-  Mail
+  Mail,
+  Tag
 } from 'lucide-react';
 import { AppNotification, UserProfile } from '../types/listing';
 import { useAuth } from '../context/AuthContext';
@@ -109,6 +110,16 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             How it works
+          </NavLink>
+
+          <NavLink
+            to="pricing"
+            onNavigate={handleNav}
+            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
+              currentTab === 'pricing' ? 'text-emerald-700 font-semibold' : ''
+            }`}
+          >
+            Pricing
           </NavLink>
 
           <NavLink
@@ -359,6 +370,15 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Building2 className="w-5 h-5 text-slate-400" />
             <span>How OwnersMarket works</span>
+          </NavLink>
+
+          <NavLink
+            to="pricing"
+            onNavigate={handleNav}
+            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
+          >
+            <Tag className="w-5 h-5 text-slate-400" />
+            <span>Pricing</span>
           </NavLink>
 
           <NavLink

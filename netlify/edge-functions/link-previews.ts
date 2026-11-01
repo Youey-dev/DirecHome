@@ -83,7 +83,7 @@ function descriptionHtml(text: string): string {
     .join('');
 }
 
-const SIMPLE_HEADER = `<header style="border-bottom:1px solid #D5DED7"><div style="max-width:1240px;margin:0 auto;padding:18px 16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap"><a href="/" style="font-weight:700;font-size:24px;color:#16261D;text-decoration:none">OwnersMarket</a><nav style="display:flex;gap:16px;flex-wrap:wrap"><a href="/browse">Browse homes</a><a href="/sell">List your home</a><a href="/how-it-works">How it works</a><a href="/about">About and contact</a></nav></div></header>`;
+const SIMPLE_HEADER = `<header style="border-bottom:1px solid #D5DED7"><div style="max-width:1240px;margin:0 auto;padding:18px 16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap"><a href="/" style="font-weight:700;font-size:24px;color:#16261D;text-decoration:none">OwnersMarket</a><nav style="display:flex;gap:16px;flex-wrap:wrap"><a href="/browse">Browse homes</a><a href="/sell">List your home</a><a href="/how-it-works">How it works</a><a href="/pricing">Pricing</a><a href="/about">About and contact</a></nav></div></header>`;
 
 type LinkRow = { id: string; headline: string; city: string; province: string; price: number };
 

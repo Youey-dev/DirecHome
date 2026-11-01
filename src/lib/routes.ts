@@ -20,6 +20,7 @@ export const TAB_PATHS: Record<string, string> = {
   'guide-buying': '/guides/buying-a-home',
   'guide-bc': '/guides/selling-without-a-realtor-bc',
   about: '/about',
+  pricing: '/pricing',
   regions: '/for-sale-by-owner',
   guides: '/guides',
 };

@@ -37,7 +37,7 @@ export interface PageMeta {
 }
 
 const DEFAULT_DESCRIPTION =
-  'List your home across Canada (Québec coming soon) for $24.99 a month with no commission. Buyers message you directly to book a viewing, and your own lawyer or notary handles the sale.';
+  'Sell your home yourself anywhere in Canada (Québec coming soon) with no commission. Buyers message you directly to book a viewing, and your own lawyer or notary handles the sale.';
 
 /** Public pages. Keep the titles in step with TAB_TITLES in src/App.tsx. */
 export const PAGES: Record<string, PageMeta> = {
@@ -64,6 +64,10 @@ export const PAGES: Record<string, PageMeta> = {
   '/guides/buying-a-home': {
     title: 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
     description: 'A free 8-step guide to buying a house for sale by owner in Canada: budgeting, checking the title, inspections, making an offer through your lawyer and keeping your deposit safe.',
+  },
+  '/pricing': {
+    title: 'Pricing: $24.99 a Month, No Commission · OwnersMarket',
+    description: 'OwnersMarket costs a flat $24.99 a month per active listing, with no commission when your home sells. Create your listing free and pay only once it is approved. Cancel any time.',
   },
   '/about': {
     title: 'About and Contact · OwnersMarket',
@@ -94,6 +98,7 @@ export const SITEMAP_PATHS = [
   '/calculator',
   '/guides/selling-your-home',
   '/guides/buying-a-home',
+  '/pricing',
   '/about',
   PROVINCE_PAGE_BASE,
   ...PROVINCE_PAGES.map((p) => provincePath(p.slug)),

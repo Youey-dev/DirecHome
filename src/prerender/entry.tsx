@@ -13,6 +13,7 @@ import { renderToString } from 'react-dom/server';
 import { LandingPage } from '../pages/LandingPage';
 import { HowItWorksPage } from '../pages/HowItWorksPage';
 import { AboutPage } from '../pages/AboutPage';
+import { PricingPage } from '../pages/PricingPage';
 import { ProvincePage, RegionsPage } from '../pages/ProvincePage';
 import { PROVINCE_PAGES, provincePath } from '../../netlify/edge-functions/lib/regions.ts';
 import { GuidePage } from '../pages/GuidePage';
@@ -29,6 +30,7 @@ const NAV: [string, string][] = [
   ['/browse', 'Browse homes'],
   ['/sell', 'List your home'],
   ['/how-it-works', 'How it works'],
+  ['/pricing', 'Pricing'],
   ['/calculator', 'Savings estimator'],
   ['/guides', 'Seller guides'],
   ['/guides/selling-your-home', 'Selling without a realtor'],
@@ -82,6 +84,7 @@ const PAGES: Record<string, () => React.ReactElement> = {
   ...Object.fromEntries(ARTICLES.map((a) => [a.path, () => <ArticlePage slug={a.slug} onNavigate={noop} />])),
   [TAB_PATHS['guide-buying']]: () => <GuidePage guide={BUYER_GUIDE} onNavigate={noop} />,
   [TAB_PATHS.about]: () => <AboutPage onNavigate={noop} />,
+  [TAB_PATHS.pricing]: () => <PricingPage onNavigate={noop} />,
   [TAB_PATHS.regions]: () => <RegionsPage onNavigate={noop} />,
   ...Object.fromEntries(
     PROVINCE_PAGES.map((p) => [

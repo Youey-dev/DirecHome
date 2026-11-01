@@ -6,7 +6,7 @@ import { ARTICLES } from '../src/content/articles';
 export function runPrerenderTests() {
   console.log('🧪 Testing pre-built page HTML for search engines...');
   const fail = (m: string) => { throw new Error(m); };
-  for (const path of ['/', '/how-it-works', '/calculator', '/guides/selling-your-home', '/guides/buying-a-home', '/guides/selling-without-a-realtor-bc', '/about', '/for-sale-by-owner', ...PROVINCE_PAGES.map((p) => `/for-sale-by-owner/${p.slug}`), '/guides', ...ARTICLES.map((a) => a.path)]) {
+  for (const path of ['/', '/how-it-works', '/calculator', '/guides/selling-your-home', '/guides/buying-a-home', '/guides/selling-without-a-realtor-bc', '/about', '/pricing', '/for-sale-by-owner', ...PROVINCE_PAGES.map((p) => `/for-sale-by-owner/${p.slug}`), '/guides', ...ARTICLES.map((a) => a.path)]) {
     if (!PRERENDER_PATHS.includes(path)) fail(`${path} should be pre-built`);
     const html = render(path) ?? '';
     const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
@@ -15,6 +15,14 @@ export function runPrerenderTests() {
     if (!html.includes('href="/browse"')) fail(`${path} should link to the homes for sale`);
   }
   if (!(render('/about') ?? '').includes('mailto:hello@ownersmarket.ca')) fail('The about page should show the contact email');
+  if (!(render('/pricing') ?? '').includes('$24.99')) fail('The pricing page should show the price');
+  {
+    // The price is kept off the homepage's first screen (hero); it lives on /pricing
+    const home = render('/') ?? '';
+    const hero = home.slice(0, home.indexOf('aria-label="Search homes"'));
+    if (hero.includes('24.99')) fail('The homepage hero should not show the price');
+    if (!home.includes('href="/pricing"')) fail('The homepage should link to the pricing page');
+  }
   // Province pages: one per province and territory, never Québec, each with its own facts and sources
   if (PROVINCE_PAGES.length !== 12 || PROVINCE_PAGES.some((p) => p.code === 'QC')) fail('There should be 12 province pages and none for Québec');
   if (PROVINCE_HUBS.length !== PROVINCE_PAGES.length) fail('Every province page needs its facts in provinceHubs.ts');
