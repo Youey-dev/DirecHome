@@ -147,9 +147,9 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
           <div className="bg-white rounded-[10px] border-[5px] border-emerald-700 p-7 sm:p-8 flex flex-col gap-5">
             <div className="flex flex-col gap-1">
               <span className="text-base font-semibold text-slate-700">Per active listing</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-display font-bold text-[72px] sm:text-[84px] leading-none text-emerald-700">{LISTING_FEE_LABEL}</span>
-                <span className="text-lg text-slate-700">CAD a month</span>
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="font-display font-bold text-[64px] sm:text-[84px] leading-none text-emerald-700">{LISTING_FEE_LABEL}</span>
+                <span className="text-lg text-slate-700 whitespace-nowrap">CAD a month</span>
               </div>
             </div>
             <ul className="flex flex-col gap-3 text-[16px] text-slate-800">
