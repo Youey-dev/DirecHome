@@ -12,6 +12,7 @@ import { ListingDetailPage } from './pages/ListingDetailPage';
 import { SavedPage } from './pages/SavedPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
 import { AboutPage } from './pages/AboutPage';
+import { PricingPage } from './pages/PricingPage';
 import { CityPage, ProvincePage, RegionsPage } from './pages/ProvincePage';
 import { CITY_PATH_RE, PROVINCE_PATH_RE, cityTitle, provinceBySlug } from '../netlify/edge-functions/lib/regions.ts';
 import { ARTICLE_META } from '../netlify/edge-functions/lib/articles.ts';
@@ -56,6 +57,7 @@ const TAB_TITLES: Record<string, string> = {
   saved: 'Saved homes · OwnersMarket',
   'how-it-works': 'How Selling Your Home Privately Works · OwnersMarket',
   about: 'About and Contact · OwnersMarket',
+  pricing: 'Pricing: $24.99 a Month, No Commission · OwnersMarket',
   regions: 'For Sale by Owner Across Canada, by Province · OwnersMarket',
   terms: 'Terms of use · OwnersMarket',
   privacy: 'Privacy policy · OwnersMarket',
@@ -442,6 +444,7 @@ function MainApp() {
 
           {currentTab === 'how-it-works' && <HowItWorksPage onNavigate={handleNavigate} />}
           {currentTab === 'about' && <AboutPage onNavigate={handleNavigate} />}
+          {currentTab === 'pricing' && <PricingPage onNavigate={handleNavigate} />}
           {currentTab === 'regions' && <RegionsPage onNavigate={handleNavigate} />}
           {(currentTab === 'province' || currentTab === 'city') && selectedListingId && (() => {
             const Page = currentTab === 'province' ? ProvincePage : CityPage;
