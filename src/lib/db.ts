@@ -1239,6 +1239,16 @@ class DataStore {
     return conversationId;
   }
 
+  /** Owner: message the OwnersMarket team about one of their listings (opens or reuses that thread). */
+  async contactAdmin(listingId: string, content: string): Promise<string> {
+    this.requireUser();
+    const { data, error } = await supabase.rpc('contact_admin', { _listing_id: listingId });
+    if (error) fail(error, 'We could not send your message. Please email hello@ownersmarket.ca.');
+    const conversationId = data as string;
+    await this.replyToThread(conversationId, content);
+    return conversationId;
+  }
+
   /** Admin: everyone with an account. */
   async adminLoadUsers(): Promise<AdminUserRow[]> {
     const rows: AdminUserRow[] = [];
