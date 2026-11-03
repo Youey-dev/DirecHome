@@ -1,14 +1,13 @@
 import { EXAMPLE_LISTINGS, examplesToShow, findExample } from '../src/data/exampleListings';
 import { pathFor } from '../src/lib/routes';
 
-import { publicViewsLabel } from '../src/lib/viewCount';
+import { viewsLabel } from '../src/lib/viewCount';
 
 export function runExampleTests() {
-  // Public view count: hidden on examples and on brand-new listings, "views" not "people"
-  if (publicViewsLabel({ viewsCount: 51 }) !== '51 Views') throw new Error('51 views should show as "51 Views"');
-  if (publicViewsLabel({ viewsCount: 1234 }) !== '1,234 Views') throw new Error('Large view counts need a thousands separator');
-  if (publicViewsLabel({ viewsCount: 3 }) !== null) throw new Error('A handful of views should not be shown');
-  if (publicViewsLabel({ viewsCount: 500, isExample: true }) !== null) throw new Error('Example listings never show a view count');
+  // View count (owner and admins only): "views", not "people"
+  if (viewsLabel({ viewsCount: 51 }) !== '51 views') throw new Error('51 views should show as "51 views"');
+  if (viewsLabel({ viewsCount: 1234 }) !== '1,234 views') throw new Error('Large view counts need a thousands separator');
+  if (viewsLabel({ viewsCount: 1 }) !== '1 view') throw new Error('One view is "1 view"');
 
   console.log('🧪 Testing example listings...');
   const fail = (m: string) => { throw new Error(m); };

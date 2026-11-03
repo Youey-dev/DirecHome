@@ -189,7 +189,11 @@ export const MapLibreMap: React.FC<MapLibreMapProps> = ({
       ) : singleListing ? (
         <div className="absolute bottom-3 left-3 right-3 bg-emerald-950/90 backdrop-blur-md text-emerald-100 px-3.5 py-2 rounded-xl border border-emerald-700/60 shadow-sm text-xs flex items-center justify-between">
           <span>
-            ✓ <strong>Confirmed viewing:</strong> Exact property coordinates and street pin unlocked.
+            {singleListing.showAddress ? (
+              <>📍 <strong>Exact location</strong>, shown by the owner.</>
+            ) : (
+              <>✓ <strong>Exact location</strong>, shared with you.</>
+            )}
           </span>
         </div>
       ) : null}
