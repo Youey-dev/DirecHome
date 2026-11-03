@@ -445,7 +445,11 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             ) : (
             <div className="space-y-3">
               <h2 className="font-display font-bold text-[30px] leading-none text-slate-900">Request a viewing</h2>
-              <p className="text-sm text-slate-600">Pick a time that suits you. The owner confirms, then the exact address is shared with you.</p>
+              <p className="text-sm text-slate-600">
+                {listing.showAddress
+                  ? 'Pick a time that suits you, and the owner confirms it.'
+                  : 'Pick a time that suits you. The owner confirms, then the exact address is shared with you.'}
+              </p>
               <button
                 onClick={handleOpenViewing}
                 className="w-full py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-base rounded-md flex items-center justify-center gap-2 cursor-pointer min-h-[52px]"
