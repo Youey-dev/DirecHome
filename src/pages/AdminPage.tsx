@@ -17,6 +17,7 @@ import {
   Search,
   Send,
   ShieldCheck,
+  Pencil,
   Trash2,
   Users,
   X,
@@ -25,6 +26,8 @@ import {
 interface AdminPageProps {
   activeUser: UserProfile;
   onNavigate: (tab: string, listingId?: string) => void;
+  /** Open a listing in the listing form to fix it for its owner. */
+  onEditListing?: (listing: Listing) => void;
 }
 
 type AdminTab = 'overview' | 'listings' | 'review' | 'people' | 'messages' | 'reports';
@@ -71,7 +74,7 @@ const fmtDate = (iso?: string) =>
 
 const isPaying = (l: Listing) => ['active', 'past_due'].includes(l.paymentStatus ?? '') && !l.cancelAtPeriodEnd;
 
-export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) => {
+export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, onEditListing }) => {
   const [tab, setTab] = useState<AdminTab>('overview');
   const [listings, setListings] = useState<Listing[]>([]);
   const [reports, setReports] = useState<ListingReport[]>([]);
@@ -341,6 +344,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate }) 
         <ActionButton onClick={() => onNavigate('detail', l.id)}>
           <Eye className="w-3.5 h-3.5" /> View
         </ActionButton>
+        {onEditListing && l.status !== 'sold' && (
+          <ActionButton onClick={() => onEditListing(l)} title={mine ? 'Edit your listing' : `Fix this listing for ${l.sellerName}`}>
+            <Pencil className="w-3.5 h-3.5" /> Edit listing
+          </ActionButton>
+        )}
         {!mine && (
           <ActionButton onClick={() => open({ kind: 'message', listing: l })}>
             <MessageSquare className="w-3.5 h-3.5" /> Message owner

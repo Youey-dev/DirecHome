@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FormattedText } from '../components/FormattedText';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
-import { db, TERMS_VERSION } from '../lib/db';
+import { db, TERMS_VERSION, ADMIN_DISPLAY_NAME } from '../lib/db';
 import { coachListing, measureDarkPhotos } from '../lib/listingCoach';
 import { geocodeAddress } from '../lib/geocode';
 import { OPEN_PROVINCES, CLOSED_PROVINCES, QUEBEC_COMING_SOON, postalInClosedProvince, citiesInProvince, provinceName } from '../data/cities';
@@ -216,6 +216,9 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   }, []);
 
   const isGuest = isGuestUser(activeUser);
+  // An admin fixing someone else's listing (from the admin console)
+  const adminEditing = !!editListing && activeUser.role === 'admin' && editListing.userId !== activeUser.id;
+  const [adminNote, setAdminNote] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
 
   // Autosave text fields on this device (photos are kept on the device separately, above)
@@ -533,7 +536,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       askToSignUp();
       return;
     }
-    if (!termsAccepted) {
+    if (!termsAccepted && !adminEditing) {
       setValidationError('Please accept the OwnersMarket Terms of Use and Privacy Policy to submit your listing.');
       return;
     }
@@ -586,6 +589,10 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       const needsReview = db.editNeedsReview(submission);
       await db.saveListing(submission);
       if (!editingId) db.clearDraft(); // keep any unfinished new-listing draft when saving an edit
+      // The listing is saved even if the note can't be sent; the admin can message them from the console
+      if (adminEditing && adminNote.trim()) {
+        await db.adminMessageSeller(editListing!.id, adminNote.trim()).catch(() => setAdminNote(''));
+      }
       setSubmittedSummary({
         streetAddress: stripHtml(streetAddress),
         city,
@@ -593,7 +600,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
         offersCashback,
         cashbackAmount: finalCashback,
         photoCount: photos.length,
-        outcome: !wasApproved ? 'new' : needsReview ? 'rereview' : 'updated',
+        outcome: adminEditing ? 'updated' : !wasApproved ? 'new' : needsReview ? 'rereview' : 'updated',
       });
       setIsSubmittedSuccess(true);
       trackEvent(!wasApproved ? 'submit_listing' : 'update_listing', { photos: photos.length });
@@ -622,7 +629,13 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 : 'Your Listing is in Review!'}
           </h2>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg mx-auto">
-            {submittedSummary.outcome === 'updated' ? (
+            {adminEditing ? (
+              <>
+                {editListing!.sellerName}’s listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong> is saved
+                {['live', 'paused'].includes(editListing!.status) ? ' and your changes are live' : ''}.
+                {adminNote.trim() ? ' Your note was sent to them as a message.' : ''}
+              </>
+            ) : submittedSummary.outcome === 'updated' ? (
               <>Your listing for <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong> has been updated.</>
             ) : submittedSummary.outcome === 'rereview' ? (
               <>You changed the words, photos or address of <strong>{submittedSummary.streetAddress}, {submittedSummary.city}</strong>, so our team will give them a quick review (usually within 1 business day). Your listing stays live as it was until then, and your new version replaces it once it’s approved. Your subscription isn’t affected.</>
@@ -657,7 +670,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             onClick={() => onListingCreated()}
             className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition-all shadow-sm min-h-[44px]"
           >
-            Go to my dashboard
+            {adminEditing ? 'Back to the admin console' : 'Go to my dashboard'}
           </button>
         </div>
       </div>
@@ -667,6 +680,13 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   return (
     <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 pb-20">
       
+      {adminEditing && (
+        <div role="note" className="mb-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+          <strong>Admin: you’re editing {editListing!.sellerName}’s listing.</strong> Changes are saved straight to it, with no review
+          and without changing its status or billing. You can send {editListing!.sellerName.split(' ')[0] || 'them'} a note on the last step.
+        </div>
+      )}
+
       {/* Top Header Bar: Step info + Live Saved Indicator */}
       <div className="mb-6 space-y-3">
         <div className="flex items-center justify-between text-xs">
@@ -1504,7 +1524,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
             )}
 
-            {editListing && ['live', 'paused'].includes(editListing.status) && !editListing.adminHold && (
+            {editListing && ['live', 'paused'].includes(editListing.status) && !editListing.adminHold && !adminEditing && (
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs text-amber-950 leading-relaxed">
                 <strong>Editing an approved listing.</strong> Changes to the headline, description, photos or address get a quick review (usually within 1 business day). Your listing stays live as it is meanwhile, and the new version replaces it once approved. Changes to the price and home details (rooms, size, fees, cash-back) go live right away.
               </div>
@@ -1550,7 +1570,27 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </div>
             )}
 
+            {/* Admin: optional note to the owner instead of the owner's declaration */}
+            {adminEditing && (
+              <div className="bg-amber-50 p-5 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-2 leading-relaxed">
+                <label htmlFor="wizard-admin-note" className="block font-bold text-slate-900">
+                  Note to {editListing!.sellerName} (optional)
+                </label>
+                <p>Sent as a message from {ADMIN_DISPLAY_NAME} when you save, so they know what you changed.</p>
+                <textarea
+                  id="wizard-admin-note"
+                  rows={3}
+                  maxLength={2000}
+                  value={adminNote}
+                  onChange={(e) => setAdminNote(e.target.value)}
+                  placeholder="e.g. Hi, I fixed the photo order and the postal code as you asked."
+                  className="w-full px-3 py-2 bg-white border border-amber-300 rounded-lg text-sm"
+                />
+              </div>
+            )}
+
             {/* Legal Confirmation & Mandatory Terms Acceptance */}
+            {!adminEditing && (
             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-3 leading-relaxed">
               <div className="font-bold text-slate-900 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
@@ -1584,6 +1624,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               </label>
 
             </div>
+            )}
           </div>
         )}
 
@@ -1616,7 +1657,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
               className="disabled:opacity-60 px-8 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-sm rounded-xl transition-all shadow-md min-h-[48px] flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-5 h-5" />
-              <span>{submitting ? 'Uploading… please keep this page open' : isGuest ? 'Create account to submit' : editListing && ['live', 'paused'].includes(editListing.status) ? 'Save changes' : 'Submit listing for review'}</span>
+              <span>{submitting ? 'Uploading… please keep this page open' : isGuest ? 'Create account to submit' : (editListing && ['live', 'paused'].includes(editListing.status)) || adminEditing ? 'Save changes' : 'Submit listing for review'}</span>
             </button>
           )}
         </div>
