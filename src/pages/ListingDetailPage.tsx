@@ -8,7 +8,7 @@ import { ViewingModal } from '../components/ViewingModal';
 import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
 import { formatCAD } from '../lib/commissionCalc';
-import { publicViewsLabel } from '../lib/viewCount';
+import { viewsLabel } from '../lib/viewCount';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { 
@@ -179,8 +179,11 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               {listing.headline}
             </h1>
 
-            {!isPreview && publicViewsLabel(listing) && (
-              <div className="text-sm text-slate-600">{publicViewsLabel(listing)}</div>
+            {/* Views: the owner and admins only, never buyers */}
+            {isOwnerOrAdmin && !isExample && (
+              <div className="text-sm text-slate-600">
+                {viewsLabel(listing)} <span className="text-slate-500">· only you{isOwner ? '' : ' and the owner'} can see this</span>
+              </div>
             )}
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-slate-600">

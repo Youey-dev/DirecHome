@@ -1,16 +1,11 @@
 /**
- * The public view count shown on listings ("51 Views").
+ * The listing's view count. Shown only to the listing's owner and to admins (seller dashboard,
+ * admin console, and the owner's own listing page), never to buyers.
  *
  * It counts visits to the listing page (once per browser tab session, not the owner's own
  * visits), not unique people, so the wording is "views", never "people".
- * Brand-new listings with only a handful of views show nothing rather than "2 views",
- * which reads as "nobody is interested".
  */
-export const PUBLIC_VIEWS_MIN = 10;
-
-export function publicViewsLabel(listing: { viewsCount?: number; isExample?: boolean }): string | null {
-  if (listing.isExample) return null;
-  const n = Math.floor(Number(listing.viewsCount) || 0);
-  if (n < PUBLIC_VIEWS_MIN) return null;
-  return `${n.toLocaleString('en-CA')} Views`;
+export function viewsLabel(listing: { viewsCount?: number }): string {
+  const n = Math.max(0, Math.floor(Number(listing.viewsCount) || 0));
+  return `${n.toLocaleString('en-CA')} ${n === 1 ? 'view' : 'views'}`;
 }
