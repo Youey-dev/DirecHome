@@ -760,6 +760,9 @@ class DataStore {
     const id = input.id ?? newId();
     const existing = input.id ? this.getListingById(id) : undefined;
     const isEdit = !!existing;
+    // An admin fixing someone else's listing: changes apply directly (admins need no review),
+    // nothing is submitted, and no terms are recorded for the admin
+    const adminEditing = !!existing && me.role === 'admin' && existing.userId !== me.id;
     const ownerId = existing?.userId ?? me.id;
 
     const fsa = input.postalCode.replace(/\s+/g, '').toUpperCase().slice(0, 3);
@@ -796,7 +799,7 @@ class DataStore {
 
     // An approved listing keeps showing its current version while changes to its words, address
     // or photos wait for review. Price and home details still go live straight away.
-    if (existing && ['live', 'paused'].includes(existing.status) && !existing.adminHold) {
+    if (existing && ['live', 'paused'].includes(existing.status) && !existing.adminHold && !adminEditing) {
       await this.saveApprovedListingEdit(existing, ownerId, input, payload);
       await this.recordTerms();
       await this.refresh();
@@ -804,7 +807,7 @@ class DataStore {
     }
 
     // Changes left waiting from when the listing was live no longer apply (taken down, on hold...)
-    if (existing?.pendingEdit) await this.discardPendingEdit(id, { refresh: false });
+    if (existing?.pendingEdit && !adminEditing) await this.discardPendingEdit(id, { refresh: false });
 
     // 1. The listing itself
     if (!isEdit) {
@@ -837,17 +840,17 @@ class DataStore {
     await this.syncPhotos(id, ownerId, existing?.photos ?? [], input.photos);
 
     // 5. Submit for review (drafts and rejected listings go back to the review queue)
-    const status: ListingStatus = existing?.status ?? 'draft';
-    if (status === 'rejected') {
+    const status: ListingStatus = adminEditing ? existing!.status : existing?.status ?? 'draft';
+    if (status === 'rejected' && !adminEditing) {
       const { error } = await supabase.from('listings').update({ status: 'draft' }).eq('id', id);
       if (error) fail(error);
     }
-    if (status === 'draft' || status === 'rejected') {
+    if ((status === 'draft' || status === 'rejected') && !adminEditing) {
       const { error } = await supabase.from('listings').update({ status: 'in_review' }).eq('id', id);
       if (error) fail(error);
     }
 
-    await this.recordTerms();
+    if (!adminEditing) await this.recordTerms();
     await this.refresh();
     return id;
   }
@@ -917,7 +920,7 @@ class DataStore {
         continue;
       }
       const safeId = p.id.replace(/[^A-Za-z0-9_-]/g, '') || newId();
-      const base = `${ownerId}/${listingId}/${safeId}`;
+      const base = `${this.photoFolder(ownerId)}/${listingId}/${safeId}`;
       const [full, thumb] = await Promise.all([fetch(p.url).then((r) => r.blob()), fetch(p.thumbnailUrl).then((r) => r.blob())]);
       const [u1, u2] = await Promise.all([
         supabase.storage.from(PHOTO_BUCKET).upload(`${base}.jpg`, full, { contentType: 'image/jpeg', upsert: true }),
@@ -967,9 +970,19 @@ class DataStore {
     }
   }
 
+  /**
+   * The storage folder new photos go in. Storage only lets people write to their own folder, so
+   * an admin adding photos to someone else's listing uploads them to the admin's folder.
+   */
+  private photoFolder(ownerId: string): string {
+    return this.user.role === 'admin' && this.user.id !== ownerId ? this.user.id : ownerId;
+  }
+
   /** True when saving these changes will send an approved listing's changes for review (see reviewRules). */
   editNeedsReview(input: ListingSubmission): boolean {
-    return editNeedsReview(input, input.id ? this.getListingById(input.id) : undefined);
+    const current = input.id ? this.getListingById(input.id) : undefined;
+    if (current && this.user.role === 'admin' && current.userId !== this.user.id) return false; // admin fixes go live
+    return editNeedsReview(input, current);
   }
 
   private async syncPhotos(listingId: string, ownerId: string, current: PhotoItem[], wanted: PhotoItem[]) {
@@ -1002,7 +1015,7 @@ class DataStore {
         continue;
       }
       const safeId = p.id.replace(/[^A-Za-z0-9_-]/g, '') || newId();
-      const base = `${ownerId}/${listingId}/${safeId}`;
+      const base = `${this.photoFolder(ownerId)}/${listingId}/${safeId}`;
       const [full, thumb] = await Promise.all([
         fetch(p.url).then((r) => r.blob()),
         fetch(p.thumbnailUrl).then((r) => r.blob()),

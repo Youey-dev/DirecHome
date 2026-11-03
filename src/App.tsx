@@ -143,6 +143,7 @@ function MainApp() {
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
   // The listing being edited. Null means the wizard creates a brand-new listing.
   const [editListing, setEditListing] = useState<Listing | null>(null);
+  const adminEditingOthers = !!editListing && activeUser.role === 'admin' && editListing.userId !== activeUser.id;
   // Email links can open a dashboard section directly: /dashboard?tab=messages
   const [dashboardIntent, setDashboardIntent] = useState<DashboardIntent | null>(() => {
     if (typeof window === 'undefined' || initial.tab !== 'dashboard') return null;
@@ -392,8 +393,8 @@ function MainApp() {
               key={signedIn ? editListing?.id ?? 'new' : 'new'}
               editListing={signedIn ? editListing : null}
               activeUser={activeUser}
-              onListingCreated={() => handleNavigate('dashboard')}
-              onCancel={() => handleNavigate(signedIn ? 'dashboard' : 'landing')}
+              onListingCreated={() => handleNavigate(adminEditingOthers ? 'admin' : 'dashboard')}
+              onCancel={() => handleNavigate(adminEditingOthers ? 'admin' : signedIn ? 'dashboard' : 'landing')}
               onOpenAuth={handleOpenAuth}
             />
           )}
@@ -416,7 +417,15 @@ function MainApp() {
 
           {currentTab === 'admin' &&
             (activeUser.role === 'admin' ? (
-              <AdminPage activeUser={activeUser} onNavigate={handleNavigate} />
+              <AdminPage
+                activeUser={activeUser}
+                onNavigate={handleNavigate}
+                onEditListing={(listing) => {
+                  // Open the live version (not any changes the owner has waiting for review)
+                  handleNavigate('wizard');
+                  setEditListing(listing);
+                }}
+              />
             ) : (
               <Gate title="Restricted area" text="This page is only available to OwnersMarket administrators." />
             ))}
