@@ -218,15 +218,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   };
 
+  // "Mark as sold" asks in a small dialog, with the choice to appear under "Recently sold by owners"
+  const [soldTarget, setSoldTarget] = useState<Listing | null>(null);
+  const [showAsSold, setShowAsSold] = useState(true);
   const handleMarkSold = (id: string) => {
     const l = listings.find((x) => x.id === id);
-    const paying = !!l && ['active', 'past_due'].includes(l.paymentStatus ?? '') && !l.cancelAtPeriodEnd;
-    const question = paying
-      ? 'Mark this home as sold? It comes off the site now, and your subscription ends at the close of the month you have paid for. You will not be charged again.'
-      : 'Mark this home as sold? It comes off the site now.';
-    if (!confirm(question)) return;
-    void run(() => db.markListingSold(id), '🎉 Congratulations on selling your home! Marked as sold. Remember to take down your for-sale sign.');
+    if (!l) return;
+    setShowAsSold(true);
+    setSoldTarget(l);
   };
+  const confirmMarkSold = () => {
+    if (!soldTarget) return;
+    const { id } = soldTarget;
+    const show = showAsSold;
+    setSoldTarget(null);
+    void run(() => db.markListingSold(id, show), '🎉 Congratulations on selling your home! Marked as sold. Remember to take down your for-sale sign.');
+  };
+  const soldPaying =
+    !!soldTarget && ['active', 'past_due'].includes(soldTarget.paymentStatus ?? '') && !soldTarget.cancelAtPeriodEnd;
 
   // The listing waiting for delete confirmation (shown in a full-size dialog)
   const [deleteTarget, setDeleteTarget] = useState<Listing | null>(null);
@@ -316,6 +325,46 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             handleMarkSold(id);
           }}
         />
+      )}
+
+      {soldTarget && (
+        <div className="fixed inset-0 z-[70] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="sold-title">
+          <div className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
+            <h2 id="sold-title" className="text-lg font-bold text-slate-900">
+              Mark “{soldTarget.headline}” as sold?
+            </h2>
+            <p className="text-sm text-slate-600">
+              Congratulations! Your listing stops taking messages and viewing requests
+              {soldPaying ? ', and your subscription ends at the close of the month you’ve paid for. You won’t be charged again.' : '.'}
+            </p>
+            <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showAsSold}
+                onChange={(e) => setShowAsSold(e.target.checked)}
+                className="mt-0.5 w-5 h-5 accent-emerald-700 shrink-0"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-slate-900">Show my home as “Sold” on OwnersMarket for 90 days</span>
+                <span className="block text-xs text-slate-600 mt-0.5">
+                  It appears under “Recently sold by owners” with your cover photo, area, asking price and the month it sold. Your sale price
+                  is never shown. Untick to take it off the site completely.
+                </span>
+              </span>
+            </label>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setSoldTarget(null)} className="px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl min-h-[44px] cursor-pointer">
+                Cancel
+              </button>
+              <button
+                onClick={confirmMarkSold}
+                className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm rounded-xl min-h-[44px] cursor-pointer"
+              >
+                Mark as sold
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Toast Notification */}

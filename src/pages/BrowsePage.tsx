@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Listing, PropertyType, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
+import { RecentlySold } from '../components/RecentlySold';
 import { examplesToShow } from '../data/exampleListings';
 import { MapLibreMap } from '../components/LazyMap';
 import { OPEN_PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
@@ -412,6 +413,9 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
           )}
         </>
       )}
+
+      {/* Up to three real homes their owners sold (hidden until there are some) */}
+      <RecentlySold />
 
       {/* Example listings: shown only until there are 6 real homes. Never filtered, counted or mapped. */}
       {examplesToShow(realLiveCount).length > 0 && (
