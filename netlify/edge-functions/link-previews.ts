@@ -19,6 +19,7 @@ import {
   citySlug,
   cityTitle,
   countCities,
+  provinceByCodeForPage,
   provinceBySlug,
   provincePath,
   type ProvincePage,
@@ -42,6 +43,7 @@ type ListingRow = {
   offers_cashback?: boolean;
   cashback_amount?: number;
   agents_welcome?: boolean;
+  show_address?: boolean;
   listing_photos?: { url: string; is_cover: boolean; sort_order: number | null }[];
 };
 
@@ -82,6 +84,13 @@ function descriptionHtml(text: string): string {
     })
     .join('');
 }
+
+/**
+ * The site footer as it appears on the pre-built pages (guides, every province page, legal
+ * pages). Added to pages the edge function builds itself (listings, browse, city pages), so
+ * search engines can reach the rest of the site from them too.
+ */
+const SITE_FOOTER = PRERENDERED['/']?.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? '';
 
 const SIMPLE_HEADER = `<header style="border-bottom:1px solid #D5DED7"><div style="max-width:1240px;margin:0 auto;padding:18px 16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap"><a href="/" style="font-weight:700;font-size:24px;color:#16261D;text-decoration:none">OwnersMarket</a><nav style="display:flex;gap:16px;flex-wrap:wrap"><a href="/browse">Browse homes</a><a href="/sell">List your home</a><a href="/how-it-works">How it works</a><a href="/pricing">Pricing</a><a href="/about">About and contact</a></nav></div></header>`;
 
@@ -143,7 +152,7 @@ async function cityMeta(province: ProvincePage, slug: string): Promise<(PageMeta
       province.code,
     )}</h1><p style="max-width:1240px;margin:0 auto;padding:8px 16px"><a href="${esc(provincePath(province.slug))}">Selling in ${esc(
       province.name,
-    )}: what to know</a></p>${await listingLinksHtml(`${inCity.length} homes for sale by owner in ${name}`, inCity)}</main>`,
+    )}: what to know</a></p>${await listingLinksHtml(`${inCity.length} homes for sale by owner in ${name}`, inCity)}</main>${SITE_FOOTER}`,
   };
 }
 
@@ -163,7 +172,7 @@ const shorten = (text: string, max: number) => {
 
 async function listingMeta(id: string): Promise<(PageMeta & { body?: string }) | undefined> {
   const rows = await readPublic<ListingRow[]>(
-    `listings?id=eq.${id}&select=headline,description,price,bedrooms,bathrooms,city,province,neighborhood,property_type,sqft,year_built,property_taxes_annual,neighborhood_highlights,inclusions,offers_cashback,cashback_amount,agents_welcome,listing_photos(url,is_cover,sort_order)`,
+    `listings?id=eq.${id}&select=headline,description,price,bedrooms,bathrooms,city,province,neighborhood,property_type,sqft,year_built,property_taxes_annual,neighborhood_highlights,inclusions,offers_cashback,cashback_amount,agents_welcome,show_address,listing_photos(url,is_cover,sort_order)`,
   );
   // Database not reachable (or not configured): leave the page as it is rather than guess.
   if (rows === null) return undefined;
@@ -181,6 +190,7 @@ async function listingMeta(id: string): Promise<(PageMeta & { body?: string }) |
   const photo = photos[0];
   const facts = `${money(Number(l.price))} · ${plural(Number(l.bedrooms), 'bed')} · ${plural(Number(l.bathrooms), 'bath')} · ${l.city}, ${l.province}`;
   const place = `${l.neighborhood ? `${l.neighborhood}, ` : ''}${l.city}, ${l.province}`;
+  const province = provinceByCodeForPage(l.province);
   const factList = [
     ['Price', money(Number(l.price))],
     ['Bedrooms', l.bedrooms],
@@ -205,8 +215,13 @@ async function listingMeta(id: string): Promise<(PageMeta & { body?: string }) |
     descriptionHtml(l.description ?? ''),
     l.inclusions?.length ? `<h2>Included in the sale</h2><ul>${l.inclusions.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '',
     l.neighborhood_highlights ? `<h2>The neighbourhood</h2>${descriptionHtml(l.neighborhood_highlights)}` : '',
-    '<p>Message the owner on OwnersMarket to ask a question or book a viewing. The exact address is shared once a viewing is confirmed.</p>',
+    l.show_address
+      ? '<p>Message the owner on OwnersMarket to ask a question or book a viewing.</p>'
+      : '<p>Message the owner on OwnersMarket to ask a question or book a viewing. The exact address is shared once a viewing is confirmed.</p>',
+    // Where this home sits on the site: its province page and the guides (via the footer)
+    province ? `<p><a href="${esc(provincePath(province.slug))}">Homes for sale by owner in ${esc(province.name)}</a> · <a href="/browse">All homes for sale</a></p>` : '<p><a href="/browse">All homes for sale</a></p>',
     '</main>',
+    SITE_FOOTER,
   ].join('');
   return {
     title: `${shorten(l.headline, 70)} · ${money(Number(l.price))} · OwnersMarket`,
@@ -295,7 +310,7 @@ export default async (request: Request, context: { next: () => Promise<Response>
   if (path === '/' || path === '/browse') {
     const links = await listingLinksHtml('Homes for sale by owner');
     if (path === '/browse') {
-      body = `${SIMPLE_HEADER}<main><h1 style="max-width:1240px;margin:0 auto;padding:24px 16px 0">Homes for sale by owner across Canada</h1>${links}</main>`;
+      body = `${SIMPLE_HEADER}<main><h1 style="max-width:1240px;margin:0 auto;padding:24px 16px 0">Homes for sale by owner across Canada</h1>${links}</main>${SITE_FOOTER}`;
     } else if (body && links) {
       body = body.includes('<footer') ? body.replace('<footer', `${links}<footer`) : body + links;
     }
