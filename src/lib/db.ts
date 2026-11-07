@@ -174,6 +174,23 @@ const LISTING_COLUMNS = [
 /** The exact address (owner, admins, buyers with a confirmed viewing, or everyone when the owner shows it). */
 const PRIVATE_DETAIL_COLUMNS = 'listing_id,street_address,unit_number,postal_code,exact_lat,exact_lng';
 
+/** A home shown under "Recently sold by owners" (only what's safe to show: never the sale price). */
+export interface RecentlySold {
+  id: string;
+  headline: string;
+  propertyType: string;
+  neighborhood: string;
+  city: string;
+  province: string;
+  bedrooms: number;
+  bathrooms: number;
+  sqft: number;
+  /** The asking price buyers saw while it was for sale. */
+  price: number;
+  soldAt: string;
+  photoUrl?: string;
+}
+
 /** The name sellers see on messages from the OwnersMarket admin. */
 export const ADMIN_DISPLAY_NAME = 'Charles - Admin';
 
@@ -1127,8 +1144,11 @@ class DataStore {
   }
 
   /** Marks a listing sold. Its subscription ends at the close of the paid month (no refund). */
-  async markListingSold(id: string): Promise<void> {
+  /** Mark sold. `showAsSold`: list it under "Recently sold by owners" for 90 days (never the sale price). */
+  async markListingSold(id: string, showAsSold = true): Promise<void> {
     this.requireUser();
+    const { error } = await supabase.from('listings').update({ show_as_sold: showAsSold }).eq('id', id);
+    if (error) fail(error, 'We could not mark this listing sold. Please try again.');
     await this.callFunction('listing-action', { listingId: id, action: 'sold' }, 'We could not mark this listing sold. Please try again.');
     await this.refresh();
   }
@@ -1260,6 +1280,26 @@ class DataStore {
     const conversationId = data as string;
     await this.replyToThread(conversationId, content);
     return conversationId;
+  }
+
+  /** The browse page's "Recently sold by owners": up to 3 real sales from the last 90 days. */
+  async loadRecentlySold(): Promise<RecentlySold[]> {
+    const { data, error } = await supabase.rpc('recently_sold');
+    if (error || !Array.isArray(data)) return [];
+    return (data as Row[]).map((r) => ({
+      id: r.id,
+      headline: r.headline,
+      propertyType: r.property_type,
+      neighborhood: r.neighborhood ?? '',
+      city: r.city,
+      province: r.province,
+      bedrooms: Number(r.bedrooms),
+      bathrooms: Number(r.bathrooms),
+      sqft: Number(r.sqft),
+      price: Number(r.price),
+      soldAt: r.sold_at,
+      photoUrl: r.photo_url ?? undefined,
+    }));
   }
 
   /** Admin: everyone with an account. */
