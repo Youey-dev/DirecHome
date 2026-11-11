@@ -21,6 +21,7 @@ import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AuthModal } from './components/AuthModal';
 import { PasswordRecoveryModal } from './components/PasswordRecoveryModal';
 import { SetupNotice } from './components/SetupNotice';
+import { PromoBar } from './components/PromoBar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TAB_PATHS, pathFor } from './lib/routes';
 import { initAnalytics, trackEvent, trackPageView } from './lib/analytics';
@@ -300,6 +301,7 @@ function MainApp() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900">
+      {currentTab === 'landing' && <PromoBar onStart={() => handleNavigate('wizard')} />}
       <Header
         currentTab={currentTab}
         onNavigate={handleNavigate}

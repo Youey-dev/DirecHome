@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, Ticket } from 'lucide-react';
 import { db, type PromoResult } from '../lib/db';
+import { rememberedPromo } from '../lib/promo';
 
 const longDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -14,8 +15,9 @@ export const PromoCodeBox: React.FC<{
   listingId: string;
   onDone: (message: string) => void;
 }> = ({ listingId, onDone }) => {
-  const [open, setOpen] = useState(false);
-  const [code, setCode] = useState('');
+  // A code remembered from the homepage offer opens the box with it filled in
+  const [code, setCode] = useState(() => rememberedPromo() ?? '');
+  const [open, setOpen] = useState(() => !!code);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [found, setFound] = useState<PromoResult | null>(null);

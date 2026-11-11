@@ -1,3 +1,4 @@
+import { SITE_PROMO, rememberPromo } from '../lib/promo';
 import React, { useState } from 'react';
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
@@ -123,6 +124,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </button>
         </form>
         <p className="text-sm text-slate-600">
+          {SITE_PROMO && (
+            <>
+              <strong className="text-slate-900">Selling? Your first {SITE_PROMO.months} months are on us.</strong>{' '}
+              <button
+                onClick={() => {
+                  rememberPromo(SITE_PROMO!.code);
+                  onNavigate('wizard');
+                }}
+                className="font-semibold text-emerald-800 underline underline-offset-2 cursor-pointer"
+              >
+                List your home free →
+              </button>
+              <span className="mx-1.5" aria-hidden="true">·</span>
+            </>
+          )}
           Every listing is reviewed before it goes live. OwnersMarket is an advertising site, not a brokerage.
         </p>
       </section>
