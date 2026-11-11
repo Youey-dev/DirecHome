@@ -24,7 +24,6 @@ import { SetupNotice } from './components/SetupNotice';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TAB_PATHS, pathFor } from './lib/routes';
 import { initAnalytics, trackEvent, trackPageView } from './lib/analytics';
-import { findExample } from './data/exampleListings';
 
 // Heavier pages load only when visited (keeps the first page load fast)
 const WizardPage = lazy(() => import('./pages/WizardPage').then((m) => ({ default: m.WizardPage })));
@@ -66,7 +65,7 @@ const TAB_TITLES: Record<string, string> = {
   notifications: 'Notification Preferences · OwnersMarket',
   calculator: 'Real Estate Commission Calculator · OwnersMarket',
   'not-found': 'Page not found · OwnersMarket',
-  example: 'Example listing (not for sale) · OwnersMarket',
+  example: 'Page not found · OwnersMarket',
   'guide-selling': ARTICLE_META.find((m) => m.path === '/guides/selling-your-home')?.title ?? 'How to Sell Your House Privately in Canada · OwnersMarket',
   guides: 'Seller Guides: Selling Your Home Yourself in Canada · OwnersMarket',
   'guide-bc': ARTICLE_META.find((m) => m.path === '/guides/selling-without-a-realtor-bc')?.title ?? 'Selling Your Own Home in BC Without a Realtor · OwnersMarket',
@@ -368,24 +367,14 @@ function MainApp() {
               <Loading label="Loading home…" />
             ))}
 
-          {currentTab === 'example' &&
-            (selectedListingId && findExample(selectedListingId) ? (
-              <ListingDetailPage
-                listing={findExample(selectedListingId)!}
-                activeUser={activeUser}
-                isFavorited={false}
-                onToggleFavorite={handleToggleFavorite}
-                onBack={() => handleNavigate('browse')}
-                onOpenAuth={handleOpenAuth}
-                onListYourHome={() => handleNavigate('wizard')}
-              />
-            ) : (
-              <Gate
-                title="This example isn’t available"
-                text="Browse homes for sale by owner instead."
-                action={{ label: 'Browse homes', onClick: () => handleNavigate('browse') }}
-              />
-            ))}
+          {/* Example listings were removed: old /example/ links land here */}
+          {currentTab === 'example' && (
+            <Gate
+              title="This page isn’t available"
+              text="Browse homes for sale by owner instead."
+              action={{ label: 'Browse homes', onClick: () => handleNavigate('browse') }}
+            />
+          )}
 
           {/* Anyone can fill in a listing; the account is created at the last step */}
           {currentTab === 'wizard' && (

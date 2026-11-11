@@ -158,7 +158,6 @@ async function cityMeta(province: ProvincePage, slug: string): Promise<(PageMeta
 
 const LISTING_PATH = /^\/listing\/([0-9a-fA-F-]{36})$/;
 // Example listings (not for sale): shown on the site, never indexed by search engines.
-const EXAMPLE_PATH = /^\/example\/[a-z0-9-]{1,60}$/;
 
 const money = (n: number) =>
   new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n);
@@ -286,13 +285,6 @@ export default async (request: Request, context: { next: () => Promise<Response>
   let meta: (PageMeta & { body?: string }) | undefined;
   if (listingMatch) meta = await listingMeta(listingMatch[1]);
   else if (cityMatch && cityProvince) meta = await cityMeta(cityProvince, cityMatch[2]);
-  else if (EXAMPLE_PATH.test(path))
-    meta = {
-      ...PAGES['/'],
-      title: 'Example listing (not for sale) · OwnersMarket',
-      description: 'An example of what a for-sale-by-owner listing looks like on OwnersMarket. Not a real home for sale.',
-      noindex: true,
-    };
   else if (PAGES[path]) meta = { ...PAGES[path], jsonLd: structuredData(path, PAGES[path]) };
   else if (PRIVATE_PATHS.includes(path)) meta = { ...PAGES['/'], noindex: true };
   // Any other address doesn't exist: say so with a real 404, so search engines don't index it.

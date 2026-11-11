@@ -196,7 +196,7 @@ export interface Listing {
   termsVersion?: string; // e.g. "2026-v1.0-draft"
 
   /**
-   * Example listing (src/data/exampleListings.ts): shows how a home looks on OwnersMarket.
+   * Example listing (no longer used: the example listings were removed in Nov 2026).
    * Not a real home and not for sale; never stored in the database.
    */
   isExample?: boolean;

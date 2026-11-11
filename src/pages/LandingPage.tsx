@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
-import { examplesToShow } from '../data/exampleListings';
 import { OPEN_PROVINCES, ALL_PROVINCES } from '../data/cities';
 import { calculateBCCommission, formatCAD, formatCADCents, LISTING_FEE_CAD_PER_MONTH } from '../lib/commissionCalc';
 import type { BrowseFilters } from './BrowsePage';
@@ -36,9 +35,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSearch
 }) => {
   const liveListings = listings.filter((l) => isListingLive(l));
-  // Until there are 6 real homes, fill the row with clearly labelled examples (not for sale).
-  const examples = examplesToShow(liveListings.length);
-  const shownListings = [...liveListings.slice(0, 8), ...examples];
+  const shownListings = liveListings.slice(0, 8);
 
   const [query, setQuery] = useState('');
   const [province, setProvince] = useState(ALL_PROVINCES);
@@ -143,12 +140,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {liveListings.length > 0 ? `See all ${liveListings.length} ${liveListings.length === 1 ? 'home' : 'homes'}` : 'Browse homes'}
             </NavLink>
           </div>
-          {examples.length > 0 && (
-            <p className="-mt-1 mb-6 text-base text-slate-600">
-              Listings marked <span className="bg-sign text-slate-900 text-xs font-bold px-2 py-0.5 rounded">Example · not for sale</span>{' '}
-              show what a listing looks like. They aren’t real homes for sale.
-            </p>
-          )}
           {shownListings.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7">
               {shownListings.map((listing) => (

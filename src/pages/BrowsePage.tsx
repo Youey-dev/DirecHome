@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Listing, PropertyType, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { RecentlySold } from '../components/RecentlySold';
-import { examplesToShow } from '../data/exampleListings';
 import { MapLibreMap } from '../components/LazyMap';
 import { OPEN_PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
 import { 
@@ -339,7 +338,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
           <h3 className="text-lg font-bold text-slate-900">{realLiveCount === 0 ? 'The first homes are going up now' : 'No matching homes found'}</h3>
           <p className="text-sm text-slate-500">
             {realLiveCount === 0
-              ? 'Check back soon, or see the examples below for what a listing looks like.'
+              ? 'Check back soon: new homes are listed by their owners every week.'
               : 'Try a wider price range, a different province, or another city or neighbourhood.'}
           </p>
           {realLiveCount > 0 && <button
@@ -416,27 +415,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
       {/* Up to three real homes their owners sold (hidden until there are some) */}
       <RecentlySold />
-
-      {/* Example listings: shown only until there are 6 real homes. Never filtered, counted or mapped. */}
-      {examplesToShow(realLiveCount).length > 0 && (
-        <section className="mt-14 border-t border-slate-200 pt-10">
-          <h2 className="font-display font-bold text-[32px] leading-none text-slate-900">Example listings (not for sale)</h2>
-          <p className="mt-2 mb-6 text-base text-slate-600 max-w-[60ch]">
-            These show what a listing on OwnersMarket looks like. They aren’t real homes and can’t be bought.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {examplesToShow(realLiveCount).map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                isFavorited={false}
-                onToggleFavorite={onToggleFavorite}
-                onSelect={onSelectListing}
-              />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Mobile Filters Drawer */}
       {mobileFiltersOpen && (
