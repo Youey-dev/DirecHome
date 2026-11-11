@@ -3,6 +3,7 @@ import type { ConversationThread, Listing, ListingReport, ListingStatus, UserPro
 import { isListingLive } from '../types/listing';
 import { ADMIN_DISPLAY_NAME, db, type AdminUserRow } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
+import { AdminPromotions } from '../components/AdminPromotions';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -15,6 +16,7 @@ import {
   Gift,
   Play,
   Search,
+  Ticket,
   Send,
   ShieldCheck,
   Pencil,
@@ -30,9 +32,18 @@ interface AdminPageProps {
   onEditListing?: (listing: Listing) => void;
 }
 
-type AdminTab = 'overview' | 'listings' | 'review' | 'people' | 'messages' | 'reports';
+type AdminTab = 'overview' | 'listings' | 'review' | 'people' | 'messages' | 'reports' | 'promotions';
 
 /** What the admin is about to do, shown in the dialog. */
+/** "Feb 11, 2027" */
+const shortDate = (d: string | Date) =>
+  new Date(d).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+const addMonths = (n: number) => {
+  const d = new Date();
+  d.setMonth(d.getMonth() + n);
+  return d;
+};
+
 type Pending =
   | { kind: 'pause'; listing: Listing }
   | { kind: 'takedown'; listing: Listing; reportId?: string }
@@ -86,6 +97,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
   const [pending, setPending] = useState<Pending | null>(null);
   const [text, setText] = useState('');
   const [confirmed, setConfirmed] = useState(false);
+  const [freeMonths, setFreeMonths] = useState(3);
   const [busy, setBusy] = useState(false);
 
   // Listings tab filters
@@ -220,14 +232,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
     }
     if (pending.kind === 'free' || pending.kind === 'endfree') {
       const free = pending.kind === 'free';
-      if (free && !confirmed) return flash('Tick the box to confirm you know this listing isn’t paid.', true);
       const ok = await run(
         async () => {
-          await db.adminSetFreeListing(listing.id, free);
+          await db.adminGiveFreeMonths(listing.id, free ? freeMonths : 0);
           if (reason) await db.adminMessageSeller(listing.id, reason);
         },
         free
-          ? `“${listing.headline}” is now showing to buyers for free. It is NOT paid.`
+          ? `“${listing.headline}” is showing to buyers, free for ${freeMonths} ${freeMonths === 1 ? 'month' : 'months'}. ${listing.sellerName} was told the end date.`
           : `Free listing ended. “${listing.headline}” is hidden until the owner activates it.`,
       );
       if (ok) close();
@@ -290,6 +301,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
     { id: 'people', label: 'People', icon: <Users className="w-4 h-4" />, badge: people.length },
     { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" />, badge: unreadAdmin },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" />, badge: openReports.length },
+    { id: 'promotions', label: 'Promotions', icon: <Ticket className="w-4 h-4" /> },
   ];
 
   const StatusBadge = ({ l }: { l: Listing }) => (
@@ -300,7 +312,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
       {l.adminHold && <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-300 text-amber-950">Paused by admin</span>}
       {l.paymentStatus === 'complimentary_launch' && (
         <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 ring-1 ring-amber-300" title="Showing to buyers without payment. OwnersMarket collects nothing for it.">
-          Free · not paid
+          {l.complimentaryUntil ? `Free until ${shortDate(l.complimentaryUntil)}` : 'Free · not paid'}
         </span>
       )}
       {l.status === 'live' && !isListingLive(l) && (
@@ -375,8 +387,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
           </ActionButton>
         )}
         {l.status === 'live' && !l.adminHold && ['unpaid', 'canceled', undefined].includes(l.paymentStatus) && (
-          <ActionButton onClick={() => open({ kind: 'free', listing: l })} title="Show it to buyers without payment">
-            <Gift className="w-3.5 h-3.5" /> Make live without payment
+          <ActionButton onClick={() => open({ kind: 'free', listing: l })} title="Show it to buyers free for a few months">
+            <Gift className="w-3.5 h-3.5" /> Give free months
           </ActionButton>
         )}
         {l.paymentStatus === 'complimentary_launch' && (
@@ -618,11 +630,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
         };
       case 'free':
         return {
-          title: `Make “${l.headline}” live without payment`,
-          body: `This listing has NOT been paid. It will show to buyers right away and stay up, free, until you end it here. OwnersMarket collects no money for it, and ${l.sellerName} won’t be charged. It will be marked “Free · not paid” in this console.`,
+          title: `Give “${l.headline}” free months`,
+          body: `It shows to buyers right away, free, with no card needed. ${l.sellerName} gets a notice with the end date and a reminder a week before. When the free months end, the listing is hidden (not deleted) until they tap “Activate listing” ($24.99 a month).`,
           label: `Message to ${l.sellerName} (optional)`,
-          placeholder: `Hi ${l.sellerName.split(' ')[0] || 'there'}, your listing is now live on OwnersMarket, free of charge for now…`,
-          button: 'Make live, not paid',
+          placeholder: `Hi ${l.sellerName.split(' ')[0] || 'there'}, your listing is now live on OwnersMarket, free for the next few months…`,
+          button: 'Make live free',
           danger: false,
         };
       case 'endfree':
@@ -693,6 +705,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
       </nav>
 
       {/* Overview */}
+      {tab === 'promotions' && <AdminPromotions />}
+
       {tab === 'overview' && (
         <div className="space-y-8">
           {(reviewQueue.length > 0 || openReports.length > 0 || unreadAdmin > 0) && (
@@ -1103,9 +1117,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
               </label>
             )}
             {pending.kind === 'free' && (
-              <label className="flex items-start gap-2 text-sm text-slate-800 rounded-lg bg-amber-50 border border-amber-200 p-3">
-                <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-1 w-4 h-4" />
-                I understand this listing is not paid and OwnersMarket collects no money for it.
+              <label className="flex items-center gap-2 text-sm text-slate-800 rounded-lg bg-emerald-50 border border-emerald-200 p-3 flex-wrap">
+                <span className="font-semibold">Give</span>
+                <select
+                  value={freeMonths}
+                  onChange={(e) => setFreeMonths(Number(e.target.value))}
+                  className="px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-sm"
+                >
+                  {[1, 2, 3, 4, 6, 9, 12].map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <span className="font-semibold">{freeMonths === 1 ? 'month' : 'months'} free</span>
+                <span className="text-slate-600">· until {shortDate(addMonths(freeMonths))}</span>
               </label>
             )}
             <div className="flex justify-end gap-2 pt-1">

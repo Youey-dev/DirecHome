@@ -1,3 +1,4 @@
+import { PromoCodeBox } from '../components/PromoCodeBox';
 import React, { useState, useEffect } from 'react';
 import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfile, isListingLive } from '../types/listing';
 import { db } from '../lib/db';
@@ -777,12 +778,47 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     </div>
                   )}
 
-                  {/* Put up free of charge by OwnersMarket */}
-                  {listing.status === 'live' && listing.paymentStatus === 'complimentary_launch' && (
+                  {/* Put up free of charge by OwnersMarket (no end date: the first free listings) */}
+                  {listing.status === 'live' && listing.paymentStatus === 'complimentary_launch' && !listing.complimentaryUntil && (
                     <div className="px-5 py-3 border-t border-emerald-100 bg-emerald-50 text-xs text-emerald-950">
                       <strong>Free listing:</strong> OwnersMarket has put this listing up at no charge. You won’t be billed for it.
                     </div>
                   )}
+
+                  {/* Free months (promo code or given by OwnersMarket), with an end date */}
+                  {(listing.status === 'live' || listing.status === 'paused') && listing.paymentStatus === 'complimentary_launch' && listing.complimentaryUntil && (() => {
+                    const endsSoon = new Date(listing.complimentaryUntil).getTime() - Date.now() < 7 * 86400000;
+                    return (
+                      <div className={`px-5 py-3 border-t text-xs flex items-center justify-between gap-3 flex-wrap ${
+                        endsSoon ? 'bg-amber-50 border-amber-200 text-amber-950' : 'bg-emerald-50 border-emerald-100 text-emerald-950'
+                      }`}>
+                        <div>
+                          {endsSoon ? (
+                            <span>
+                              <strong>Your free period ends {fmtDate(listing.complimentaryUntil)}.</strong> Activate now to keep your listing up after
+                              that: $24.99 a month, and you won’t be charged before {fmtDate(listing.complimentaryUntil)}. If you do nothing, it’s
+                              hidden from buyers but not deleted.
+                            </span>
+                          ) : (
+                            <span>
+                              <strong>Free until {fmtDate(listing.complimentaryUntil)}.</strong> No card needed. We’ll remind you a week before it ends.
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => void handleActivate(listing.id)}
+                          disabled={checkoutBusy !== null}
+                          aria-busy={checkoutBusy === listing.id}
+                          className={`px-3 py-1.5 font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer min-h-[44px] disabled:opacity-80 disabled:cursor-wait ${
+                            endsSoon ? 'bg-emerald-700 hover:bg-emerald-800 text-white' : 'bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-200'
+                          }`}
+                        >
+                          {checkoutBusy === listing.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" /> : <CreditCard className="w-3.5 h-3.5" />}
+                          <span>{checkoutBusy === listing.id ? 'Opening secure checkout…' : endsSoon ? 'Activate listing' : 'Activate early'}</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
 
                   {/* Billing */}
                   {(listing.status === 'live' || listing.status === 'paused') && listing.paymentStatus !== 'complimentary_launch' && (
@@ -825,6 +861,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           <CreditCard className="w-3.5 h-3.5 text-slate-500" />
                           <span>Manage billing</span>
                         </button>
+                      )}
+                      {(listing.paymentStatus === 'unpaid' || listing.paymentStatus === 'canceled' || !listing.paymentStatus) && (
+                        <div className="w-full">
+                          <PromoCodeBox listingId={listing.id} onDone={showToast} />
+                        </div>
                       )}
                     </div>
                   )}
