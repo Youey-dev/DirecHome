@@ -182,6 +182,9 @@ async function listingMeta(id: string): Promise<(PageMeta & { body?: string }) |
       title: 'This listing isn’t available · OwnersMarket',
       description: 'It may have been sold, paused or removed by the owner. Browse other homes for sale by owner on OwnersMarket.',
       noindex: true,
+      // A real "not found" for search engines. The page itself still loads, so an owner or admin
+      // opening their own unpublished listing sees it as before.
+      status: 404,
     };
   }
   const photos = (l.listing_photos ?? [])
