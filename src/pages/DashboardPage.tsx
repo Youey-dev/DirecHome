@@ -1,3 +1,5 @@
+import { OffersPanel } from '../components/OffersPanel';
+import { OpenHouseManager } from '../components/OpenHouseManager';
 import { PromoCodeBox } from '../components/PromoCodeBox';
 import React, { useState, useEffect } from 'react';
 import { AppNotification, Listing, ViewingRequest, ConversationThread, UserProfile, isListingLive } from '../types/listing';
@@ -36,7 +38,7 @@ import {
 } from 'lucide-react';
 
 export interface DashboardIntent {
-  tab: 'listings' | 'viewings' | 'messages';
+  tab: 'listings' | 'viewings' | 'messages' | 'offers';
   threadId?: string;
   nonce: number;
 }
@@ -55,7 +57,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onEditListing,
   intent
 }) => {
-  const [activeTab, setActiveTab] = useState<'listings' | 'viewings' | 'messages'>('listings');
+  const [activeTab, setActiveTab] = useState<'listings' | 'viewings' | 'messages' | 'offers'>('listings');
   // Which sign is being made right now (listing id + kind), so its button can show progress
   const [signBusy, setSignBusy] = useState<string | null>(null);
   // The listing whose feature sheet preview is open
@@ -108,6 +110,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const VIEWING_UPDATE_TYPES = ['viewing_confirmed', 'viewing_declined', 'viewing_cancelled', 'viewing_rescheduled'];
   const unreadViewingUpdates = notifications.filter((n) => !n.read && VIEWING_UPDATE_TYPES.includes(n.type)).length;
   const unreadMessages = threads.reduce((sum, t) => sum + t.unreadCount, 0);
+  const unreadOfferNews = notifications.filter((n) => !n.read && (n.type === 'new_offer' || n.type.startsWith('offer_'))).length;
   const unreadListingNews = notifications.filter((n) => !n.read && ['listing_live', 'listing_rejected', 'listing_paused_admin', 'listing_deleted_admin'].includes(n.type)).length;
 
   const showToast = (msg: string) => {
@@ -583,7 +586,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </div>
 
       {/* Segmented Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('listings')}
           className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors cursor-pointer min-h-[44px] ${
@@ -635,7 +638,39 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             )}
           </span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('offers')}
+          className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors cursor-pointer min-h-[44px] ${
+            activeTab === 'offers'
+              ? 'bg-slate-900 text-white'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          <span className="flex items-center gap-1.5">
+            Offers
+            {unreadOfferNews > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadOfferNews}
+              </span>
+            )}
+          </span>
+        </button>
       </div>
+
+      {activeTab === 'offers' && (
+        <OffersPanel
+          onToast={showToast}
+          onOpenListing={(id) => onNavigate('detail', id)}
+          onMessageBuyer={(listingId, buyerId) => {
+            void db.refresh().then(() => {
+              const t = db.getThreads().find((x) => x.listingId === listingId && x.buyerId === buyerId);
+              setActiveTab('messages');
+              if (t) setSelectedThreadId(t.id);
+            });
+          }}
+        />
+      )}
 
       {/* TAB 1: My Listings Management */}
       {activeTab === 'listings' && (
@@ -776,6 +811,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         )}
                       </div>
                     </div>
+                  )}
+
+                  {/* Open houses: approved listings */}
+                  {(listing.status === 'live' || listing.status === 'paused') && (
+                    <OpenHouseManager listing={listing} onToast={showToast} />
                   )}
 
                   {/* Put up free of charge by OwnersMarket (no end date: the first free listings) */}

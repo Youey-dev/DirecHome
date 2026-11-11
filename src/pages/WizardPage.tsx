@@ -1,3 +1,4 @@
+import { isAlertableDrop } from '../lib/listingNews';
 import React, { useState, useEffect, useRef } from 'react';
 import { FormattedText } from '../components/FormattedText';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
@@ -907,9 +908,20 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 onChange={(e) => setPrice(Number(e.target.value))}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-base font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:bg-white min-h-[44px]"
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Direct sellers price fairly based on recent neighbourhood sales without broker markup.
-              </span>
+              {editListing && ['live', 'paused'].includes(editListing.status) && isAlertableDrop(editListing.price, price) ? (
+                <div className="mt-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-950">
+                  <strong>
+                    That’s {formatCAD(editListing.price - price)} less ({(((editListing.price - price) / editListing.price) * 100).toFixed(1)}%).
+                  </strong>{' '}
+                  {editListing.savesCount > 0
+                    ? `${editListing.savesCount} ${editListing.savesCount === 1 ? 'buyer saved' : 'buyers saved'} your home. We’ll email them the new price, and it shows “Price reduced” in search for 14 days.`
+                    : 'It shows “Price reduced” in search for 14 days, and anyone who saves your home is told about future drops.'}
+                </div>
+              ) : (
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Direct sellers price fairly based on recent neighbourhood sales without broker markup.
+                </span>
+              )}
             </div>
 
             {/* Beds and Baths */}

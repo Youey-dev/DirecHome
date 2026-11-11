@@ -108,6 +108,44 @@ export interface ListingReport {
   status: 'pending' | 'dismissed' | 'resolved';
 }
 
+export interface OpenHouse {
+  id: string;
+  listingId: string;
+  startsAt: string;
+  endsAt: string;
+  note?: string;
+  goingCount: number;
+  cancelledAt?: string;
+}
+
+export type OfferCondition = 'financing' | 'inspection' | 'strata_documents' | 'sale_of_home' | 'appraisal' | 'insurance';
+export type OfferFinancing = 'pre_approved' | 'cash' | 'not_yet';
+export type OfferStatus = 'open' | 'accepted' | 'countered' | 'declined' | 'withdrawn';
+
+/** A non-binding offer a buyer sends through OwnersMarket */
+export interface Offer {
+  id: string;
+  listingId: string;
+  listingHeadline: string;
+  listingPrice: number;
+  buyerId: string;
+  buyerName: string;
+  /** I sent it (as the buyer) */
+  isMine: boolean;
+  amount: number;
+  deposit?: number;
+  possessionDate?: string;
+  openUntil: string;
+  conditions: OfferCondition[];
+  financing: OfferFinancing;
+  message?: string;
+  status: OfferStatus;
+  counterAmount?: number;
+  reply?: string;
+  respondedAt?: string;
+  createdAt: string;
+}
+
 export interface Listing {
   id: string;
   userId: string;
@@ -191,6 +229,11 @@ export interface Listing {
   nextBillingAt?: string;
   /** End of a free period (promo code or given by the admin). Not set on the older free listings with no end. */
   complimentaryUntil?: string;
+  /** The asking price before the last drop of 1% or more (shown as "Price reduced" for 14 days) */
+  priceReducedFrom?: number;
+  priceReducedAt?: string;
+  /** Upcoming and recent open houses (cancelled ones only for the owner) */
+  openHouses?: OpenHouse[];
   /** Owner and admins only: changes waiting for review while the listing stays live. */
   pendingEdit?: PendingEdit;
   // Terms & Privacy Acceptance (Audit Log)

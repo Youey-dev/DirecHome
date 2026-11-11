@@ -2,6 +2,7 @@ import React from 'react';
 import { Listing } from '../types/listing';
 import { formatCAD } from '../lib/commissionCalc';
 import { Heart } from 'lucide-react';
+import { priceDrop, shortDay, timeRange, upcomingOpenHouses } from '../lib/listingNews';
 
 interface ListingCardProps {
   listing: Listing;
@@ -27,6 +28,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   const coverPhoto = listing.photos.find((p) => p.isCover) || listing.photos[0];
   const place = [listing.neighborhood, listing.city, listing.province].filter(Boolean).join(', ');
   const typeLabel = TYPE_LABEL[listing.propertyType] ?? listing.propertyType.toLowerCase();
+  const openHouse = upcomingOpenHouses(listing)[0];
+  const drop = priceDrop(listing);
 
   return (
     <article
@@ -68,8 +71,16 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           </div>
         )}
 
-        <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
-          {listing.photos.length > 0 && (
+        <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2">
+          {openHouse && (
+            <span className="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1 rounded">
+              Open house {shortDay(openHouse.startsAt, listing.province)} · {timeRange(openHouse, listing.province)}
+            </span>
+          )}
+          {drop && (
+            <span className="bg-red-700 text-white text-xs font-bold px-2.5 py-1 rounded">↓ Price reduced {formatCAD(drop.amount)}</span>
+          )}
+          {listing.photos.length > 0 && !openHouse && !drop && (
             <span className="bg-white text-slate-900 text-xs font-semibold px-2.5 py-1 rounded">
               {listing.photos.length} {listing.photos.length === 1 ? 'photo' : 'photos'}
             </span>
@@ -86,8 +97,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
       </div>
 
       <div className="flex flex-col gap-0.5">
-        <span className="font-display font-bold text-[30px] leading-none tabular-nums">
-          {formatCAD(listing.price)}
+        <span className="flex items-baseline gap-2 flex-wrap">
+          <span className="font-display font-bold text-[30px] leading-none tabular-nums">{formatCAD(listing.price)}</span>
+          {drop && <span className="text-[15px] text-slate-500 line-through tabular-nums">{formatCAD(drop.from)}</span>}
         </span>
         <span className="text-[15px] font-medium pt-1">
           {listing.bedrooms} bed, {listing.bathrooms} bath {typeLabel}, {listing.sqft.toLocaleString()} sq ft

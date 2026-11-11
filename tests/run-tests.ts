@@ -20,6 +20,7 @@ import { runAgentTests } from './agents.test';
 import { runPrerenderTests } from './prerender.test';
 import { runShareTests } from './share.test';
 import { runArticleTests } from './articles.test';
+import { runListingNewsTests } from './listingNews.test';
 
 async function main() {
   console.log('====================================================');
@@ -41,6 +42,7 @@ async function main() {
     runTextTests();
     runAgentTests();
     runPrerenderTests();
+    runListingNewsTests();
 
     console.log('====================================================');
     console.log('✨ SUCCESS: ALL TEST SUITES PASSED WITHOUT ERRORS!');

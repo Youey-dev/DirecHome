@@ -51,6 +51,24 @@ export function actionFor(type: string): Action {
     case "listing_in_review":
     case "new_report":
       return { path: "/admin", button: "Open the admin console" };
+    case "new_offer":
+      return { path: "/dashboard?tab=offers", button: "See the offer", note: "Offers on OwnersMarket aren't binding. Accept, counter or decline from your dashboard." };
+    case "offer_accepted":
+    case "offer_countered":
+    case "offer_declined":
+    case "offer_withdrawn":
+      return { path: "/dashboard?tab=offers", button: "See your offers", note: SAFETY };
+    case "price_drop":
+      return { path: "/listing/:listing", button: "See the home", note: "You're getting this because you saved this home." };
+    case "open_house_going":
+    case "open_house_reminder":
+    case "open_house_changed":
+    case "open_house_cancelled":
+      return { path: "/listing/:listing", button: "See the listing" };
+    case "promo_applied":
+    case "free_period_ending":
+    case "free_period_ended":
+      return { path: "/dashboard?tab=listings", button: "Open your listings" };
     default:
       return { path: "/dashboard", button: "Open OwnersMarket" };
   }
@@ -68,7 +86,11 @@ export function buildEmail(
   opts: { site: string; firstName?: string; address?: string },
 ): { subject: string; html: string; text: string } {
   const action = actionFor(n.type);
-  const link = `${opts.site}${action.path}`;
+  // Some notices link to the home itself
+  const path = action.path.includes(":listing")
+    ? (n.listing_id ? action.path.replace(":listing", encodeURIComponent(n.listing_id)) : "/dashboard")
+    : action.path;
+  const link = `${opts.site}${path}`;
   const prefs = `${opts.site}/notifications`;
   const title = clean(n.title).slice(0, 150) || "You have an update on OwnersMarket";
   const body = clean(n.body).slice(0, 600);
