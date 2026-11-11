@@ -78,7 +78,7 @@ export const CostCalculator: React.FC<{
             <div className="text-sm text-slate-600 mt-1">{parts.join(' · ')}</div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <MoneyInput label="Price" value={price} onChange={setPrice} />
             <label className="block">
               <span className="block text-xs font-semibold text-slate-700 mb-1">Down payment</span>
