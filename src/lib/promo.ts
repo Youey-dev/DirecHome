@@ -1,16 +1,16 @@
 /**
- * The promotion advertised on the homepage ("Your first 3 months are on us").
- *
- * To change or end it, edit SITE_PROMO and publish:
- *  - `code` must exist and be active in Admin → Promotions (No card), with the same number of months;
- *  - set SITE_PROMO to null to hide the homepage bar and line.
- * Sellers who click the offer have the code filled in for them on their dashboard later.
+ * The offer on the homepage ("Your first 3 months are on us") is chosen in
+ * Admin → Promotions → Homepage offer, and read with db.loadHomepagePromo().
+ * These helpers remember a clicked offer in this browser, so the dashboard's
+ * "Have a promo code?" box opens with it filled in.
  */
-export const SITE_PROMO: { code: string; months: number } | null = { code: 'SPRING3', months: 3 };
+export interface HomepagePromo {
+  code: string;
+  months: number;
+}
 
 const KEY = 'om_promo_code';
 
-/** Remembers the advertised code in this browser, for the dashboard's "Have a promo code?" box. */
 export function rememberPromo(code: string): void {
   try {
     localStorage.setItem(KEY, code);
@@ -19,7 +19,6 @@ export function rememberPromo(code: string): void {
   }
 }
 
-/** The code remembered from the homepage offer, if any. */
 export function rememberedPromo(): string | null {
   try {
     return localStorage.getItem(KEY);

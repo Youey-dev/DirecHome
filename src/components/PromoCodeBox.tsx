@@ -16,7 +16,8 @@ export const PromoCodeBox: React.FC<{
   onDone: (message: string) => void;
 }> = ({ listingId, onDone }) => {
   // A code remembered from the homepage offer opens the box with it filled in
-  const [code, setCode] = useState(() => rememberedPromo() ?? '');
+  // (or, failing that, the offer on the homepage right now)
+  const [code, setCode] = useState(() => rememberedPromo() ?? db.homepagePromo?.code ?? '');
   const [open, setOpen] = useState(() => !!code);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

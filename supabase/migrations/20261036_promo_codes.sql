@@ -422,3 +422,59 @@ revoke execute on function public.process_free_periods() from public, anon, auth
 
 select cron.unschedule('free-periods') where exists (select 1 from cron.job where jobname = 'free-periods');
 select cron.schedule('free-periods', '20 * * * *', 'select public.process_free_periods();');
+
+-- ---------------------------------------------------------------------------
+-- Homepage offer: the admin ticks one of 1, 3, 6, 9 or 12 months (or Off) in the admin console.
+-- That month's code (WELCOME1, WELCOME3, ...: no card) is created if needed and becomes the one
+-- advertised on the homepage ("Your first 3 months are on us") and filled in on sellers' dashboards.
+-- ---------------------------------------------------------------------------
+alter table public.promo_codes add column if not exists featured boolean not null default false;
+create unique index if not exists promo_codes_one_featured on public.promo_codes (featured) where featured;
+
+-- Anyone can ask which offer is on the homepage (it is advertised publicly anyway)
+create or replace function public.homepage_promo()
+returns table(code text, free_months integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.code, p.free_months from public.promo_codes p
+   where p.featured and p.active
+     and (p.valid_until is null or current_date <= p.valid_until)
+     and (p.max_uses is null or (select count(*) from public.promo_redemptions r where r.code = p.code) < p.max_uses)
+   limit 1;
+$$;
+revoke execute on function public.homepage_promo() from public;
+grant execute on function public.homepage_promo() to anon, authenticated;
+
+-- Admin: put an offer on the homepage (_months 1, 3, 6, 9 or 12), or take it off (0)
+create or replace function public.admin_set_homepage_promo(_months integer)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+#variable_conflict use_column
+declare
+  _code text;
+begin
+  if not public.is_admin() then
+    raise exception 'Only the OwnersMarket team can do this.';
+  end if;
+  if _months not in (0, 1, 3, 6, 9, 12) then
+    raise exception 'Choose 1, 3, 6, 9 or 12 months.';
+  end if;
+  update public.promo_codes set featured = false where featured;
+  if _months = 0 then
+    return null;
+  end if;
+  _code := 'WELCOME' || _months;
+  insert into public.promo_codes (code, free_months, card_required, active, featured, note)
+  values (_code, _months, false, true, true, 'Homepage offer')
+  on conflict (code) do update set featured = true, active = true;
+  return _code;
+end;
+$$;
+revoke execute on function public.admin_set_homepage_promo(integer) from public, anon;
+grant execute on function public.admin_set_homepage_promo(integer) to authenticated;

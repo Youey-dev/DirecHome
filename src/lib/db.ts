@@ -10,6 +10,7 @@
  * (002_security_hardening.sql). Even if someone edits this code in their browser,
  * the database still refuses anything they are not allowed to do.
  */
+import type { HomepagePromo } from './promo';
 import { trackEvent } from './analytics';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
@@ -209,6 +210,8 @@ export interface PromoCode {
   maxUses: number | null;
   validUntil: string | null;
   active: boolean;
+  /** The one on the homepage */
+  featured: boolean;
   note: string;
   createdAt: string;
   uses: number;
@@ -1291,6 +1294,34 @@ class DataStore {
     return result;
   }
 
+  /** The offer on the homepage right now (Admin → Promotions → Homepage offer), or null. Never throws. */
+  homepagePromo: HomepagePromo | null = null;
+  private homepagePromoLoad: Promise<HomepagePromo | null> | null = null;
+  loadHomepagePromo(force = false): Promise<HomepagePromo | null> {
+    if (!this.homepagePromoLoad || force) {
+      this.homepagePromoLoad = (async () => {
+        try {
+          const { data, error } = await supabase.rpc('homepage_promo');
+          if (error) return null;
+          const row = (data as Row[] | null)?.[0];
+          this.homepagePromo = row ? { code: row.code, months: Number(row.free_months) } : null;
+        } catch {
+          this.homepagePromo = null;
+        }
+        return this.homepagePromo;
+      })();
+    }
+    return this.homepagePromoLoad;
+  }
+
+  /** Admin: put the 1, 3, 6, 9 or 12 month offer on the homepage, or take it off (0). */
+  async adminSetHomepagePromo(months: number): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase.rpc('admin_set_homepage_promo', { _months: months });
+    if (error) fail(error);
+    await this.loadHomepagePromo(true);
+  }
+
   /** Admin: every promo code with how many listings used it, newest first. */
   async loadPromoCodes(): Promise<PromoCode[]> {
     this.requireUser();
@@ -1309,6 +1340,7 @@ class DataStore {
       maxUses: r.max_uses ?? null,
       validUntil: r.valid_until ?? null,
       active: !!r.active,
+      featured: !!r.featured,
       note: r.note ?? '',
       createdAt: r.created_at,
       uses: Number(r.promo_redemptions?.[0]?.count ?? 0),

@@ -1,4 +1,4 @@
-import { SITE_PROMO, rememberPromo } from '../lib/promo';
+import { rememberPromo, type HomepagePromo } from '../lib/promo';
 import React, { useState } from 'react';
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
@@ -17,6 +17,8 @@ interface LandingPageProps {
   onToggleFavorite: (e: React.MouseEvent, id: string) => void;
   onSelectListing: (id: string) => void;
   onNavigate: (tab: string, listingId?: string) => void;
+  /** The offer chosen in Admin → Promotions → Homepage offer, if any */
+  promo?: HomepagePromo | null;
   onSearch?: (filters: BrowseFilters) => void;
 }
 
@@ -33,6 +35,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onToggleFavorite,
   onSelectListing,
   onNavigate,
+  promo = null,
   onSearch
 }) => {
   const liveListings = listings.filter((l) => isListingLive(l));
@@ -124,12 +127,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </button>
         </form>
         <p className="text-sm text-slate-600">
-          {SITE_PROMO && (
+          {promo && (
             <>
-              <strong className="text-slate-900">Selling? Your first {SITE_PROMO.months} months are on us.</strong>{' '}
+              <strong className="text-slate-900">
+                Selling? {promo.months === 1 ? 'Your first month is on us.' : `Your first ${promo.months} months are on us.`}
+              </strong>{' '}
               <button
                 onClick={() => {
-                  rememberPromo(SITE_PROMO!.code);
+                  rememberPromo(promo.code);
                   onNavigate('wizard');
                 }}
                 className="font-semibold text-emerald-800 underline underline-offset-2 cursor-pointer"
