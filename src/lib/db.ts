@@ -25,6 +25,10 @@ import type {
   ListingReport,
   ListingStatus,
   ConversationThread,
+  Offer,
+  OfferCondition,
+  OfferFinancing,
+  OpenHouse,
   PendingEdit,
   PhotoItem,
   PropertyType,
@@ -170,7 +174,21 @@ const LISTING_COLUMNS = [
   'headline', 'description', 'neighborhood_highlights', 'recent_upgrades', 'inclusions',
   'views_count', 'saves_count', 'inquiries_count', 'created_at', 'updated_at', 'admin_hold',
   'agents_welcome', 'agent_commission_type', 'agent_commission_value', 'show_address',
+  'price_reduced_from', 'price_reduced_at',
 ].join(',');
+
+/** Open houses come with each listing (the database only returns those the visitor may see) */
+const mapOpenHouse = (o: Row): OpenHouse => ({
+  id: o.id,
+  listingId: o.listing_id,
+  startsAt: o.starts_at,
+  endsAt: o.ends_at,
+  note: o.note ?? undefined,
+  goingCount: Number(o.going_count ?? 0),
+  cancelledAt: o.cancelled_at ?? undefined,
+});
+
+const OPEN_HOUSE_COLUMNS = 'id,listing_id,starts_at,ends_at,note,going_count,cancelled_at';
 
 /** The exact address (owner, admins, buyers with a confirmed viewing, or everyone when the owner shows it). */
 const PRIVATE_DETAIL_COLUMNS = 'listing_id,street_address,unit_number,postal_code,exact_lat,exact_lng';
@@ -245,6 +263,8 @@ class DataStore {
   private userVersion = 0;
   private listings: Listing[] = [];
   private savedIds: string[] = [];
+  /** Open houses the signed-in buyer said they'd come to */
+  private goingIds = new Set<string>();
   private viewings: ViewingRequest[] = [];
   private threads: ConversationThread[] = [];
   private reports: ListingReport[] = [];
@@ -299,6 +319,11 @@ class DataStore {
   getListingById(id: string): Listing | undefined {
     return this.listings.find((l) => l.id === id);
   }
+  /** True when the signed-in buyer said they'd come to this open house */
+  isGoingTo(openHouseId: string): boolean {
+    return this.goingIds.has(openHouseId);
+  }
+
   getSavedIds(): string[] {
     return this.savedIds;
   }
@@ -374,6 +399,7 @@ class DataStore {
     this.userVersion += 1;
     this.listings = [];
     this.savedIds = [];
+    this.goingIds = new Set();
     this.viewings = [];
     this.threads = [];
     this.reports = [];
@@ -428,6 +454,7 @@ class DataStore {
     let viewingRows: Row[] = [];
     let convoRows: Row[] = [];
     let favRows: Row[] = [];
+    let goingRows: string[] = [];
     let reportRows: Row[] = [];
     let notificationRows: Row[] = [];
     let ownerFieldRows: Row[] = [];
@@ -467,6 +494,9 @@ class DataStore {
       viewingRows = vr.data ?? [];
       convoRows = c.data ?? [];
       favRows = f.data ?? [];
+      // Open houses I'm going to. Never stops the site loading.
+      const going = await supabase.rpc('my_open_house_rsvps');
+      goingRows = going.error ? [] : ((going.data as string[]) ?? []);
       reportRows = (r.data as Row[]) ?? [];
       notificationRows = nt.data ?? [];
       ownerFieldRows = (ownerFields.data as Row[]) ?? [];
@@ -601,6 +631,7 @@ class DataStore {
     this.threads = threads;
     this.reports = reports;
     this.savedIds = favRows.map((f) => f.listing_id);
+    this.goingIds = new Set(goingRows);
     this.notifications = notificationRows.map((n) => ({
       id: n.id,
       type: n.type,
@@ -634,7 +665,7 @@ class DataStore {
    * Merged by id, newest first.
    */
   private async loadListings(me: UserProfile, signedIn: boolean): Promise<Row[]> {
-    const select = `${LISTING_COLUMNS}, listing_photos(*)`;
+    const select = `${LISTING_COLUMNS}, listing_photos(*), open_houses(${OPEN_HOUSE_COLUMNS})`;
     const PAGE = 500;
     const MAX_PUBLIC = 10_000; // a safety stop; past this, browsing needs server-side search
 
@@ -768,6 +799,9 @@ class DataStore {
       cancelAtPeriodEnd: !!row.cancel_at_period_end,
       nextBillingAt: row.next_billing_at ?? undefined,
       complimentaryUntil: row.complimentary_until ?? undefined,
+      priceReducedFrom: row.price_reduced_from != null ? Number(row.price_reduced_from) : undefined,
+      priceReducedAt: row.price_reduced_at ?? undefined,
+      openHouses: ((row.open_houses ?? []) as Row[]).map(mapOpenHouse),
     };
   }
 
@@ -1260,6 +1294,139 @@ class DataStore {
     const { error } = await supabase.rpc('admin_give_free_months', { _listing_id: listingId, _months: months });
     if (error) fail(error);
     await this.refresh();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Open houses
+  // ---------------------------------------------------------------------------
+
+  /** Owner: add an open house (times are full ISO timestamps). */
+  async addOpenHouse(listingId: string, startsAt: string, endsAt: string, note: string): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase
+      .from('open_houses')
+      .insert({ listing_id: listingId, starts_at: startsAt, ends_at: endsAt, note: stripHtml(note).trim().slice(0, 300) || null });
+    if (error) fail(error);
+    trackEvent('open_house_added');
+    await this.refresh();
+  }
+
+  /** Owner: change the time or note (everyone coming is told if the time changes). */
+  async updateOpenHouse(id: string, startsAt: string, endsAt: string, note: string): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase
+      .from('open_houses')
+      .update({ starts_at: startsAt, ends_at: endsAt, note: stripHtml(note).trim().slice(0, 300) || null })
+      .eq('id', id)
+      .select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('Could not change this open house. Refresh the page and try again.');
+    await this.refresh();
+  }
+
+  /** Owner: cancel (everyone coming is told). */
+  async cancelOpenHouse(id: string): Promise<void> {
+    this.requireUser();
+    const { data, error } = await supabase
+      .from('open_houses')
+      .update({ cancelled_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('Could not cancel this open house. Refresh the page and try again.');
+    await this.refresh();
+  }
+
+  /** Buyer: "I'll come" (true) or not any more (false). */
+  async rsvpOpenHouse(id: string, going: boolean): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase.rpc('rsvp_open_house', { _open_house_id: id, _going: going });
+    if (error) fail(error);
+    if (going) {
+      this.goingIds.add(id);
+      trackEvent('open_house_rsvp');
+    } else this.goingIds.delete(id);
+    await this.refresh();
+  }
+
+  /** Owner: who's coming. */
+  async openHouseGuests(id: string): Promise<{ name: string; email: string }[]> {
+    this.requireUser();
+    const { data, error } = await supabase.rpc('open_house_guests', { _open_house_id: id });
+    if (error) fail(error);
+    return ((data as Row[]) ?? []).map((r) => ({ name: r.full_name ?? '', email: r.email ?? '' }));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Offers (not binding: they tell the owner what a buyer would pay, and on what terms)
+  // ---------------------------------------------------------------------------
+
+  async makeOffer(o: {
+    listingId: string;
+    amount: number;
+    deposit: number | null;
+    possessionDate: string | null;
+    openUntil: string;
+    conditions: OfferCondition[];
+    financing: OfferFinancing;
+    message: string;
+  }): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase.rpc('make_offer', {
+      _listing_id: o.listingId,
+      _amount: o.amount,
+      _deposit: o.deposit,
+      _possession_date: o.possessionDate,
+      _open_until: o.openUntil,
+      _conditions: o.conditions,
+      _financing: o.financing,
+      _message: stripHtmlKeepLines(o.message).trim().slice(0, 1000),
+    });
+    if (error) fail(error);
+    trackEvent('offer_sent');
+  }
+
+  /** Owner: accept, counter or decline. Buyer: withdraw. */
+  async respondToOffer(id: string, action: 'accept' | 'counter' | 'decline' | 'withdraw', counterAmount?: number, reply?: string): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase.rpc('respond_to_offer', {
+      _offer_id: id,
+      _action: action,
+      _counter_amount: counterAmount ?? null,
+      _reply: reply ? stripHtmlKeepLines(reply).trim().slice(0, 1000) : null,
+    });
+    if (error) fail(error);
+  }
+
+  /** Offers I sent, and offers on my listings, newest first. */
+  async loadOffers(): Promise<Offer[]> {
+    this.requireUser();
+    const { data, error } = await supabase.rpc('my_offers');
+    if (error) {
+      if (isMissingFunction(error)) return [];
+      fail(error);
+    }
+    return ((data as Row[]) ?? []).map((r) => ({
+      id: r.id,
+      listingId: r.listing_id,
+      listingHeadline: r.listing_headline ?? 'Home',
+      listingPrice: Number(r.listing_price),
+      buyerId: r.buyer_id,
+      buyerName: r.buyer_name || 'A buyer',
+      isMine: !!r.is_mine,
+      amount: Number(r.amount),
+      deposit: r.deposit != null ? Number(r.deposit) : undefined,
+      possessionDate: r.possession_date ?? undefined,
+      openUntil: r.open_until,
+      conditions: r.conditions ?? [],
+      financing: r.financing,
+      message: r.message ?? undefined,
+      status: r.status,
+      counterAmount: r.counter_amount != null ? Number(r.counter_amount) : undefined,
+      reply: r.reply ?? undefined,
+      respondedAt: r.responded_at ?? undefined,
+      createdAt: r.created_at,
+    }));
   }
 
   // ---------------------------------------------------------------------------
