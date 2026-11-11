@@ -7,6 +7,10 @@ import { MapLibreMap } from '../components/LazyMap';
 import { ViewingModal } from '../components/ViewingModal';
 import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
+import { OfferModal } from '../components/OfferModal';
+import { OpenHouseCard } from '../components/OpenHouseCard';
+import { CostCalculator } from '../components/CostCalculator';
+import { priceDrop } from '../lib/listingNews';
 import { formatCAD } from '../lib/commissionCalc';
 import { viewsLabel } from '../lib/viewCount';
 import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
@@ -27,7 +31,7 @@ import {
   Car,
   Layers,
   FileCheck
-, Handshake } from 'lucide-react';
+, Handshake, BadgeDollarSign } from 'lucide-react';
 
 interface ListingDetailPageProps {
   listing: Listing;
@@ -60,6 +64,9 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [offerSent, setOfferSent] = useState(false);
+  const drop = isExample ? null : priceDrop(listing);
 
   const isOwnerOrAdmin = activeUser.role === 'admin' || listing.userId === activeUser.id;
   const isOwner = listing.userId === activeUser.id;
@@ -77,6 +84,12 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
   const handleOpenViewing = () => {
     if (isGuestUser(activeUser)) onOpenAuth?.('signin');
     else setViewingModalOpen(true);
+  };
+
+  const handleOpenOffer = () => {
+    if (isGuestUser(activeUser))
+      onOpenAuth?.('signup', { title: 'Create a free account to make an offer', subtitle: 'The owner sees your offer in their dashboard and replies to you here.' });
+    else setOfferOpen(true);
   };
 
   const handleOpenReport = () => {
@@ -174,6 +187,14 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <div className="font-display font-bold text-[52px] sm:text-[64px] leading-[0.95] text-slate-900 tabular-nums">
               {formatCAD(listing.price)}
             </div>
+            {drop && (
+              <div className="flex items-center gap-2 flex-wrap text-sm">
+                <span className="bg-red-700 text-white font-bold px-2.5 py-1 rounded">↓ Price reduced {formatCAD(drop.amount)}</span>
+                <span className="text-slate-600">
+                  Was <span className="line-through">{formatCAD(drop.from)}</span>
+                </span>
+              </div>
+            )}
 
             <h1 className="text-2xl font-bold text-slate-900 leading-snug">
               {listing.headline}
@@ -305,6 +326,18 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             </div>
           </div>
 
+          {/* Monthly cost and closing costs (not for sold homes) */}
+          {listing.status !== 'sold' && listing.price > 0 && (
+            <CostCalculator
+              key={listing.id}
+              price={listing.price}
+              province={listing.province || 'BC'}
+              city={listing.city}
+              propertyTaxYear={listing.propertyTaxesAnnual || undefined}
+              strataMonth={listing.strataFee || undefined}
+            />
+          )}
+
           {/* Description Prose */}
           <div className="space-y-3">
             <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">From the owner</h2>
@@ -417,6 +450,20 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               )}
             </div>
 
+            {!isExample && (
+              <OpenHouseCard
+                listing={listing}
+                activeUser={activeUser}
+                isOwner={isOwner}
+                onSignIn={() =>
+                  onOpenAuth?.('signup', {
+                    title: 'Create a free account to come to the open house',
+                    subtitle: 'We’ll send you the address and a reminder a few hours before.',
+                  })
+                }
+              />
+            )}
+
             {/* Actions */}
             {isPreview ? (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-1.5">
@@ -465,6 +512,19 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 <MessageSquare className="w-4 h-4" />
                 <span>Ask the owner a question</span>
               </button>
+
+              <button
+                onClick={handleOpenOffer}
+                className="w-full py-3.5 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-[15px] rounded-md border-[1.5px] border-slate-300 flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
+              >
+                <BadgeDollarSign className="w-4 h-4" />
+                <span>Make an offer</span>
+              </button>
+              {offerSent && (
+                <p className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg p-3" role="status">
+                  Your offer was sent. The owner can accept, counter or decline, and you’ll see their answer in your dashboard under Offers.
+                </p>
+              )}
             </div>
             )}
 
@@ -549,6 +609,8 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
         isOpen={reportModalOpen}
         onClose={() => setReportModalOpen(false)}
       />
+
+      <OfferModal listing={listing} isOpen={offerOpen} onClose={() => setOfferOpen(false)} onSent={() => setOfferSent(true)} />
       </>
       )}
     </div>

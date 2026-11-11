@@ -30,7 +30,7 @@ import { initAnalytics, trackEvent, trackPageView } from './lib/analytics';
 // Heavier pages load only when visited (keeps the first page load fast)
 const WizardPage = lazy(() => import('./pages/WizardPage').then((m) => ({ default: m.WizardPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
-type DashboardIntent = { tab: 'listings' | 'viewings' | 'messages'; threadId?: string; nonce: number };
+type DashboardIntent = { tab: 'listings' | 'viewings' | 'messages' | 'offers' | 'alerts'; threadId?: string; nonce: number };
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
 // Seller guides written in Markdown: a separate download, only fetched when a guide is opened
@@ -154,7 +154,7 @@ function MainApp() {
   const [dashboardIntent, setDashboardIntent] = useState<DashboardIntent | null>(() => {
     if (typeof window === 'undefined' || initial.tab !== 'dashboard') return null;
     const t = new URLSearchParams(window.location.search).get('tab');
-    return t === 'listings' || t === 'viewings' || t === 'messages' ? { tab: t, nonce: Date.now() } : null;
+    return t === 'listings' || t === 'viewings' || t === 'messages' || t === 'offers' || t === 'alerts' ? { tab: t, nonce: Date.now() } : null;
   });
   const [unreadCount, setUnreadCount] = useState(0);
   // Filters from the homepage search box, handed to the browse page
@@ -269,6 +269,17 @@ function MainApp() {
     } else if (['listing_live', 'listing_rejected', 'listing_rereview', 'listing_paused_admin', 'listing_deleted_admin', 'activation_reminder'].includes(n.type)) {
       setDashboardIntent({ tab: 'listings', nonce });
       handleNavigate('dashboard');
+    } else if (n.type === 'new_offer' || n.type.startsWith('offer_')) {
+      setDashboardIntent({ tab: 'offers', nonce });
+      handleNavigate('dashboard');
+    } else if (n.type === 'new_listings_match') {
+      setDashboardIntent({ tab: 'alerts', nonce });
+      handleNavigate('dashboard');
+    } else if ((n.type === 'price_drop' || n.type === 'new_listing_match' || n.type.startsWith('open_house_')) && n.listingId) {
+      handleNavigate('detail', n.listingId);
+    } else if (['promo_applied', 'free_period_ending', 'free_period_ended'].includes(n.type)) {
+      setDashboardIntent({ tab: 'listings', nonce });
+      handleNavigate('dashboard');
     } else if (n.type === 'listing_in_review' || n.type === 'new_report') {
       handleNavigate('admin');
     } else {
@@ -351,6 +362,8 @@ function MainApp() {
                 savedIds={savedIds}
                 onToggleFavorite={handleToggleFavorite}
                 onSelectListing={handleSelectListing}
+                signedIn={!isGuestUser(activeUser)}
+                onSignIn={() => handleOpenAuth('signin', { title: 'Sign in to get home alerts', subtitle: 'It’s free. We’ll email you new homes that match your search.' })}
               />
             ) : (
               <Loading label="Loading homes…" />
@@ -403,6 +416,10 @@ function MainApp() {
                 activeUser={activeUser}
                 onNavigate={handleNavigate}
                 intent={dashboardIntent}
+                onBrowse={(filters) => {
+                  setBrowseFilters(filters);
+                  handleNavigate('browse');
+                }}
                 onEditListing={(listing) => {
                   handleNavigate('wizard');
                   // Continue any changes still waiting for review

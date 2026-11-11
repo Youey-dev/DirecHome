@@ -18,6 +18,12 @@ export function runEmailTests() {
   if (actionFor('listing_in_review').path !== '/admin') fail('Admin notices link to the admin console');
   if (actionFor('viewing_confirmed').path !== '/dashboard?tab=viewings') fail('Viewing notices link to viewings');
   if (actionFor('listing_paused_admin').path !== '/dashboard?tab=listings') fail('Listing notices link to listings');
+  if (actionFor('new_offer').path !== '/dashboard?tab=offers') fail('Offers link to the offers tab');
+  const drop = buildEmail(
+    { id: 'n1', type: 'price_drop', title: 'Price drop', body: 'x', listing_id: 'abc-123', conversation_id: null, created_at: '2026-11-11' },
+    { site: 'https://ownersmarket.ca' },
+  );
+  if (!drop.html.includes('https://ownersmarket.ca/listing/abc-123')) fail('Price drops link to the home');
   if (actionFor('activation_reminder').path !== '/dashboard?tab=listings' || actionFor('activation_reminder').button !== 'Activate your listing') fail('Activation reminders link to the owner’s listings');
 
   const withAddress = buildEmail({ ...base, type: 'listing_live', title: 'Your listing is live', body: '' }, { site: 'https://x.ca', address: 'PO Box 1, Mission BC' });
