@@ -21,6 +21,8 @@ import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AuthModal } from './components/AuthModal';
 import { PasswordRecoveryModal } from './components/PasswordRecoveryModal';
 import { SetupNotice } from './components/SetupNotice';
+import { PromoBar } from './components/PromoBar';
+import type { HomepagePromo } from './lib/promo';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TAB_PATHS, pathFor } from './lib/routes';
 import { initAnalytics, trackEvent, trackPageView } from './lib/analytics';
@@ -134,6 +136,11 @@ function MainApp() {
   const [selectedListingId, setSelectedListingId] = useState<string | null>(initial.listingId);
   const [listings, setListings] = useState<Listing[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
+  // The offer chosen in Admin → Promotions → Homepage offer (none until it loads)
+  const [homepagePromo, setHomepagePromo] = useState<HomepagePromo | null>(null);
+  useEffect(() => {
+    void db.loadHomepagePromo().then(setHomepagePromo);
+  }, []);
   const [hasDraft, setHasDraft] = useState<boolean>(false);
   const [dataReady, setDataReady] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -300,6 +307,7 @@ function MainApp() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900">
+      {currentTab === 'landing' && <PromoBar promo={homepagePromo} onStart={() => handleNavigate('wizard')} />}
       <Header
         currentTab={currentTab}
         onNavigate={handleNavigate}
@@ -326,6 +334,7 @@ function MainApp() {
               onToggleFavorite={handleToggleFavorite}
               onSelectListing={handleSelectListing}
               onNavigate={handleNavigate}
+              promo={homepagePromo}
               onSearch={(filters) => {
                 setBrowseFilters(filters);
                 handleNavigate('browse');

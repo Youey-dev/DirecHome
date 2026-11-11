@@ -189,6 +189,8 @@ export interface Listing {
   pastDueSince?: string;
   cancelAtPeriodEnd?: boolean;
   nextBillingAt?: string;
+  /** End of a free period (promo code or given by the admin). Not set on the older free listings with no end. */
+  complimentaryUntil?: string;
   /** Owner and admins only: changes waiting for review while the listing stays live. */
   pendingEdit?: PendingEdit;
   // Terms & Privacy Acceptance (Audit Log)

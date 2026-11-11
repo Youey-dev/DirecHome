@@ -10,6 +10,7 @@
  * (002_security_hardening.sql). Even if someone edits this code in their browser,
  * the database still refuses anything they are not allowed to do.
  */
+import type { HomepagePromo } from './promo';
 import { trackEvent } from './analytics';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
@@ -193,6 +194,28 @@ export interface RecentlySold {
 
 /** The name sellers see on messages from the OwnersMarket admin. */
 export const ADMIN_DISPLAY_NAME = 'Charles - Admin';
+
+export interface PromoResult {
+  code: string;
+  freeMonths: number;
+  cardRequired: boolean;
+  /** When the free months end (for a card-required code: if checkout is finished now) */
+  freeUntil: string;
+}
+
+export interface PromoCode {
+  code: string;
+  freeMonths: number;
+  cardRequired: boolean;
+  maxUses: number | null;
+  validUntil: string | null;
+  active: boolean;
+  /** The one on the homepage */
+  featured: boolean;
+  note: string;
+  createdAt: string;
+  uses: number;
+}
 
 export interface AdminUserRow {
   id: string;
@@ -744,6 +767,7 @@ class DataStore {
       pastDueSince: row.past_due_since ?? undefined,
       cancelAtPeriodEnd: !!row.cancel_at_period_end,
       nextBillingAt: row.next_billing_at ?? undefined,
+      complimentaryUntil: row.complimentary_until ?? undefined,
     };
   }
 
@@ -1070,10 +1094,12 @@ class DataStore {
   }
 
   /** Sends the owner to Stripe Checkout to activate a listing ($24.99 CAD / month). */
-  async startCheckout(listingId: string): Promise<void> {
+  async startCheckout(listingId: string, promoCode?: string): Promise<void> {
     this.requireUser();
     trackEvent('activate_listing');
-    const { data, error } = await supabase.functions.invoke('create-checkout', { body: { listingId } });
+    const { data, error } = await supabase.functions.invoke('create-checkout', {
+      body: promoCode ? { listingId, promoCode } : { listingId },
+    });
     if (error || !data?.url) {
       let msg = data?.error as string | undefined;
       try { msg = msg ?? (await (error as any)?.context?.json())?.error; } catch { /* ignore */ }
@@ -1225,27 +1251,133 @@ class DataStore {
   }
 
   /**
-   * Admin: show an approved listing to buyers without payment ("Free · not paid"), or end that.
+   * Admin: show an approved listing to buyers free for `months` months (it goes back to "Activate
+   * listing" after, with a reminder a week before), or end a free period now with months = 0.
    * Only for listings with no Stripe subscription running, so Stripe can't overwrite it.
    */
-  async adminSetFreeListing(listingId: string, free: boolean): Promise<void> {
+  async adminGiveFreeMonths(listingId: string, months: number): Promise<void> {
     this.requireUser();
-    // payment_status is a private column: signed-in users may write it (admins only, enforced by a
-    // database trigger) but not filter on it, so the current state is checked from the admin's copy.
-    await this.refresh();
-    const current = this.getListingById(listingId)?.paymentStatus ?? 'unpaid';
-    if (free && !['unpaid', 'canceled'].includes(current)) {
-      throw new Error('This listing already has billing set up, so it can’t be made free.');
-    }
-    if (!free && current !== 'complimentary_launch') throw new Error('This listing isn’t a free listing any more.');
-    const { data, error } = await supabase
-      .from('listings')
-      .update(free ? { payment_status: 'complimentary_launch', past_due_since: null } : { payment_status: 'unpaid' })
-      .eq('id', listingId)
-      .select('id');
+    const { error } = await supabase.rpc('admin_give_free_months', { _listing_id: listingId, _months: months });
     if (error) fail(error);
-    if (!data?.length) throw new Error('Could not update this listing. Refresh the page and try again.');
     await this.refresh();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Promo codes (free months without Stripe setup)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Seller: use a promo code on an approved listing (apply = false only checks it and says what it
+   * gives). A "no card" code puts the listing up for free straight away; a "card required" code returns cardRequired = true and changes nothing yet
+   * (the seller then goes to checkout with the code via startCheckout).
+   */
+  async redeemPromo(listingId: string, code: string, apply = true): Promise<PromoResult> {
+    this.requireUser();
+    const { data, error } = await supabase.rpc('redeem_promo', {
+      _listing_id: listingId,
+      _code: code.trim().toUpperCase(),
+      _apply: apply,
+    });
+    if (error) {
+      if (isMissingFunction(error)) throw new Error('Promo codes aren’t switched on yet. Please try again later.');
+      fail(error);
+    }
+    const row = (data as Row[] | null)?.[0];
+    if (!row) throw new Error('That promo code isn’t valid.');
+    const result: PromoResult = {
+      code: row.code,
+      freeMonths: Number(row.free_months),
+      cardRequired: !!row.card_required,
+      freeUntil: row.free_until,
+    };
+    if (apply && !result.cardRequired) await this.refresh();
+    return result;
+  }
+
+  /** The offer on the homepage right now (Admin → Promotions → Homepage offer), or null. Never throws. */
+  homepagePromo: HomepagePromo | null = null;
+  private homepagePromoLoad: Promise<HomepagePromo | null> | null = null;
+  loadHomepagePromo(force = false): Promise<HomepagePromo | null> {
+    if (!this.homepagePromoLoad || force) {
+      this.homepagePromoLoad = (async () => {
+        try {
+          const { data, error } = await supabase.rpc('homepage_promo');
+          if (error) return null;
+          const row = (data as Row[] | null)?.[0];
+          this.homepagePromo = row ? { code: row.code, months: Number(row.free_months) } : null;
+        } catch {
+          this.homepagePromo = null;
+        }
+        return this.homepagePromo;
+      })();
+    }
+    return this.homepagePromoLoad;
+  }
+
+  /** Admin: put the 1, 3, 6, 9 or 12 month offer on the homepage, or take it off (0). */
+  async adminSetHomepagePromo(months: number): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase.rpc('admin_set_homepage_promo', { _months: months });
+    if (error) fail(error);
+    await this.loadHomepagePromo(true);
+  }
+
+  /** Admin: every promo code with how many listings used it, newest first. */
+  async loadPromoCodes(): Promise<PromoCode[]> {
+    this.requireUser();
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .select('*, promo_redemptions(count)')
+      .order('created_at', { ascending: false });
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') return [];
+      fail(error);
+    }
+    return ((data as Row[]) ?? []).map((r) => ({
+      code: r.code,
+      freeMonths: Number(r.free_months),
+      cardRequired: !!r.card_required,
+      maxUses: r.max_uses ?? null,
+      validUntil: r.valid_until ?? null,
+      active: !!r.active,
+      featured: !!r.featured,
+      note: r.note ?? '',
+      createdAt: r.created_at,
+      uses: Number(r.promo_redemptions?.[0]?.count ?? 0),
+    }));
+  }
+
+  /** Admin: create a promo code. */
+  async createPromoCode(p: {
+    code: string;
+    freeMonths: number;
+    cardRequired: boolean;
+    maxUses: number | null;
+    validUntil: string | null;
+    note: string;
+  }): Promise<void> {
+    this.requireUser();
+    const code = p.code.trim().toUpperCase();
+    if (!/^[A-Z0-9-]{3,30}$/.test(code)) throw new Error('Use 3 to 30 letters, numbers or dashes for the code.');
+    const { error } = await supabase.from('promo_codes').insert({
+      code,
+      free_months: p.freeMonths,
+      card_required: p.cardRequired,
+      max_uses: p.maxUses,
+      valid_until: p.validUntil || null,
+      note: p.note.trim() || null,
+    });
+    if (error) {
+      if (error.code === '23505') throw new Error(`There is already a code called ${code}.`);
+      fail(error);
+    }
+  }
+
+  /** Admin: pause or restart a promo code (listings that already used it keep their free months). */
+  async setPromoCodeActive(code: string, active: boolean): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase.from('promo_codes').update({ active }).eq('code', code);
+    if (error) fail(error);
   }
 
   /** Admin: lift a pause and put the listing back up (it shows to buyers if its billing is in order). */

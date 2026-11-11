@@ -5,6 +5,10 @@
 //  - if the listing's subscription is already running, it refuses;
 //  - if a checkout for this listing is already open (another tab, a double tap), it reuses it;
 //  - every person has ONE Stripe customer, so all their subscriptions appear in "Manage billing".
+// Free months (no Stripe setup needed):
+//  - a listing on a free period with an end date (promo code or admin gift) can be activated
+//    early: Stripe starts charging when the free period ends;
+//  - a "card required" promo code (body.promoCode) gives a free trial of the code's months.
 // The webhook also cancels and refunds any second subscription that still gets through.
 import Stripe from "npm:stripe@17.7.0";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -49,6 +53,7 @@ Deno.serve(async (req) => {
     }
     const { listingId } = body;
     if (typeof listingId !== "string") return json({ error: "Missing listing." }, 400);
+    const promoCode = typeof body.promoCode === "string" && body.promoCode.trim() ? body.promoCode.trim().toUpperCase() : null;
 
     const auth = req.headers.get("Authorization") ?? "";
     const url = Deno.env.get("SUPABASE_URL")!;
@@ -60,7 +65,7 @@ Deno.serve(async (req) => {
     // Everything that doesn't depend on another answer is asked at the same time
     const [userRes, listingRes, billingRes, customerRes] = await Promise.all([
       asUser.auth.getUser(),
-      admin.from("listings").select("id,user_id,status,payment_status,headline").eq("id", listingId).maybeSingle(),
+      admin.from("listings").select("id,user_id,status,payment_status,headline,complimentary_until").eq("id", listingId).maybeSingle(),
       admin.from("listing_billing").select("stripe_subscription_id").eq("listing_id", listingId).maybeSingle(),
       sub
         ? admin.from("billing_customers").select("stripe_customer_id").eq("user_id", sub).maybeSingle()
@@ -73,9 +78,38 @@ Deno.serve(async (req) => {
     if (!["live", "paused"].includes(listing.status)) {
       return json({ error: "Your listing must be approved by our review team before it can be activated." }, 400);
     }
-    if (["active", "past_due", "complimentary_launch"].includes(listing.payment_status)) {
+    // A free period with an end date may be followed by a subscription (charged from that date).
+    // The older free listings with no end date need nothing.
+    const freeUntil: string | null = listing.payment_status === "complimentary_launch" ? listing.complimentary_until : null;
+    if (
+      ["active", "past_due"].includes(listing.payment_status) ||
+      (listing.payment_status === "complimentary_launch" && !freeUntil)
+    ) {
       return json({ error: "This listing already has an active subscription." }, 400);
     }
+
+    // When the first charge happens (Unix seconds), if not straight away
+    let trialEnd: number | null = null;
+    if (freeUntil) {
+      trialEnd = Math.floor(new Date(freeUntil).getTime() / 1000);
+    } else if (promoCode) {
+      const { data: promo, error: promoErr } = await admin.rpc("check_promo", { _code: promoCode, _listing_id: listing.id });
+      if (promoErr) return json({ error: promoErr.message }, 400);
+      const p = (promo as { code: string; free_months: number; card_required: boolean }[] | null)?.[0];
+      if (!p) return json({ error: "That promo code isn't valid." }, 400);
+      const end = new Date();
+      end.setMonth(end.getMonth() + p.free_months);
+      trialEnd = Math.floor(end.getTime() / 1000);
+      // Counted as used now (checking out again with the same code on this listing is fine)
+      const { error: redErr } = await admin.from("promo_redemptions").upsert(
+        { code: p.code, listing_id: listing.id, user_id: user.id, free_until: end.toISOString() },
+        { onConflict: "listing_id" },
+      );
+      if (redErr) throw redErr;
+    }
+    // Stripe needs a trial to end at least 2 days from now; a shorter one is simply not given
+    if (trialEnd && trialEnd < Date.now() / 1000 + 2 * 86400 + 600) trialEnd = null;
+    const trialKey = trialEnd ? String(trialEnd) : "";
 
     // The customer found early only counts if the token's user is the verified user
     const knownCustomer = sub === user.id ? ((customerRes.data as { stripe_customer_id?: string } | null)?.stripe_customer_id ?? null) : null;
@@ -91,7 +125,10 @@ Deno.serve(async (req) => {
     if (existing && isRunning(existing.status) && existing.status !== "incomplete") {
       return json({ error: "This listing already has an active subscription. Refresh the page in a moment." }, 400);
     }
-    const reusable = open.data.find((s) => s.metadata?.listing_id === listing.id && s.url);
+    // Reuse an open checkout only if it was for the same free period (or none)
+    const reusable = open.data.find(
+      (s) => s.metadata?.listing_id === listing.id && (s.metadata?.trial_end ?? "") === trialKey && s.url,
+    );
     if (reusable) return json({ url: reusable.url });
 
     const site = (Deno.env.get("SITE_URL") ?? "").replace(/\/+$/, "");
@@ -100,16 +137,22 @@ Deno.serve(async (req) => {
       line_items: [{ price: Deno.env.get("STRIPE_PRICE_ID")!, quantity: 1 }],
       customer: customerId,
       client_reference_id: listing.id,
-      allow_promotion_codes: true,
-      metadata: { listing_id: listing.id, user_id: user.id },
+      // Stripe's own coupons still work, except on top of free months
+      allow_promotion_codes: trialEnd ? undefined : true,
+      metadata: { listing_id: listing.id, user_id: user.id, trial_end: trialKey },
       // Each listing is its OWN subscription. Label it so the owner can tell them apart
       // on the checkout page, receipts and in "Manage billing".
       subscription_data: {
         description: `OwnersMarket listing: ${String(listing.headline ?? "").slice(0, 200)}`,
         metadata: { listing_id: listing.id, user_id: user.id },
+        ...(trialEnd ? { trial_end: trialEnd } : {}),
       },
       custom_text: {
-        submit: { message: `New monthly subscription for "${String(listing.headline ?? "your home").slice(0, 150)}". Your other listings are billed separately.` },
+        submit: {
+          message: trialEnd
+            ? `Free until ${new Date(trialEnd * 1000).toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Toronto" })}, then $24.99 a month for "${String(listing.headline ?? "your home").slice(0, 120)}". You won't be charged before then. Cancel any time.`
+            : `New monthly subscription for "${String(listing.headline ?? "your home").slice(0, 150)}". Your other listings are billed separately.`,
+        },
       },
       success_url: `${site}/dashboard?billing=success`,
       cancel_url: `${site}/dashboard?billing=cancelled`,
