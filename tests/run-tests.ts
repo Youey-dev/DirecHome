@@ -21,6 +21,7 @@ import { runPrerenderTests } from './prerender.test';
 import { runShareTests } from './share.test';
 import { runArticleTests } from './articles.test';
 import { runListingNewsTests } from './listingNews.test';
+import { runBuyingCostTests } from './buyingCosts.test';
 
 async function main() {
   console.log('====================================================');
@@ -38,6 +39,7 @@ async function main() {
     runExampleTests();
     runShareTests();
     runArticleTests();
+    runBuyingCostTests();
     runEmailTests();
     runTextTests();
     runAgentTests();

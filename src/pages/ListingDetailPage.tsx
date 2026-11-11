@@ -9,6 +9,7 @@ import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
 import { OfferModal } from '../components/OfferModal';
 import { OpenHouseCard } from '../components/OpenHouseCard';
+import { CostCalculator } from '../components/CostCalculator';
 import { priceDrop } from '../lib/listingNews';
 import { formatCAD } from '../lib/commissionCalc';
 import { viewsLabel } from '../lib/viewCount';
@@ -324,6 +325,18 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Monthly cost and closing costs (not for sold homes) */}
+          {listing.status !== 'sold' && listing.price > 0 && (
+            <CostCalculator
+              key={listing.id}
+              price={listing.price}
+              province={listing.province || 'BC'}
+              city={listing.city}
+              propertyTaxYear={listing.propertyTaxesAnnual || undefined}
+              strataMonth={listing.strataFee || undefined}
+            />
+          )}
 
           {/* Description Prose */}
           <div className="space-y-3">

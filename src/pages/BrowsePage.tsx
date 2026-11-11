@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Listing, PropertyType, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { RecentlySold } from '../components/RecentlySold';
+import { AlertBox } from '../components/AlertBox';
 import { MapLibreMap } from '../components/LazyMap';
 import { OPEN_PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
 import { 
@@ -23,13 +24,19 @@ interface BrowsePageProps {
   onSelectListing: (id: string) => void;
   /** Filters handed over from the homepage search box. */
   initialFilters?: BrowseFilters;
+  /** Signed in: alerts save in one tap. Otherwise the alert box asks to sign in. */
+  signedIn?: boolean;
+  onSignIn?: () => void;
 }
 
 export interface BrowseFilters {
   query?: string;
   province?: string;
   propertyType?: string;
+  minPrice?: number;
   maxPrice?: number;
+  minBeds?: number;
+  minBaths?: number;
 }
 
 export const BrowsePage: React.FC<BrowsePageProps> = ({
@@ -37,7 +44,9 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   savedIds,
   onToggleFavorite,
   onSelectListing,
-  initialFilters
+  initialFilters,
+  signedIn = false,
+  onSignIn
 }) => {
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
   const [selectedListingId, setSelectedListingId] = useState<string | undefined>(undefined);
@@ -46,10 +55,10 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   const [searchQuery, setSearchQuery] = useState(initialFilters?.query ?? '');
   const [selectedProvince, setSelectedProvince] = useState(initialFilters?.province || ALL_PROVINCES);
   const [propertyType, setPropertyType] = useState<string>(initialFilters?.propertyType || 'All');
-  const [minPrice, setMinPrice] = useState<number | ''>('');
+  const [minPrice, setMinPrice] = useState<number | ''>(initialFilters?.minPrice ?? '');
   const [maxPrice, setMaxPrice] = useState<number | ''>(initialFilters?.maxPrice ?? '');
-  const [minBeds, setMinBeds] = useState<number>(0);
-  const [minBaths, setMinBaths] = useState<number>(0);
+  const [minBeds, setMinBeds] = useState<number>(initialFilters?.minBeds ?? 0);
+  const [minBaths, setMinBaths] = useState<number>(initialFilters?.minBaths ?? 0);
   const [cashbackOnly, setCashbackOnly] = useState<boolean>(false);
   const [agentsOnly, setAgentsOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc' | 'cashback_desc'>('newest');
@@ -328,6 +337,23 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* New-listing alert for this search */}
+      {onSignIn && (
+        <AlertBox
+          signedIn={signedIn}
+          onSignIn={onSignIn}
+          criteria={{
+            query: searchQuery.trim() || null,
+            province: selectedProvince !== ALL_PROVINCES ? selectedProvince : null,
+            propertyType: propertyType !== 'All' ? propertyType : null,
+            minPrice: minPrice === '' ? null : minPrice,
+            maxPrice: maxPrice === '' ? null : maxPrice,
+            minBeds: minBeds || null,
+            minBaths: minBaths || null,
+          }}
+        />
+      )}
 
       {/* Main Content Area */}
       {filteredListings.length === 0 ? (

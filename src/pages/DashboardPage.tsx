@@ -8,6 +8,8 @@ import { formatCAD } from '../lib/commissionCalc';
 import { SellerChecklist } from '../components/SellerChecklist';
 import { PromoteListing } from '../components/PromoteListing';
 import { DeleteListingDialog } from '../components/DeleteListingDialog';
+import { AlertsPanel } from '../components/AlertsPanel';
+import type { BrowseFilters } from './BrowsePage';
 
 // The feature sheet (and its QR code library) loads only when a seller opens it
 const FeatureSheet = React.lazy(() => import('../components/FeatureSheet'));
@@ -38,7 +40,7 @@ import {
 } from 'lucide-react';
 
 export interface DashboardIntent {
-  tab: 'listings' | 'viewings' | 'messages' | 'offers';
+  tab: 'listings' | 'viewings' | 'messages' | 'offers' | 'alerts';
   threadId?: string;
   nonce: number;
 }
@@ -49,15 +51,18 @@ interface DashboardPageProps {
   onEditListing: (listing: Listing) => void;
   /** Lets a notification open the right tab (and conversation) when clicked. */
   intent?: DashboardIntent | null;
+  /** Opens the browse page with these filters (Alerts → See homes). */
+  onBrowse?: (filters: BrowseFilters) => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   activeUser,
   onNavigate,
   onEditListing,
-  intent
+  intent,
+  onBrowse
 }) => {
-  const [activeTab, setActiveTab] = useState<'listings' | 'viewings' | 'messages' | 'offers'>('listings');
+  const [activeTab, setActiveTab] = useState<'listings' | 'viewings' | 'messages' | 'offers' | 'alerts'>('listings');
   // Which sign is being made right now (listing id + kind), so its button can show progress
   const [signBusy, setSignBusy] = useState<string | null>(null);
   // The listing whose feature sheet preview is open
@@ -656,7 +661,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             )}
           </span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('alerts')}
+          className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors cursor-pointer min-h-[44px] ${
+            activeTab === 'alerts'
+              ? 'bg-slate-900 text-white'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          Alerts
+        </button>
       </div>
+
+      {activeTab === 'alerts' && (
+        <AlertsPanel onToast={showToast} onBrowse={(f) => (onBrowse ? onBrowse(f) : onNavigate('browse'))} />
+      )}
 
       {activeTab === 'offers' && (
         <OffersPanel

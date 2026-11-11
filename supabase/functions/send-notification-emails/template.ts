@@ -58,6 +58,10 @@ export function actionFor(type: string): Action {
     case "offer_declined":
     case "offer_withdrawn":
       return { path: "/dashboard?tab=offers", button: "See your offers", note: SAFETY };
+    case "new_listing_match":
+      return { path: "/listing/:listing", button: "See the home", note: "You're getting this because you set up a home alert. Stop it any time from your dashboard (Alerts)." };
+    case "new_listings_match":
+      return { path: "/dashboard?tab=alerts", button: "See the new homes", note: "You're getting this because you set up a home alert. Stop it any time from your dashboard (Alerts)." };
     case "price_drop":
       return { path: "/listing/:listing", button: "See the home", note: "You're getting this because you saved this home." };
     case "open_house_going":

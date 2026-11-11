@@ -10,6 +10,7 @@
  * (002_security_hardening.sql). Even if someone edits this code in their browser,
  * the database still refuses anything they are not allowed to do.
  */
+import { describeAlert, type AlertCriteria, type ListingAlert } from './alerts';
 import type { HomepagePromo } from './promo';
 import { trackEvent } from './analytics';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -1459,6 +1460,62 @@ class DataStore {
     };
     if (apply && !result.cardRequired) await this.refresh();
     return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // New-listing alerts
+  // ---------------------------------------------------------------------------
+
+  /** The signed-in person's alerts, newest first ([] before the database is ready). */
+  async loadAlerts(): Promise<ListingAlert[]> {
+    this.requireUser();
+    const { data, error } = await supabase.from('saved_searches').select('*').order('created_at', { ascending: false });
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') return [];
+      fail(error);
+    }
+    return ((data as Row[]) ?? []).map((r) => ({
+      id: r.id,
+      label: r.label,
+      query: r.query,
+      province: r.province,
+      propertyType: r.property_type,
+      minPrice: r.min_price === null ? null : Number(r.min_price),
+      maxPrice: r.max_price === null ? null : Number(r.max_price),
+      minBeds: r.min_beds,
+      minBaths: r.min_baths,
+      createdAt: r.created_at,
+      lastSentAt: r.last_sent_at,
+    }));
+  }
+
+  /** Emails the signed-in person new homes matching these filters (once a day at most). */
+  async createAlert(c: AlertCriteria): Promise<void> {
+    const me = this.requireUser();
+    const clean = (v: string | null | undefined) => (v && v.trim() ? v.trim().slice(0, 80) : null);
+    const num = (v: number | null | undefined) => (v && v > 0 ? v : null);
+    const { error } = await supabase.from('saved_searches').insert({
+      user_id: me.id,
+      label: describeAlert(c).slice(0, 200),
+      query: clean(c.query),
+      province: clean(c.province),
+      property_type: clean(c.propertyType),
+      min_price: num(c.minPrice),
+      max_price: num(c.maxPrice),
+      min_beds: num(c.minBeds),
+      min_baths: num(c.minBaths),
+    });
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') throw new Error('Alerts aren’t switched on yet. Please try again later.');
+      fail(error);
+    }
+    trackEvent('create_alert');
+  }
+
+  async deleteAlert(id: string): Promise<void> {
+    this.requireUser();
+    const { error } = await supabase.from('saved_searches').delete().eq('id', id);
+    if (error) fail(error);
   }
 
   /** The offer on the homepage right now (Admin → Promotions → Homepage offer), or null. Never throws. */
