@@ -95,7 +95,7 @@ export async function validateImageFile(file: File): Promise<ImageValidationResu
 
 /**
  * Resizes an image file in the browser:
- * - Max 2000px on the longest side (high-res display)
+ * - Max 1600px on the longest side (sharp on laptops and phones, about half the size of 2000px)
  * - 400px thumbnail for fast list browsing
  */
 export async function processAndResizeImage(
@@ -119,8 +119,8 @@ export async function processAndResizeImage(
       img.onload = () => {
         if (onProgress) onProgress(60);
 
-        // 1. Calculate resized dimensions (max 2000px long side)
-        const maxDimension = 2000;
+        // 1. Calculate resized dimensions (max 1600px long side)
+        const maxDimension = 1600;
         let targetWidth = img.naturalWidth;
         let targetHeight = img.naturalHeight;
 
@@ -147,7 +147,7 @@ export async function processAndResizeImage(
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-        const fullResDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        const fullResDataUrl = canvas.toDataURL('image/jpeg', 0.82);
 
         if (onProgress) onProgress(85);
 

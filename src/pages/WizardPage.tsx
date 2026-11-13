@@ -298,7 +298,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
       setUploadingProgress((prev) => ({ ...prev, [tempId]: 20 }));
 
       try {
-        // 3. Process & resize in browser (< 2000px, 4:3 thumb)
+        // 3. Process & resize in browser (< 1600px, 4:3 thumb)
         const processed = await processAndResizeImage(file, photos.length === 0, (prog) => {
           setUploadingProgress((prev) => ({ ...prev, [tempId]: prog }));
         });
@@ -1046,7 +1046,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                 <span>Photos are resized automatically</span>
               </div>
               <p>
-                Photos taken on your iPhone or Android phone are resized right in your browser (max 2000px long side) with thumbnail generation. Upload is fast and won't use heavy mobile data.
+                Photos taken on your iPhone or Android phone are resized right in your browser (max 1600px long side) with thumbnail generation. Upload is fast and won't use heavy mobile data.
               </p>
             </div>
 
