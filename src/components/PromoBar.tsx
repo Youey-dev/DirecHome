@@ -8,19 +8,19 @@ export const PromoBar: React.FC<{ promo: HomepagePromo | null; onStart: () => vo
   if (!promo || closedCode === promo.code || promoBarClosed(promo.code)) return null;
   const { code, months } = promo;
   return (
-    <div className="bg-emerald-800 text-white text-sm">
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-2 flex items-center gap-3">
-        <p className="flex-1 text-center leading-snug">
+    <div className="bg-mist text-slate-900 text-[13px] border-b border-hairline">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-1 flex items-center gap-2">
+        <p className="flex-1 text-center leading-snug py-1">
           <span className="hidden sm:inline">Selling your home? </span>
-          <strong>{months === 1 ? 'Your first month is on us.' : `Your first ${months} months are on us.`}</strong>{' '}
+          <span className="font-medium">{months === 1 ? 'Your first month is on us.' : `Your first ${months} months are on us.`}</span>{' '}
           <button
             onClick={() => {
               rememberPromo(code);
               onStart();
             }}
-            className="underline underline-offset-2 font-semibold cursor-pointer whitespace-nowrap ml-1"
+            className="text-emerald-700 hover:text-slate-900 underline underline-offset-2 font-semibold cursor-pointer whitespace-nowrap ml-1"
           >
-            List it free →
+            List it free
           </button>
         </p>
         <button
@@ -28,10 +28,10 @@ export const PromoBar: React.FC<{ promo: HomepagePromo | null; onStart: () => vo
             closePromoBar(code);
             setClosedCode(code);
           }}
-          aria-label="Close"
-          className="p-1 -mr-1 text-white/70 hover:text-white cursor-pointer"
+          aria-label="Close this offer"
+          className="w-10 h-10 -my-2 -mr-2 flex items-center justify-center rounded-full text-slate-600 hover:text-slate-900 cursor-pointer"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
     </div>

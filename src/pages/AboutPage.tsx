@@ -24,8 +24,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => (
   <div className="text-slate-900">
     {/* About */}
     <section className="max-w-[900px] mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-12 flex flex-col gap-5">
-      <p className="text-sm font-bold text-emerald-700">About and contact</p>
-      <h1 className="font-display font-bold text-[44px] sm:text-[60px] leading-[0.95]">About OwnersMarket</h1>
+      <p className="text-[15px] text-slate-600">About and contact</p>
+      <h1 className="font-semibold text-[35px] sm:text-[48px] leading-[1.05]">About OwnersMarket</h1>
       <p className="text-lg text-slate-700 leading-relaxed">
         OwnersMarket is a Canadian website where homeowners advertise their own homes for sale, and buyers contact them directly to book a viewing.
         It’s run from British Columbia and open across Canada, except Québec for now.
@@ -64,7 +64,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => (
     <section className="bg-slate-50 border-y border-slate-200">
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-14 flex flex-col gap-8">
         <div className="flex flex-col gap-3 max-w-[40em]">
-          <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none" id="contact">
+          <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]" id="contact">
             Contact us
           </h2>
           <p className="text-[17px] text-slate-700 leading-relaxed">

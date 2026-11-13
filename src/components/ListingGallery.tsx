@@ -14,7 +14,7 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
 
   if (!photos || photos.length === 0) {
     return (
-      <div className="w-full aspect-[16/9] bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
+      <div className="w-full aspect-[16/9] bg-fern rounded-2xl flex items-center justify-center text-slate-600">
         <Camera className="w-8 h-8 mr-2" />
         <span>No photos available</span>
       </div>
@@ -29,7 +29,7 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
   return (
     <>
       {/* Mobile Swipeable / Carousel View (< md) */}
-      <div className="md:hidden relative w-full aspect-[4/3] overflow-hidden rounded-2xl bg-slate-900 group">
+      <div className="md:hidden relative w-full aspect-[4/3] overflow-hidden rounded-2xl bg-fern group">
         <img
           src={photos[mobileIndex]?.url}
           alt={`${title} photo ${mobileIndex + 1}`}
@@ -38,7 +38,7 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
         />
 
         {/* Counter Badge */}
-        <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm tabular-nums">
+        <div className="absolute bottom-3 right-3 bg-white/90 text-slate-900 text-[13px] font-medium px-2.5 py-1 rounded-full tabular-nums">
           {mobileIndex + 1} / {photos.length}
         </div>
 
@@ -47,14 +47,14 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
           <>
             <button
               onClick={() => setMobileIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1))}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm text-slate-800 flex items-center justify-center shadow-md active:scale-90"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 text-slate-900 flex items-center justify-center active:scale-90"
               aria-label="Previous photo"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => setMobileIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0))}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm text-slate-800 flex items-center justify-center shadow-md active:scale-90"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 text-slate-900 flex items-center justify-center active:scale-90"
               aria-label="Next photo"
             >
               <ChevronRight className="w-5 h-5" />
@@ -64,19 +64,20 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
 
         <button
           onClick={() => openLightbox(mobileIndex)}
-          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm"
+          className="absolute top-2 right-2 w-11 h-11 rounded-full bg-white/90 text-slate-900 flex items-center justify-center"
           aria-label="Expand photos"
         >
           <Maximize2 className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Desktop Photo Grid (>= md) */}
-      <div className="hidden md:grid grid-cols-4 gap-3 h-[440px] rounded-2xl overflow-hidden relative">
-        {/* Main large cover image (left 2 cols) */}
-        <div
+      {/* Desktop: one large photo and up to two smaller ones (>= md) */}
+      <div className="hidden md:flex gap-3 h-[clamp(320px,38vw,500px)]">
+        <button
+          type="button"
           onClick={() => openLightbox(0)}
-          className="col-span-2 h-full cursor-pointer relative group overflow-hidden bg-slate-100"
+          aria-label={`Open photo 1 of ${photos.length}`}
+          className={`${photos.length > 1 ? 'flex-[2]' : 'flex-1'} min-w-0 h-full cursor-pointer relative group overflow-hidden rounded-2xl bg-fern`}
         >
           <img
             src={photos[0]?.url}
@@ -84,20 +85,17 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-        </div>
+        </button>
 
-        {/* Secondary photos grid (right 2 cols) */}
-        <div className="col-span-2 grid grid-cols-2 gap-3 h-full">
-          {photos.slice(1, 5).map((photo, idx) => {
-            const isLast = idx === 3 || idx === photos.length - 2;
-            const remainingCount = photos.length - 5;
-
-            return (
-              <div
+        {photos.length > 1 && (
+          <div className="flex-1 min-w-0 flex flex-col gap-3 h-full">
+            {photos.slice(1, 3).map((photo, idx) => (
+              <button
+                type="button"
                 key={photo.id || idx}
                 onClick={() => openLightbox(idx + 1)}
-                className="relative h-[214px] cursor-pointer group overflow-hidden bg-slate-100 rounded-lg"
+                aria-label={`Open photo ${idx + 2} of ${photos.length}`}
+                className="relative flex-1 min-h-0 cursor-pointer group overflow-hidden rounded-2xl bg-fern"
               >
                 <img
                   src={photo.url}
@@ -105,36 +103,22 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({ photos, title })
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-
-                {/* If more than 5 photos, show count on last tile */}
-                {isLast && remainingCount > 0 && (
-                  <div className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center font-bold text-sm backdrop-blur-[2px]">
-                    <Camera className="w-5 h-5 mb-1" />
-                    <span>+{remainingCount} more</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* If fewer than 5 photos, fill with subtle fallback slots */}
-          {photos.length < 5 && Array.from({ length: 4 - (photos.length - 1) }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-[214px] bg-slate-50 border border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-300 text-xs">
-              OwnersMarket
-            </div>
-          ))}
-        </div>
-
-        {/* View all photos pill button */}
-        <button
-          onClick={() => openLightbox(0)}
-          className="absolute bottom-4 right-4 bg-white/95 text-slate-800 hover:text-black font-semibold text-xs px-3.5 py-2 rounded-xl shadow-md border border-slate-200/80 backdrop-blur-md flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
-        >
-          <Camera className="w-4 h-4 text-emerald-700" />
-          <span>View all {photos.length} photos</span>
-        </button>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+      {photos.length > 1 && (
+        <div className="hidden md:flex justify-end -mt-1">
+          <button
+            type="button"
+            onClick={() => openLightbox(0)}
+            className="text-[15px] font-semibold text-emerald-700 hover:text-slate-900 underline underline-offset-[3px] min-h-[44px] cursor-pointer"
+          >
+            All {photos.length} photos
+          </button>
+        </div>
+      )}
 
       {/* Lightbox Modal */}
       {modalOpen && (

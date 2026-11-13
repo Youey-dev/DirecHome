@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, ArrowRight, ExternalLink, MapPin, Scale } from 'lucide-react';
+import { AlertTriangle, ExternalLink, MapPin, Scale } from 'lucide-react';
 import type { Guide, GuideBlock } from '../data/guides';
 import { GUIDES_LAST_UPDATED } from '../data/guides';
 import { NavLink } from '../components/NavLink';
@@ -69,8 +69,8 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
       {/* Title */}
       <section className="bg-mist border-b border-slate-200">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 flex flex-col gap-4">
-          <span className="text-sm font-bold text-emerald-700">{guide.eyebrow}</span>
-          <h1 className="font-display font-bold text-[46px] sm:text-[64px] leading-[0.95] text-slate-900 max-w-[14em]">
+          <span className="text-[15px] text-slate-600">{guide.eyebrow}</span>
+          <h1 className="font-semibold text-[37px] sm:text-[51px] leading-[1.05] text-slate-900 max-w-[14em]">
             {guide.title}
           </h1>
           <p className="text-[18px] sm:text-[19px] leading-relaxed text-slate-700 max-w-[38em]">{guide.lead}</p>
@@ -97,7 +97,7 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
                     onClick={() => jumpTo(step.id)}
                     className="w-full text-left flex gap-3 items-start py-1.5 text-[15px] leading-snug text-slate-700 hover:text-emerald-700 cursor-pointer min-h-[36px]"
                   >
-                    <span className="font-display font-bold text-emerald-700 w-5 shrink-0">{i + 1}</span>
+                    <span className="font-semibold text-emerald-700 w-5 shrink-0">{i + 1}</span>
                     <span>{step.title}</span>
                   </button>
                 </li>
@@ -107,7 +107,7 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
                   onClick={() => jumpTo('checklist')}
                   className="w-full text-left flex gap-3 items-start py-1.5 text-[15px] leading-snug text-slate-700 hover:text-emerald-700 cursor-pointer min-h-[36px]"
                 >
-                  <span className="font-display font-bold text-emerald-700 w-5 shrink-0" aria-hidden="true">✓</span>
+                  <span className="font-semibold text-emerald-700 w-5 shrink-0" aria-hidden="true">✓</span>
                   <span>{guide.checklistTitle}</span>
                 </button>
               </li>
@@ -134,11 +134,11 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
           {guide.steps.map((step, i) => (
             <section key={step.id} id={`step-${step.id}`} className="scroll-mt-24 flex flex-col gap-5">
               <div className="flex gap-4 items-start">
-                <span className="w-11 h-11 rounded-full bg-sign text-slate-900 font-display font-bold text-[24px] flex items-center justify-center shrink-0">
+                <span className="w-11 h-11 rounded-full bg-sign text-slate-900 font-semibold text-[24px] flex items-center justify-center shrink-0">
                   {i + 1}
                 </span>
                 <div className="flex flex-col gap-1.5 pt-0.5">
-                  <h2 className="font-display font-bold text-[32px] sm:text-[36px] leading-none text-slate-900">
+                  <h2 className="font-semibold text-[26px] sm:text-[29px] leading-[1.1] text-slate-900">
                     {step.title}
                   </h2>
                   <p className="text-[17px] font-semibold text-slate-900">{step.summary}</p>
@@ -175,7 +175,7 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
 
           {/* Checklist */}
           <section id="step-checklist" className="scroll-mt-24 rounded-[10px] border-2 border-emerald-700 p-6 sm:p-8 flex flex-col gap-4">
-            <h2 className="font-display font-bold text-[32px] sm:text-[36px] leading-none text-slate-900">
+            <h2 className="font-semibold text-[26px] sm:text-[29px] leading-[1.1] text-slate-900">
               {guide.checklistTitle}
             </h2>
             <p className="text-base text-slate-600">Tick these off as you go.</p>
@@ -199,18 +199,17 @@ export const GuidePage: React.FC<GuidePageProps> = ({ guide, onNavigate }) => {
           </section>
 
           {/* Call to action */}
-          <section className="rounded-[10px] bg-slate-900 text-white p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center gap-6">
+          <section className="rounded-2xl bg-mist text-slate-900 p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center gap-6">
             <div className="flex-1 flex flex-col gap-2">
-              <h2 className="font-display font-bold text-[34px] leading-none">{guide.cta.title}</h2>
-              <p className="text-base text-slate-300 leading-relaxed">{guide.cta.text}</p>
+              <h2 className="font-semibold text-[27px] leading-[1.1]">{guide.cta.title}</h2>
+              <p className="text-base text-slate-600 leading-relaxed">{guide.cta.text}</p>
             </div>
             <NavLink
               to={guide.cta.tab}
               onNavigate={onNavigate}
-              className="self-start sm:self-auto inline-flex items-center gap-2 px-6 py-3.5 bg-sign hover:bg-amber-300 text-slate-900 font-semibold text-base rounded-md min-h-[48px]"
+              className="self-start sm:self-auto om-btn om-btn-dark"
             >
               {guide.cta.button}
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </NavLink>
           </section>
         </div>

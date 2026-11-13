@@ -118,44 +118,43 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
   return (
     <div className="text-slate-900">
       {/* Price */}
-      <section className="bg-mist">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-14 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-14 items-center">
+      <section>
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 pt-10 sm:pt-20 pb-14 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-10 lg:gap-14 items-center">
           <div className="flex flex-col gap-5">
-            <p className="text-sm font-bold text-emerald-700">Pricing</p>
-            <h1 className="font-display font-bold text-[48px] sm:text-[64px] leading-[0.95]">One flat price. No commission.</h1>
-            <p className="text-lg text-slate-700 leading-relaxed max-w-[34em]">
+            <h1 className="text-[40px] sm:text-[56px] lg:text-[64px] leading-[1.02] font-semibold tracking-[-0.035em]">One flat price. No commission.</h1>
+            <p className="text-[18px] text-slate-600 leading-normal max-w-[34em]">
               List your home on OwnersMarket for a flat monthly fee, with no commission when it sells. Buyers message you directly to book a
               viewing, and your own lawyer or notary handles the contract.
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <button
                 onClick={() => onNavigate('wizard')}
-                className="px-6 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-md cursor-pointer min-h-[48px]"
+                className="om-btn om-btn-dark !min-h-[52px]"
               >
                 List your home
               </button>
               <NavLink
                 to="browse"
                 onNavigate={onNavigate}
-                className="px-6 py-3.5 border border-slate-300 bg-white hover:border-slate-500 font-semibold rounded-md min-h-[48px] inline-flex items-center"
+                className="om-btn om-btn-outline !min-h-[52px]"
               >
                 Browse homes for sale
               </NavLink>
             </div>
           </div>
 
-          <div className="bg-white rounded-[10px] border-[5px] border-emerald-700 p-7 sm:p-8 flex flex-col gap-5">
+          <div className="bg-white rounded-2xl border-[1.5px] border-slate-900 p-7 sm:p-8 flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <span className="text-base font-semibold text-slate-700">Per active listing</span>
+              <span className="text-base text-slate-600">Per active listing</span>
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                <span className="font-display font-bold text-[64px] sm:text-[84px] leading-none text-emerald-700">{LISTING_FEE_LABEL}</span>
-                <span className="text-lg text-slate-700 whitespace-nowrap">CAD a month</span>
+                <span className="text-[56px] sm:text-[72px] leading-none font-semibold tracking-[-0.035em] text-slate-900 tabular-nums">{LISTING_FEE_LABEL}</span>
+                <span className="text-lg text-slate-600 whitespace-nowrap">CAD a month</span>
               </div>
             </div>
-            <ul className="flex flex-col gap-3 text-[16px] text-slate-800">
+            <ul className="flex flex-col gap-3 pt-5 border-t border-hairline text-[16px] text-slate-900">
               {['No commission when it sells', 'Pay only after your listing is approved', 'Cancel any time', 'Free printable lawn sign'].map((t) => (
                 <li key={t} className="flex gap-3 items-start">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" aria-hidden="true" />
                   <span>{t}</span>
                 </li>
               ))}
@@ -165,15 +164,16 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* What's included */}
-      <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col gap-10">
-        <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">What you get</h2>
+      <section className="max-w-[1100px] mx-auto px-4 sm:px-6">
+        <div className="py-14 sm:py-16 border-t border-hairline flex flex-col gap-10">
+        <h2 className="text-[28px] sm:text-[34px] leading-[1.1] font-semibold tracking-[-0.03em]">What you get</h2>
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-7">
           {INCLUDED.map((f) => (
             <li key={f.title} className="flex gap-4 items-start">
-              <span className="w-10 h-10 shrink-0 rounded-lg ring-1 ring-emerald-200 text-emerald-800 flex items-center justify-center">{f.icon}</span>
+              <span className="w-10 h-10 shrink-0 rounded-full bg-mist text-emerald-700 flex items-center justify-center" aria-hidden="true">{f.icon}</span>
               <div className="flex flex-col gap-1">
-                <h3 className="font-bold text-[18px]">{f.title}</h3>
-                <p className="text-[16px] text-slate-700 leading-relaxed">{f.text}</p>
+                <h3 className="font-semibold text-[18px]">{f.title}</h3>
+                <p className="text-[16px] text-slate-600 leading-relaxed">{f.text}</p>
               </div>
             </li>
           ))}
@@ -181,18 +181,19 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
         <NavLink
           to="how-it-works"
           onNavigate={onNavigate}
-          className="self-start font-semibold text-emerald-700 underline underline-offset-4 min-h-[44px] inline-flex items-center"
+          className="self-start font-semibold text-emerald-700 hover:text-slate-900 underline underline-offset-[3px] min-h-[44px] inline-flex items-center"
         >
           See how it all works
         </NavLink>
+        </div>
       </section>
 
       {/* Compared with a commission */}
-      <section className="bg-white border-y border-slate-200">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col lg:flex-row gap-12 items-center">
+      <section>
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6"><div className="py-14 sm:py-16 border-t border-hairline flex flex-col lg:flex-row gap-12 items-center">
           <div className="flex-1 flex flex-col gap-4 min-w-0">
-            <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Compared with a commission</h2>
-            <p className="text-[17px] text-slate-700 leading-relaxed">
+            <h2 className="text-[28px] sm:text-[34px] leading-[1.1] font-semibold tracking-[-0.03em]">Compared with a commission</h2>
+            <p className="text-[17px] text-slate-600 leading-relaxed">
               On a {formatCAD(EXAMPLE_PRICE)} home, an example commission of 7% on the first $100,000 and 2.5% on the rest, plus 5% GST, comes to
               about {formatCAD(example.traditionalTotalCommission)}. Rates vary by province and are always negotiable, and HST provinces pay more
               tax, so treat this as an estimate.
@@ -200,77 +201,83 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
             <NavLink
               to="calculator"
               onNavigate={onNavigate}
-              className="self-start font-semibold text-emerald-700 underline underline-offset-4 min-h-[44px] inline-flex items-center"
+              className="self-start font-semibold text-emerald-700 hover:text-slate-900 underline underline-offset-[3px] min-h-[44px] inline-flex items-center"
             >
               Estimate it with your own price
             </NavLink>
           </div>
-          <div className="flex-1 w-full min-w-0 bg-slate-900 text-white rounded-[10px] p-7 sm:p-9 flex flex-col gap-5">
-            <div className="flex justify-between items-baseline gap-4 border-b border-slate-700 pb-4">
-              <span className="text-base text-slate-300">Example commission (estimate)</span>
-              <span className="font-display font-semibold text-[34px] text-slate-300 line-through">
+          <div className="flex-1 w-full min-w-0 bg-mist rounded-2xl p-6 sm:p-8 flex flex-col gap-4">
+            <div className="flex justify-between items-baseline gap-4 border-b border-hairline pb-4">
+              <span className="text-base text-slate-600">Example commission (estimate)</span>
+              <span className="text-[24px] font-semibold tracking-[-0.02em] text-slate-600 line-through tabular-nums">
                 {formatCAD(example.traditionalTotalCommission)}
               </span>
             </div>
-            <div className="flex justify-between items-baseline gap-4 border-b border-slate-700 pb-4">
-              <span className="text-base text-slate-300">OwnersMarket, listed for {EXAMPLE_MONTHS} months</span>
-              <span className="font-display font-semibold text-[34px]">{formatCADCents(exampleFees)}</span>
+            <div className="flex justify-between items-baseline gap-4 border-b border-hairline pb-4">
+              <span className="text-base text-slate-600">OwnersMarket, listed for {EXAMPLE_MONTHS} months</span>
+              <span className="text-[24px] font-semibold tracking-[-0.02em] tabular-nums">{formatCADCents(exampleFees)}</span>
             </div>
             <div className="flex justify-between items-baseline gap-4">
               <span className="text-[17px] font-semibold">You could keep about</span>
-              <span className="font-display font-bold text-[52px] leading-none text-sign">{formatCAD(exampleKeep)}</span>
+              <span className="text-[36px] sm:text-[44px] font-semibold tracking-[-0.03em] leading-none text-emerald-700 tabular-nums">{formatCAD(exampleKeep)}</span>
             </div>
-            <span className="text-[13px] text-slate-300">
+            <span className="text-[13px] text-slate-600">
               An estimate, before your lawyer or notary fees. If your buyer uses an agent, that agent may ask you to pay their commission.
             </span>
           </div>
         </div>
+        </div>
       </section>
 
       {/* How billing works */}
-      <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col gap-10">
-        <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">How billing works</h2>
+      <section className="max-w-[1100px] mx-auto px-4 sm:px-6">
+        <div className="py-14 sm:py-16 border-t border-hairline flex flex-col gap-10">
+        <h2 className="text-[28px] sm:text-[34px] leading-[1.1] font-semibold tracking-[-0.03em]">How billing works</h2>
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {BILLING.map((b) => (
-            <li key={b.title} className="flex flex-col gap-2 border-t-[3px] border-emerald-700 pt-4">
-              <h3 className="font-bold text-[18px]">{b.title}</h3>
-              <p className="text-[16px] text-slate-700 leading-relaxed">{b.text}</p>
+            <li key={b.title} className="flex flex-col gap-2">
+              <h3 className="font-semibold text-[18px]">{b.title}</h3>
+              <p className="text-[16px] text-slate-600 leading-relaxed">{b.text}</p>
             </li>
           ))}
         </ul>
+        </div>
       </section>
 
       {/* Questions */}
-      <section className="bg-slate-50 border-y border-slate-200">
-        <div className="max-w-[820px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col gap-2">
-          <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none mb-4">Pricing questions</h2>
+      <section>
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6"><div className="py-14 sm:py-16 border-t border-hairline flex flex-col gap-2">
+          <h2 className="text-[28px] sm:text-[34px] leading-[1.1] font-semibold tracking-[-0.03em] mb-4">Pricing questions</h2>
           {FAQ.map((f) => (
-            <div key={f.q} className="border-b border-slate-200 py-5">
-              <h3 className="text-[19px] font-semibold">{f.q}</h3>
-              <p className="mt-2 text-[16px] text-slate-700 leading-relaxed">{f.a}</p>
+            <div key={f.q} className="border-b border-hairline py-5 max-w-[46em]">
+              <h3 className="text-[18px] font-semibold">{f.q}</h3>
+              <p className="mt-2 text-[16px] text-slate-600 leading-relaxed">{f.a}</p>
             </div>
           ))}
           <p className="pt-5 text-[15px] text-slate-600 leading-relaxed">
             OwnersMarket is an advertising site, not a real estate brokerage. Full details are in our{' '}
-            <NavLink to="terms" onNavigate={onNavigate} className="text-emerald-800 underline underline-offset-2">
+            <NavLink to="terms" onNavigate={onNavigate} className="text-emerald-700 font-semibold underline underline-offset-2">
               Terms of use
             </NavLink>
             .
           </p>
         </div>
+        </div>
       </section>
 
       {/* Call to action */}
-      <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col md:flex-row md:items-center gap-6">
-        <h2 className="flex-1 font-display font-bold text-[40px] sm:text-[52px] leading-[0.98]">
+      <section className="max-w-[1100px] mx-auto px-4 sm:px-6">
+        <div className="pt-12 sm:pt-14 border-t border-hairline flex flex-col md:flex-row md:items-center gap-6 md:gap-12">
+        <h2 className="flex-1 text-[28px] sm:text-[34px] leading-[1.1] font-semibold tracking-[-0.03em]">
           Start your listing free. Pay only once it’s approved.
         </h2>
         <button
           onClick={() => onNavigate('wizard')}
-          className="self-start md:self-auto px-7 py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[17px] rounded-md cursor-pointer min-h-[52px]"
+          className="self-start md:self-auto om-btn om-btn-dark !min-h-[56px] !px-[30px] !text-[17px]"
         >
           List your home
         </button>
+        </div>
       </section>
     </div>
   );

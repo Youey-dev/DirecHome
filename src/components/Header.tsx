@@ -1,23 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Building2, 
-  Heart, 
-  UserCheck, 
-  ShieldCheck, 
-  Menu, 
-  X, 
-  PlusCircle, 
-  Compass, 
-  Calculator,
-  LayoutDashboard,
-  LogOut,
-  ChevronDown,
-  User,
-  MessageSquare,
-  BookOpen,
-  Mail,
-  Tag
-} from 'lucide-react';
+import { Heart, ShieldCheck, LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
 import { AppNotification, UserProfile } from '../types/listing';
 import { useAuth } from '../context/AuthContext';
 import { NotificationBell } from './NotificationBell';
@@ -63,175 +45,104 @@ export const Header: React.FC<HeaderProps> = ({
     handleNav('landing');
   };
 
+  const linkClass = (active: boolean) =>
+    `inline-flex items-center min-h-[44px] whitespace-nowrap text-[16px] transition-colors cursor-pointer ${
+      active ? 'text-emerald-700 underline underline-offset-[6px] decoration-[1.5px]' : 'text-slate-900 hover:text-emerald-700'
+    }`;
+
+  const drawerItem =
+    'w-full text-left py-2.5 px-1 text-slate-900 hover:text-emerald-700 flex items-center justify-between gap-3 min-h-[44px] text-[16px]';
+
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200">
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-[68px] flex items-center justify-between gap-2 sm:gap-6">
-        
-        {/* Zone 1: Brand Wordmark */}
+    <header className="relative z-40 w-full bg-white">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-3 sm:py-5 flex flex-wrap items-center justify-between gap-x-7 gap-y-1">
+        {/* Brand */}
         <NavLink
           to="landing"
           onNavigate={handleNav}
-          className="flex items-center gap-1.5 sm:gap-2 cursor-pointer shrink-0 text-left"
+          className="flex items-center gap-2.5 min-h-[44px] shrink-0 text-slate-900 text-[20px] font-semibold tracking-[-0.01em] leading-none"
           aria-label="OwnersMarket home"
         >
-          <img src="/logo.png" alt="" width={40} height={40} className="w-8 h-8 sm:w-10 sm:h-10 -my-1 max-[379px]:hidden" />
-          <span className="font-display font-bold text-slate-900 text-[21px] sm:text-[26px] leading-none">
-            OwnersMarket
-          </span>
+          <img src="/logo.png" alt="" width={30} height={30} className="w-[30px] h-[30px]" />
+          <span>OwnersMarket</span>
         </NavLink>
 
-        {/* Zone 2: Navigation Links */}
-        <nav className="hidden xl:flex items-center gap-4 2xl:gap-5 text-sm font-medium text-slate-600">
-          <NavLink
-            to="browse"
-            onNavigate={handleNav}
-            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
-              currentTab === 'browse' ? 'text-emerald-700 font-semibold' : ''
-            }`}
-          >
-            Browse homes
+        {/* Signed in: bell and account menu sit beside the logo on phones, at the end of the row on wider screens */}
+        <nav aria-label="Main" className="order-last sm:order-none w-full sm:w-auto sm:ml-auto flex flex-wrap items-center gap-x-6 sm:gap-x-7 -mt-1 sm:mt-0">
+          <NavLink to="browse" onNavigate={handleNav} className={linkClass(currentTab === 'browse')}>
+            Browse
           </NavLink>
-
-          <NavLink
-            to="calculator"
-            onNavigate={handleNav}
-            className={`hidden min-[1400px]:inline cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
-              currentTab === 'calculator' ? 'text-emerald-700 font-semibold' : ''
-            }`}
-          >
-            Savings estimator
+          <NavLink to="wizard" onNavigate={handleNav} className={linkClass(currentTab === 'wizard')}>
+            {hasDraft ? 'Resume listing' : 'Sell'}
           </NavLink>
-
-          <NavLink
-            to="how-it-works"
-            onNavigate={handleNav}
-            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
-              currentTab === 'how-it-works' ? 'text-emerald-700 font-semibold' : ''
-            }`}
-          >
-            How it works
-          </NavLink>
-
-          <NavLink
-            to="pricing"
-            onNavigate={handleNav}
-            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
-              currentTab === 'pricing' ? 'text-emerald-700 font-semibold' : ''
-            }`}
-          >
+          <NavLink to="pricing" onNavigate={handleNav} className={linkClass(currentTab === 'pricing')}>
             Pricing
           </NavLink>
-
-          <NavLink
-            to="guides"
-            onNavigate={handleNav}
-            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
-              currentTab.startsWith('guide') || currentTab === 'article' ? 'text-emerald-700 font-semibold' : ''
-            }`}
-          >
-            Guides
-          </NavLink>
-
-          <button
-            onClick={() => handleNav('dashboard')}
-            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 ${
-              currentTab === 'dashboard' ? 'text-emerald-700 font-semibold' : ''
-            }`}
-          >
-            <span className="inline-flex items-center gap-1.5">
-              My dashboard
+          {!isGuest && (
+            <button onClick={() => handleNav('dashboard')} className={`${linkClass(currentTab === 'dashboard')} hidden md:inline-flex gap-1.5`}>
+              Dashboard
               {dashboardBadge > 0 && (
-                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold inline-flex items-center justify-center">
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-700 text-white text-[11px] font-semibold inline-flex items-center justify-center">
                   {dashboardBadge > 9 ? '9+' : dashboardBadge}
+                  <span className="sr-only"> waiting</span>
                 </span>
               )}
-            </span>
-          </button>
-
+            </button>
+          )}
+          {isGuest && (
+            <button onClick={() => onOpenAuth('signin')} className={linkClass(false)}>
+              Sign in
+            </button>
+          )}
           <button
-            onClick={() => handleNav('saved')}
-            className={`cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:text-slate-900 py-1 relative flex items-center gap-1.5 ${
-              currentTab === 'saved' ? 'text-emerald-700 font-semibold' : ''
-            }`}
-            aria-label="Saved homes"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`${linkClass(mobileMenuOpen)} gap-1`}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="site-menu"
           >
-            <span>Saved</span>
-            {savedCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-center">
-                {savedCount}
-              </span>
-            )}
+            More
+            <ChevronDown className={`w-4 h-4 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
         </nav>
 
-        {/* Zone 3: Auth Controls & Primary Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          
-          {/* Guest State: Explicit Sign In / Create Account buttons */}
-          {isGuest ? (
-            <div className="hidden sm:flex items-center gap-2">
-              <button
-                onClick={() => onOpenAuth('signin')}
-                className="px-3 py-2 text-[15px] font-medium text-slate-900 hover:bg-slate-100 rounded-md transition-colors cursor-pointer min-h-[44px]"
-              >
-                Sign in
-              </button>
-              <button
-                onClick={() => onOpenAuth('signup')}
-                className="px-4 py-2 text-[15px] font-semibold text-slate-900 bg-white hover:bg-slate-50 border-[1.5px] border-slate-900 rounded-md transition-colors cursor-pointer min-h-[44px]"
-              >
-                Create account
-              </button>
-            </div>
-          ) : (
-            /* Logged-In: notification bell + profile menu */
-            <>
+        {!isGuest && (
+          <div className="flex items-center gap-1.5 shrink-0">
             <NotificationBell onOpenNotification={onOpenNotification} />
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-800 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-all border border-slate-200/80 cursor-pointer min-h-[38px]"
-                title="Account menu"
+                className="flex items-center gap-1.5 pl-1 pr-1.5 rounded-full hover:bg-mist cursor-pointer min-h-[44px]"
+                aria-label="Account menu"
+                aria-expanded={userDropdownOpen}
               >
-                <div className="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                <span className="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center font-semibold text-[13px] shrink-0">
                   {activeUser.name ? activeUser.name.substring(0, 1).toUpperCase() : 'U'}
-                </div>
-                <div className="text-left hidden sm:block">
-                  <div className="font-bold text-slate-900 max-w-[120px] truncate leading-tight">
-                    {activeUser.name}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-semibold">
-                    {activeUser.role === 'admin' ? 'Admin' : 'Member'}
-                  </div>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </span>
+                <ChevronDown className="w-4 h-4 text-slate-600" aria-hidden="true" />
               </button>
 
               {userDropdownOpen && (
-                <div 
-                  className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2.5 z-50 text-xs"
+                <div
+                  className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-hairline py-2 z-50 text-sm"
                   onMouseLeave={() => setUserDropdownOpen(false)}
                 >
-                  {/* Account Summary Header */}
-                  <div className="px-4 py-2 border-b border-slate-100">
-                    <div className="font-bold text-slate-900 text-sm">{activeUser.name}</div>
-                    <div className="text-slate-500 text-[11px] truncate">{activeUser.email}</div>
-                    <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                      <ShieldCheck className="w-3 h-3" />
-                      <span>{activeUser.role === 'admin' ? 'Administrator' : 'Member account'}</span>
+                  <div className="px-4 py-2.5 border-b border-hairline">
+                    <div className="font-semibold text-slate-900">{activeUser.name}</div>
+                    <div className="text-slate-600 text-[13px] truncate">{activeUser.email}</div>
+                    <div className="text-slate-600 text-[13px] mt-0.5">
+                      {activeUser.role === 'admin' ? 'Administrator' : 'Member account'}
                     </div>
                   </div>
 
-                  {/* Navigation Links inside Dropdown */}
-                  <div className="py-1.5 border-b border-slate-100">
+                  <div className="py-1.5 border-b border-hairline">
                     <button
                       onClick={() => {
                         setUserDropdownOpen(false);
                         handleNav('dashboard');
                       }}
-                      className="w-full px-4 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium"
+                      className="w-full px-4 py-2.5 text-left hover:bg-mist text-slate-900 flex items-center gap-2.5 cursor-pointer"
                     >
-                      <LayoutDashboard className="w-4 h-4 text-slate-400" />
+                      <LayoutDashboard className="w-4 h-4 text-slate-500" aria-hidden="true" />
                       <span>My dashboard: homes, messages and viewings</span>
                     </button>
 
@@ -240,208 +151,90 @@ export const Header: React.FC<HeaderProps> = ({
                         setUserDropdownOpen(false);
                         handleNav('saved');
                       }}
-                      className="w-full px-4 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center justify-between cursor-pointer font-medium"
+                      className="w-full px-4 py-2.5 text-left hover:bg-mist text-slate-900 flex items-center justify-between cursor-pointer"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <Heart className="w-4 h-4 text-slate-400" />
+                      <span className="flex items-center gap-2.5">
+                        <Heart className="w-4 h-4 text-slate-500" aria-hidden="true" />
                         <span>Saved homes</span>
-                      </div>
-                      {savedCount > 0 && (
-                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold">
-                          {savedCount}
-                        </span>
-                      )}
+                      </span>
+                      {savedCount > 0 && <span className="text-slate-600 tabular-nums">{savedCount}</span>}
                     </button>
-                  </div>
 
-                  {activeUser.role === 'admin' && (
-                    <div className="px-2 pt-1">
+                    {activeUser.role === 'admin' && (
                       <button
                         onClick={() => {
                           setUserDropdownOpen(false);
                           handleNav('admin');
                         }}
-                        className="w-full px-2 py-2 text-left rounded-lg hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium"
+                        className="w-full px-4 py-2.5 text-left hover:bg-mist text-slate-900 flex items-center gap-2.5 cursor-pointer"
                       >
-                        <ShieldCheck className="w-4 h-4 text-slate-400" />
+                        <ShieldCheck className="w-4 h-4 text-slate-500" aria-hidden="true" />
                         <span>Admin console</span>
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
-                  {/* Sign Out CTA */}
-                  <div className="pt-2 border-t border-slate-100 mt-1 px-2">
+                  <div className="pt-1.5 px-2">
                     <button
                       onClick={handleSignOut}
-                      className="w-full py-1.5 px-3 text-left rounded-lg text-rose-700 hover:bg-rose-50 font-semibold flex items-center gap-2 cursor-pointer"
+                      className="w-full py-2 px-2 text-left rounded-lg text-rose-700 hover:bg-rose-50 font-semibold flex items-center gap-2 cursor-pointer"
                     >
-                      <LogOut className="w-3.5 h-3.5" />
+                      <LogOut className="w-4 h-4" aria-hidden="true" />
                       <span>Sign out</span>
                     </button>
                   </div>
                 </div>
               )}
             </div>
-            </>
-          )}
-
-          {/* Primary CTA Button: List Your Home */}
-          <button
-            onClick={() => {
-              // Anyone can start a listing; the account is created at the end
-              handleNav('wizard');
-            }}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 text-xs sm:text-[15px] font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] rounded-md transition-all whitespace-nowrap shrink-0 min-h-[44px] cursor-pointer"
-          >
-            <span>{hasDraft ? 'Resume listing' : 'List your home'}</span>
-          </button>
-
-          {/* Mobile Menu Hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="xl:hidden p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 min-h-[44px] min-w-[40px] flex items-center justify-center cursor-pointer"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Mobile Drawer */}
+      {/* "More": everything else, at every screen size */}
       {mobileMenuOpen && (
-        <div className="xl:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-3 shadow-xl animate-fade-in">
-          
-          {/* User Info Bar if logged in */}
-          {!isGuest && (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-              <div>
-                <div className="text-sm font-bold text-slate-900">{activeUser.name}</div>
-                <div className="text-xs text-slate-500">{activeUser.email}</div>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg"
-              >
-                Sign out
+        <div id="site-menu" className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-6">
+          <div className="border-t border-hairline pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8">
+            {isGuest && (
+              <button onClick={() => { setMobileMenuOpen(false); onOpenAuth('signup'); }} className={drawerItem}>
+                <span>Create an account</span>
               </button>
-            </div>
-          )}
-
-          {/* Guest Sign In / Create Account in Mobile Menu */}
-          {isGuest && (
-            <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100">
-              <button
-                onClick={() => { setMobileMenuOpen(false); onOpenAuth('signin'); }}
-                className="py-2.5 px-3 text-center border border-slate-300 text-slate-800 rounded-xl text-xs font-semibold hover:bg-slate-50 min-h-[44px]"
-              >
-                Sign in
-              </button>
-              <button
-                onClick={() => { setMobileMenuOpen(false); onOpenAuth('signup'); }}
-                className="py-2.5 px-3 text-center bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 min-h-[44px]"
-              >
-                Create account
-              </button>
-            </div>
-          )}
-
-          <NavLink
-            to="browse"
-            onNavigate={handleNav}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <Compass className="w-5 h-5 text-slate-400" />
-            <span>Browse homes</span>
-          </NavLink>
-
-          <NavLink
-            to="calculator"
-            onNavigate={handleNav}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <Calculator className="w-5 h-5 text-slate-400" />
-            <span>Savings estimator</span>
-          </NavLink>
-
-          <NavLink
-            to="how-it-works"
-            onNavigate={handleNav}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <Building2 className="w-5 h-5 text-slate-400" />
-            <span>How OwnersMarket works</span>
-          </NavLink>
-
-          <NavLink
-            to="pricing"
-            onNavigate={handleNav}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <Tag className="w-5 h-5 text-slate-400" />
-            <span>Pricing</span>
-          </NavLink>
-
-          <NavLink
-            to="about"
-            onNavigate={handleNav}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <Mail className="w-5 h-5 text-slate-400" />
-            <span>About and contact</span>
-          </NavLink>
-
-          <NavLink
-            to="guides"
-            onNavigate={handleNav}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <BookOpen className="w-5 h-5 text-slate-400" />
-            <span>Seller guides</span>
-          </NavLink>
-
-          <NavLink
-            to="guide-buying"
-            onNavigate={handleNav}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <BookOpen className="w-5 h-5 text-slate-400" />
-            <span>Buyer guide</span>
-          </NavLink>
-
-          <button
-            onClick={() => handleNav('dashboard')}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-3 font-medium min-h-[44px]"
-          >
-            <LayoutDashboard className="w-5 h-5 text-slate-400" />
-            <span className="inline-flex items-center gap-2">My dashboard{dashboardBadge > 0 && <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold inline-flex items-center justify-center">{dashboardBadge > 9 ? '9+' : dashboardBadge}</span>}</span>
-          </button>
-
-          <button
-            onClick={() => handleNav('saved')}
-            className="w-full text-left py-2.5 px-3 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center justify-between font-medium min-h-[44px]"
-          >
-            <div className="flex items-center gap-3">
-              <Heart className="w-5 h-5 text-slate-400" />
-              <span>Saved homes</span>
-            </div>
-            {savedCount > 0 && (
-              <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs font-bold">
-                {savedCount}
-              </span>
             )}
-          </button>
-
-          <div className="pt-2 border-t border-slate-100">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleNav('wizard');
-              }}
-              className="w-full py-3 bg-emerald-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 min-h-[48px]"
-            >
-              <PlusCircle className="w-5 h-5" />
-              <span>{hasDraft ? 'Resume Your Listing' : 'List Your Home'}</span>
+            {!isGuest && (
+              <button onClick={() => handleNav('dashboard')} className={drawerItem}>
+                <span className="inline-flex items-center gap-2">
+                  My dashboard
+                  {dashboardBadge > 0 && (
+                    <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-rose-700 text-white text-[11px] font-semibold inline-flex items-center justify-center">
+                      {dashboardBadge > 9 ? '9+' : dashboardBadge}
+                    </span>
+                  )}
+                </span>
+              </button>
+            )}
+            <button onClick={() => handleNav('saved')} className={drawerItem}>
+              <span>Saved homes</span>
+              {savedCount > 0 && <span className="text-slate-600 tabular-nums">{savedCount}</span>}
             </button>
+            <NavLink to="how-it-works" onNavigate={handleNav} className={drawerItem}>
+              How it works
+            </NavLink>
+            <NavLink to="calculator" onNavigate={handleNav} className={drawerItem}>
+              Savings estimator
+            </NavLink>
+            <NavLink to="guides" onNavigate={handleNav} className={drawerItem}>
+              Seller guides
+            </NavLink>
+            <NavLink to="guide-buying" onNavigate={handleNav} className={drawerItem}>
+              Buyer guide
+            </NavLink>
+            <NavLink to="about" onNavigate={handleNav} className={drawerItem}>
+              About and contact
+            </NavLink>
+            {!isGuest && (
+              <button onClick={handleSignOut} className={`${drawerItem} text-rose-700 hover:text-rose-800`}>
+                <span>Sign out</span>
+              </button>
+            )}
           </div>
         </div>
       )}

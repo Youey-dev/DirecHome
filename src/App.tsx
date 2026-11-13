@@ -501,7 +501,7 @@ function MainApp() {
           {currentTab === 'calculator' && (
             <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
               <div className="mb-6">
-                <h1 className="font-display text-5xl font-bold text-slate-900 leading-none">
+                <h1 className="text-[38px] font-semibold text-slate-900 leading-[1.1]">
                   Real estate commission calculator
                 </h1>
                 <p className="text-base text-slate-600 mt-3 max-w-[40em]">
