@@ -9,7 +9,7 @@
   NODE_VERSION = "22"
   # These values are PUBLIC by design (they end up in the website's code), so Netlify's
   # secret scanner must not treat them as leaked secrets and fail the build.
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_TURNSTILE_SITE_KEY,VITE_MAP_TILE_URL,VITE_MAP_ATTRIBUTION"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_TURNSTILE_SITE_KEY,VITE_MAP_TILE_URL,VITE_MAP_ATTRIBUTION,VITE_GOOGLE_MAPS_EMBED_KEY"
 
 # Makes page addresses like /browse and /listing/<id> work when opened directly or refreshed
 [[redirects]]
@@ -27,9 +27,9 @@
     Strict-Transport-Security = "max-age=63072000; includeSubDomains"
     # What the site may load, and from where. Only these outside services are allowed:
     # Supabase (data, photos, live updates), Cloudflare Turnstile (bot check), Google Fonts,
-    # OpenStreetMap or MapTiler map tiles, and the BC / OpenStreetMap address lookups.
+    # OpenStreetMap or MapTiler map tiles, the Google Maps embed on listing pages, and the BC / OpenStreetMap address lookups.
     # If you add a new outside service (analytics, chat widget...), add its address here.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.google-analytics.com https://*.googletagmanager.com https://*.tile.openstreetmap.org https://api.maptiler.com; connect-src 'self' data: blob: https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co wss://*.supabase.co https://*.tile.openstreetmap.org https://api.maptiler.com https://geocoder.api.gov.bc.ca https://nominatim.openstreetmap.org https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.google-analytics.com https://*.googletagmanager.com https://*.tile.openstreetmap.org https://api.maptiler.com; connect-src 'self' data: blob: https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co wss://*.supabase.co https://*.tile.openstreetmap.org https://api.maptiler.com https://geocoder.api.gov.bc.ca https://nominatim.openstreetmap.org https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src https://challenges.cloudflare.com https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 
 [[headers]]
   for = "/assets/*"
