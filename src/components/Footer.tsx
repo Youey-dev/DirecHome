@@ -88,7 +88,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string, id?: string) => void }
         </div>
 
         <div className="mt-12 pt-6 border-t border-slate-700 text-xs text-slate-400 flex flex-col sm:flex-row sm:justify-between gap-2">
-          <span>© {new Date().getFullYear()} OwnersMarket. Made in British Columbia.</span>
+          <span>© {new Date().getFullYear()} OwnersMarket.</span>
           <span>
             Questions?{' '}
             <a href="mailto:hello@ownersmarket.ca" className="text-slate-300 hover:text-white underline underline-offset-2">
