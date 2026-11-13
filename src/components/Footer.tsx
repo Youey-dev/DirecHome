@@ -14,7 +14,7 @@ const FooterLink: React.FC<{ to: string; id?: string; onNavigate: (tab: string, 
       to={to}
       listingId={id}
       onNavigate={onNavigate}
-      className="inline-flex items-center text-left text-white hover:text-sign underline-offset-4 hover:underline transition-colors min-h-[32px]"
+      className="inline-flex items-center text-left text-slate-900 hover:text-emerald-700 underline-offset-4 hover:underline transition-colors min-h-[32px]"
     >
       {children}
     </NavLink>
@@ -23,15 +23,14 @@ const FooterLink: React.FC<{ to: string; id?: string; onNavigate: (tab: string, 
 
 export const Footer: React.FC<{ onNavigate: (tab: string, id?: string) => void }> = ({ onNavigate }) => {
   return (
-    <footer className="bg-slate-900 text-slate-300 text-sm mt-20">
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-14">
+    <footer className="bg-white text-slate-600 text-sm mt-24">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+      <div className="pt-12 pb-10 border-t border-hairline">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-10">
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="w-11 h-11 rounded-md bg-white flex items-center justify-center shrink-0">
-                <img src="/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
-              </span>
-              <span className="font-display font-bold text-[28px] leading-none text-white">OwnersMarket</span>
+            <div className="flex items-center gap-2.5">
+              <img src="/logo.png" alt="" width={26} height={26} className="w-[26px] h-[26px]" />
+              <span className="font-semibold text-[18px] tracking-[-0.01em] leading-none text-slate-900">OwnersMarket</span>
             </div>
             <p className="leading-relaxed max-w-[36em]">
               OwnersMarket is an advertising platform, not a real estate brokerage, and does not give real estate advice. Every listing is reviewed before publishing; ownership is not verified. Buyers and sellers should talk to their own lawyer or notary before signing anything.
@@ -78,7 +77,7 @@ export const Footer: React.FC<{ onNavigate: (tab: string, id?: string) => void }
               <FooterLink to="notifications" onNavigate={onNavigate}>Email preferences (CASL)</FooterLink>
               {analyticsAvailable && (
                 <li>
-                  <button type="button" onClick={openCookieSettings} className="text-sm text-slate-300 hover:text-white underline-offset-2 hover:underline">
+                  <button type="button" onClick={openCookieSettings} className="text-sm text-slate-900 hover:text-emerald-700 underline-offset-2 hover:underline min-h-[32px]">
                     Cookie settings
                   </button>
                 </li>
@@ -87,15 +86,16 @@ export const Footer: React.FC<{ onNavigate: (tab: string, id?: string) => void }
           </nav>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-slate-700 text-xs text-slate-400 flex flex-col sm:flex-row sm:justify-between gap-2">
+        <div className="mt-12 pt-6 border-t border-hairline text-[13px] text-slate-600 flex flex-col sm:flex-row sm:justify-between gap-2">
           <span>© {new Date().getFullYear()} OwnersMarket.</span>
           <span>
             Questions?{' '}
-            <a href="mailto:hello@ownersmarket.ca" className="text-slate-300 hover:text-white underline underline-offset-2">
+            <a href="mailto:hello@ownersmarket.ca" className="text-slate-900 hover:text-emerald-700 underline underline-offset-2">
               hello@ownersmarket.ca
             </a>
           </span>
         </div>
+      </div>
       </div>
     </footer>
   );

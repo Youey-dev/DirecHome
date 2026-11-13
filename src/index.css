@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * OwnersMarket theme (Draft A, "the yard sign").
+ * OwnersMarket theme (Draft 1, "one question": minimal, one typeface).
  * The emerald and slate scales are remapped so every existing screen
  * (dashboard, wizard, billing, admin) picks up the brand without code changes:
  *   emerald = conifer green from the logo, slate = green-grey ink and mist.
@@ -42,8 +42,31 @@
   --color-warning: #B45309;
   --color-error: #B42318;
 
-  --font-sans: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Barlow Condensed', 'Public Sans', system-ui, sans-serif;
+  --color-ink: #16261D;
+  --color-muted: #4A5A50;
+  --color-hairline: #C9D6CC;
+  --color-hairline-strong: #B5C2B9;
+
+  /* One typeface for everything. "font-display" is kept as a name so existing
+     headings still work, but it is the same face with tight spacing (see below). */
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Hanken Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Only 400/500/600 are loaded: bold and heavier render at 600, never faux-bold */
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
+
+  /* Softer corners: buttons 10-12px, cards 14-16px */
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+
+  /* No heavy shadows: menus and dialogs keep a light lift only */
+  --shadow-lg: 0 4px 16px -6px rgb(22 38 29 / 0.12);
+  --shadow-xl: 0 8px 24px -10px rgb(22 38 29 / 0.16);
+  --shadow-2xl: 0 12px 32px -12px rgb(22 38 29 / 0.20);
 }
 
 :root {
@@ -53,7 +76,7 @@
   --savings: #EEF4EF;
   --border-subtle: #D5DED7;
   --text-main: #16261D;
-  --text-muted: #5E6E64;
+  --text-muted: #4A5A50;
   --warning: #B45309;
   --error: #B42318;
 }
@@ -66,10 +89,53 @@ body {
   font-size: 16px;
 }
 
-/* Visible keyboard focus everywhere, in the sign yellow */
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid var(--color-sign);
+/* Headings: weight 600, tight letter-spacing, sentence case.
+   In the base layer so any tracking-* utility on an element still wins. */
+@layer base {
+  h1, h2, .font-display { letter-spacing: -0.03em; text-wrap: balance; }
+  h3, h4 { letter-spacing: -0.015em; }
+  :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea) {
+    border-color: var(--color-hairline-strong);
+  }
+}
+
+/* Visible keyboard focus everywhere: a dark ring that reads on white, mist and green.
+   .om-bare: a field inside a bordered box that shows the focus ring itself (focus-within).
+   .om-stretched: a card link whose ring is drawn around the whole card. */
+:where(a, button, input, select, textarea, summary, [tabindex]):not(.om-stretched, .om-bare):focus-visible {
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
+}
+
+/* Shared button and chip styles */
+@layer components {
+.om-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 48px; padding: 0 1.5rem; border-radius: 11px;
+  font-weight: 600; font-size: 16px; line-height: 1.2; cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.om-btn-primary { background: var(--color-brand); color: #fff; }
+.om-btn-primary:hover { background: var(--color-brand-hover); }
+.om-btn-dark { background: var(--color-ink); color: #fff; }
+.om-btn-dark:hover { background: #0E1913; }
+.om-btn-outline { background: #fff; color: var(--color-ink); border: 1.5px solid var(--color-ink); }
+.om-btn-outline:hover { background: var(--color-mist); }
+.om-link { color: var(--color-brand); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.om-link:hover { color: var(--color-ink); }
+.om-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height: 44px; padding: 0 1.1rem; border-radius: 999px;
+  border: 1px solid var(--color-hairline-strong); background: #fff; color: var(--color-ink);
+  font-weight: 500; font-size: 15px; cursor: pointer; white-space: nowrap;
+}
+.om-chip:hover { border-color: var(--color-ink); }
+.om-chip[aria-pressed="true"], .om-chip-on { background: var(--color-ink); border-color: var(--color-ink); color: #fff; }
+select.om-chip {
+  appearance: none; -webkit-appearance: none; padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2316261D' stroke-width='1.6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.9rem center;
+}
 }
 
 /* Custom scrollbars for photo carousels */
@@ -126,8 +192,8 @@ body {
    --------------------------------------------------------------------------- */
 .om-article { color: var(--color-slate-700); font-size: 17px; line-height: 1.65; }
 .om-article > * + * { margin-top: 1rem; }
-.om-article h2 { font-family: var(--font-display, inherit); font-weight: 700; color: var(--color-slate-900); font-size: 30px; line-height: 1.1; margin-top: 2.75rem; scroll-margin-top: 90px; }
-.om-article h3 { font-weight: 700; color: var(--color-slate-900); font-size: 19px; margin-top: 1.75rem; }
+.om-article h2 { font-weight: 600; letter-spacing: -0.03em; color: var(--color-slate-900); font-size: 28px; line-height: 1.15; margin-top: 2.75rem; scroll-margin-top: 90px; }
+.om-article h3 { font-weight: 600; color: var(--color-slate-900); font-size: 19px; margin-top: 1.75rem; }
 .om-article h2 + p > em:only-child { display: block; color: var(--color-slate-500); font-style: normal; font-size: 16px; }
 .om-article a { color: var(--color-emerald-800); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 .om-article a:hover { color: var(--color-emerald-950); }
@@ -140,9 +206,9 @@ body {
 .om-article .om-checklist { list-style: none; padding-left: 0; }
 .om-article .om-checklist li { display: flex; gap: 0.6rem; align-items: flex-start; }
 .om-article .om-checklist input { margin-top: 0.35rem; width: 18px; height: 18px; accent-color: var(--color-emerald-700); flex-shrink: 0; }
-.om-article .om-table { overflow-x: auto; border: 1px solid var(--color-slate-200); border-radius: 10px; }
+.om-article .om-table { overflow-x: auto; border: 1px solid var(--color-hairline); border-radius: 12px; }
 .om-article table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
-.om-article th { background: var(--color-mist); color: var(--color-slate-900); text-align: left; font-weight: 700; }
+.om-article th { background: var(--color-mist); color: var(--color-slate-900); text-align: left; font-weight: 600; }
 .om-article th, .om-article td { padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--color-slate-200); vertical-align: top; min-width: 9rem; }
 .om-article tr:last-child td { border-bottom: 0; }
 .om-article .om-callout { border-radius: 10px; padding: 0.9rem 1.15rem; font-size: 16px; }
@@ -152,11 +218,9 @@ body {
 .om-article .om-callout-warning { background: #FFFBEB; border: 1px solid #FCD34D; color: #451A03; }
 .om-article .om-callout-warning strong { color: #78350F; }
 .om-article .om-callout-info { background: var(--color-surface); border: 1px solid var(--color-slate-200); color: var(--color-slate-600); }
-.om-article .om-cta { margin-top: 2.75rem; background: var(--color-emerald-950); color: #E6EFE9; border-radius: 14px; padding: 1.5rem; }
-.om-article .om-cta strong { color: #fff; }
-.om-article .om-cta a { color: #fff; }
+.om-article .om-cta { margin-top: 2.75rem; background: #fff; color: var(--color-slate-700); border-top: 1px solid var(--color-hairline); padding: 2rem 0 0; }
+.om-article .om-cta strong { color: var(--color-slate-900); }
 .om-article .om-cta .om-cta-actions { margin-top: 1rem; }
-.om-article .om-cta .om-cta-button { display: inline-block; background: var(--color-sign); color: var(--color-slate-900); text-decoration: none; font-weight: 700; padding: 0.8rem 1.4rem; border-radius: 8px; }
-.om-article .om-cta .om-cta-button:hover { background: #E8B43A; color: var(--color-slate-900); }
-.om-article .om-cta .om-callout { background: rgba(255,255,255,0.08); border: 0; color: #CFE0D5; font-size: 14px; }
-.om-article .om-cta .om-callout strong { color: #fff; }
+.om-article .om-cta .om-cta-button { display: inline-flex; align-items: center; min-height: 52px; background: var(--color-ink); color: #fff; text-decoration: none; font-weight: 600; padding: 0 1.6rem; border-radius: 12px; }
+.om-article .om-cta .om-cta-button:hover { background: #0E1913; color: #fff; }
+.om-article .om-cta .om-callout { background: var(--color-mist); border: 0; color: var(--color-slate-600); font-size: 14px; }

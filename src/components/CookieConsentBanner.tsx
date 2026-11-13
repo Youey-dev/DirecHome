@@ -29,21 +29,17 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
   return (
     <aside 
       aria-label="Cookie & Privacy Consent"
-      className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:max-w-md z-50 bg-slate-900/95 backdrop-blur-md text-white border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-2xl animate-fade-in"
+      className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:max-w-md z-50 bg-white text-slate-900 border border-hairline rounded-2xl p-4 sm:p-5 shadow-xl animate-fade-in"
     >
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800/60 flex items-center justify-center shrink-0 mt-0.5">
-          <Cookie className="w-5 h-5" />
-        </div>
-
         <div className="space-y-2 flex-1">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-white tracking-tight">
-              {analyticsAvailable ? 'Cookies and privacy' : 'Essential Storage Only'}
-            </h4>
+            <h2 className="text-[16px] font-semibold text-slate-900">
+              {analyticsAvailable ? 'Cookies and privacy' : 'Essential storage only'}
+            </h2>
             <button
               onClick={() => choose(analyticsAllowed())}
-              className="text-slate-400 hover:text-white p-1 rounded-lg"
+              className="text-slate-600 hover:text-slate-900 w-10 h-10 -m-2 flex items-center justify-center rounded-full"
               aria-label="Dismiss"
             >
               <X className="w-4 h-4" />
@@ -51,11 +47,11 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
           </div>
 
           {analyticsAvailable ? (
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-[13px] text-slate-600 leading-relaxed">
               We use essential browser storage to keep you signed in and remember your listing draft. We also use Google Analytics to count visits and see which pages help people, so we can improve the site. We never use it for advertising or sell your personal data. You can turn analytics off here, or any time from "Cookie settings" at the bottom of the page.
             </p>
           ) : (
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-[13px] text-slate-600 leading-relaxed">
               OwnersMarket uses only essential browser storage to keep you signed in and remember your listing draft and preferences. We do not use analytics or advertising trackers, and we never sell your personal data.
             </p>
           )}
@@ -65,21 +61,21 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
               <>
                 <button
                   onClick={() => choose(analyticsAllowed())}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
+                  className="px-4 bg-emerald-700 hover:bg-emerald-800 text-white text-[14px] font-semibold rounded-[10px] transition-colors cursor-pointer min-h-[44px]"
                 >
                   {readConsent()?.analytics === false ? 'Keep analytics off' : 'OK'}
                 </button>
                 {analyticsAllowed() ? (
                   <button
                     onClick={() => choose(false)}
-                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
+                    className="px-4 bg-white hover:bg-mist border-[1.5px] border-slate-900 text-slate-900 text-[14px] font-semibold rounded-[10px] transition-colors cursor-pointer min-h-[44px]"
                   >
                     Turn off analytics
                   </button>
                 ) : (
                   <button
                     onClick={() => choose(true)}
-                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
+                    className="px-4 bg-white hover:bg-mist border-[1.5px] border-slate-900 text-slate-900 text-[14px] font-semibold rounded-[10px] transition-colors cursor-pointer min-h-[44px]"
                   >
                     Turn analytics on
                   </button>
@@ -88,7 +84,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
             ) : (
               <button
                 onClick={() => choose(false)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer min-h-[36px]"
+                className="px-4 bg-emerald-700 hover:bg-emerald-800 text-white text-[14px] font-semibold rounded-[10px] transition-colors cursor-pointer min-h-[44px]"
               >
                 OK
               </button>
@@ -96,7 +92,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onNavi
 
             <button
               onClick={() => onNavigateLegal('privacy')}
-              className="text-xs text-slate-400 hover:text-emerald-400 underline transition-colors ml-1"
+              className="text-[13px] text-slate-600 hover:text-emerald-700 underline transition-colors ml-1 min-h-[44px]"
             >
               Privacy policy
             </button>

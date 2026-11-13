@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BookOpen, Clock, ShieldCheck } from 'lucide-react';
+import { BookOpen, Clock, ShieldCheck } from 'lucide-react';
 import { ARTICLES } from '../content/articles';
 import type { Article } from '../content/articleTypes';
 import { NavLink } from '../components/NavLink';
@@ -124,8 +124,8 @@ export const ArticlePage: React.FC<{ slug: string; onNavigate: Nav }> = ({ slug,
           </NavLink>{' '}
           / <span className="text-slate-900">{shortTitle(article)}</span>
         </nav>
-        <p className="text-sm font-bold text-emerald-700">{article.eyebrow}</p>
-        <h1 className="font-display font-bold text-[40px] sm:text-[54px] leading-[0.98] mt-2">{article.h1}</h1>
+        <p className="text-[15px] text-slate-600">{article.eyebrow}</p>
+        <h1 className="font-semibold text-[32px] sm:text-[43px] leading-[1.05] mt-2">{article.h1}</h1>
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-600">
           <span className="inline-flex items-center gap-1.5">
             <Clock className="w-4 h-4" aria-hidden="true" /> {article.readingTime}
@@ -146,12 +146,12 @@ export const ArticlePage: React.FC<{ slug: string; onNavigate: Nav }> = ({ slug,
       {more.length > 0 && (
         <section className="bg-slate-50 border-t border-slate-200">
           <div className="max-w-[980px] mx-auto px-4 sm:px-6 py-10 flex flex-col gap-5">
-            <h2 className="font-display font-bold text-[30px] leading-none flex items-center gap-2">
+            <h2 className="font-semibold text-[24px] leading-[1.1] flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-emerald-700" aria-hidden="true" /> More seller guides
             </h2>
             <GuideList slugs={more} onNavigate={onNavigate} />
             <NavLink to="guides" onNavigate={onNavigate} className="self-start inline-flex items-center gap-2 font-semibold text-emerald-800 underline underline-offset-2">
-              All seller guides <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              All seller guides
             </NavLink>
           </div>
         </section>
@@ -166,8 +166,8 @@ export const ArticlePage: React.FC<{ slug: string; onNavigate: Nav }> = ({ slug,
 export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => (
   <div className="text-slate-900 max-w-[980px] mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col gap-10">
     <div className="flex flex-col gap-4">
-      <p className="text-sm font-bold text-emerald-700">Seller guides · Canada, outside Québec</p>
-      <h1 className="font-display font-bold text-[42px] sm:text-[58px] leading-[0.95]">Guides to selling your home yourself</h1>
+      <p className="text-[15px] text-slate-600">Seller guides · Canada, outside Québec</p>
+      <h1 className="font-semibold text-[34px] sm:text-[46px] leading-[1.05]">Guides to selling your home yourself</h1>
       <p className="text-lg text-slate-700 leading-relaxed max-w-[44em]">
         Free, plain-English guides to selling your home without a realtor in Canada: deciding if it’s right for you, the paperwork, pricing
         research, viewings, buyers’ agents, what it costs, situations like tenants or an estate, and what’s different in your province. Every fact links to an official source.
@@ -175,7 +175,7 @@ export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) =
     </div>
     {GUIDE_GROUPS.map((g) => (
       <section key={g.title} className="flex flex-col gap-4">
-        <h2 className="font-display font-bold text-[30px] leading-none">{g.title}</h2>
+        <h2 className="font-semibold text-[24px] leading-[1.1]">{g.title}</h2>
         <GuideList slugs={g.slugs} onNavigate={onNavigate} />
         {g.title === 'Selling in your province' && (
           <p className="text-[15px] text-slate-600">
@@ -189,21 +189,21 @@ export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) =
       </section>
     ))}
     <section className="flex flex-col gap-3">
-      <h2 className="font-display font-bold text-[30px] leading-none">Buying a home</h2>
+      <h2 className="font-semibold text-[24px] leading-[1.1]">Buying a home</h2>
       <p className="text-[16px] text-slate-700">
         <NavLink to="guide-buying" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
           How to buy a house for sale by owner in Canada
         </NavLink>
       </p>
     </section>
-    <div className="rounded-[14px] bg-emerald-950 text-white p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+    <div className="rounded-2xl bg-mist text-slate-900 p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
       <div>
-        <p className="font-display font-bold text-[28px] leading-none">Ready to sell?</p>
-        <p className="text-emerald-50/90 mt-2">List your home for $24.99 a month, with no commission. Buyers message you directly.</p>
+        <p className="font-semibold text-[22px] leading-[1.1]">Ready to sell?</p>
+        <p className="text-slate-600 mt-2">List your home for $24.99 a month, with no commission. Buyers message you directly.</p>
       </div>
       <button
         onClick={() => onNavigate('wizard')}
-        className="px-6 py-3.5 bg-[#F2C14E] hover:bg-[#e8b43a] text-slate-900 font-semibold rounded-md cursor-pointer min-h-[48px] shrink-0"
+        className="om-btn om-btn-dark shrink-0"
       >
         List your home
       </button>

@@ -63,7 +63,7 @@ export const CostCalculator: React.FC<{
 
   return (
     <section className="space-y-4">
-      <h2 className="font-display font-bold text-[34px] leading-none text-slate-900">What it would cost you</h2>
+      <h2 className="font-semibold text-[27px] leading-[1.1] text-slate-900">What it would cost you</h2>
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
           <div>
@@ -71,7 +71,7 @@ export const CostCalculator: React.FC<{
               <div className="font-semibold text-slate-900">Monthly</div>
               <span className="text-xs text-slate-500">Estimate</span>
             </div>
-            <div className="font-display font-bold text-[44px] leading-none text-slate-900 mt-1">
+            <div className="font-semibold text-[35px] leading-[1.1] text-slate-900 mt-1">
               {cad(r.totalMonth)}
               <span className="text-xl text-slate-500"> / month</span>
             </div>

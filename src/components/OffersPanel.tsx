@@ -145,7 +145,7 @@ export const OffersPanel: React.FC<{ onToast: (m: string) => void; onMessageBuye
                             {o.buyerName}
                             {top && list.length > 1 && <div className="text-[11px] font-bold text-emerald-800">HIGHEST</div>}
                           </td>
-                          <td className="px-4 py-3 font-display font-bold text-xl tabular-nums">{formatCAD(o.amount)}</td>
+                          <td className="px-4 py-3 font-semibold text-xl tabular-nums">{formatCAD(o.amount)}</td>
                           <td className="px-4 py-3 text-slate-600">{pct(o)}</td>
                           <td className="px-4 py-3">{o.deposit ? formatCAD(o.deposit) : '—'}</td>
                           <td className="px-4 py-3">{o.conditions.length ? o.conditions.map((c) => CONDITION_LABEL[c]).join(', ') : 'None (firm)'}</td>

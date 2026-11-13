@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, ExternalLink, FileText, Home, Landmark, MapPin, Receipt, Scale } from 'lucide-react';
+import { ExternalLink, FileText, Home, Landmark, MapPin, Receipt, Scale } from 'lucide-react';
 import { Listing, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { NavLink } from '../components/NavLink';
@@ -78,7 +78,7 @@ const CtaButtons: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => (
 
 const OtherProvinces: React.FC<{ current?: string; onNavigate: Nav }> = ({ current, onNavigate }) => (
   <nav aria-label="Provinces and territories" className="flex flex-col gap-4">
-    <h2 className="font-display font-bold text-[30px] leading-none">{current ? 'Other provinces and territories' : 'Choose your province or territory'}</h2>
+    <h2 className="font-semibold text-[24px] leading-[1.1]">{current ? 'Other provinces and territories' : 'Choose your province or territory'}</h2>
     <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
       {PROVINCE_HUBS.filter((h) => h.page.code !== current).map((h) => (
         <li key={h.page.code}>
@@ -120,7 +120,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
           </NavLink>{' '}
           / <span className="text-slate-900">{page.name}</span>
         </nav>
-        <h1 className="font-display font-bold text-[42px] sm:text-[58px] leading-[0.95]">Homes for sale by owner in {page.name}</h1>
+        <h1 className="font-semibold text-[34px] sm:text-[46px] leading-[1.05]">Homes for sale by owner in {page.name}</h1>
         <p className="text-lg text-slate-700 leading-relaxed max-w-[44em]">{hub.lead}</p>
         <p className="text-[16px] text-slate-700 leading-relaxed max-w-[44em]">
           On OwnersMarket you list your home for a flat {LISTING_FEE_LABEL} a month with no commission, and buyers message you directly to book a
@@ -134,7 +134,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
             onNavigate={onNavigate}
             className="self-start inline-flex items-center gap-2 rounded-[10px] bg-fern px-4 py-3 text-[16px] font-semibold text-emerald-900 hover:bg-emerald-100"
           >
-            Selling in {page.name}? Read the full guide to selling your house privately <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+            Selling in {page.name}? Read the full guide to selling your house privately
           </NavLink>
         )}
       </section>
@@ -142,7 +142,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
       {/* Homes for sale */}
       <section className="bg-slate-50 border-y border-slate-200">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-12 flex flex-col gap-6">
-          <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">Listed by their owners in {page.name}</h2>
+          <h2 className="font-semibold text-[27px] sm:text-[32px] leading-[1.1]">Listed by their owners in {page.name}</h2>
           {prerender ? (
             <p className="text-[16px] text-slate-700">
               Every home here is listed by its owner. Message them directly to ask questions or book a viewing.
@@ -175,7 +175,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
       {/* Selling in this province */}
       <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-14 flex flex-col gap-8">
         <div className="flex flex-col gap-3 max-w-[44em]">
-          <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">Selling your home in {page.name}: the basics</h2>
+          <h2 className="font-semibold text-[27px] sm:text-[32px] leading-[1.1]">Selling your home in {page.name}: the basics</h2>
           <p className="text-[17px] text-slate-700 leading-relaxed">
             Selling privately is legal in every province and territory. You take on the jobs an agent would do: photos, the listing, viewings and
             talking to buyers. Here’s what’s specific to {page.name}.
@@ -224,7 +224,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
             onNavigate={onNavigate}
             className="self-start inline-flex items-center gap-2 font-semibold text-emerald-800 underline underline-offset-2"
           >
-            Read the full guide to selling without a realtor in {page.name} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            Read the full guide to selling without a realtor in {page.name}
           </NavLink>
         )}
         {costGuide && (
@@ -234,15 +234,15 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
             onNavigate={onNavigate}
             className="self-start inline-flex items-center gap-2 font-semibold text-emerald-800 underline underline-offset-2"
           >
-            {costGuide.label} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            {costGuide.label}
           </NavLink>
         )}
       </section>
 
       {/* How it works */}
-      <section className="bg-emerald-950 text-white">
-        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-14 flex flex-col gap-8">
-          <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">How selling on OwnersMarket works</h2>
+      <section>
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-14 border-t border-hairline flex flex-col gap-8">
+          <h2 className="font-semibold text-[27px] sm:text-[32px] leading-[1.1]">How selling on OwnersMarket works</h2>
           <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               ['List your home', `Add photos and details. Each listing is reviewed before it goes live, then it’s ${LISTING_FEE_LABEL} a month, cancel any time.`],
@@ -250,15 +250,15 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
               ['Meet buyers directly', 'Buyers message you and request viewings. Your exact address stays private until you confirm a viewing. Offers go to your lawyer.'],
             ].map(([title, text], i) => (
               <li key={title} className="flex flex-col gap-2">
-                <span className="font-display font-bold text-[40px] leading-none text-[#F2C14E]">{i + 1}</span>
+                <span className="font-semibold text-[26px] leading-[1.1] text-emerald-700">{i + 1}</span>
                 <h3 className="font-bold text-[19px]">{title}</h3>
-                <p className="text-[16px] text-emerald-50/90 leading-relaxed">{text}</p>
+                <p className="text-[16px] text-slate-600 leading-relaxed">{text}</p>
               </li>
             ))}
           </ol>
-          <p className="text-[16px] text-emerald-50/90 leading-relaxed max-w-[44em]">
+          <p className="text-[16px] text-slate-600 leading-relaxed max-w-[44em]">
             Curious what you’d save? The{' '}
-            <NavLink to="calculator" onNavigate={onNavigate} className="font-semibold text-white underline underline-offset-2">
+            <NavLink to="calculator" onNavigate={onNavigate} className="font-semibold text-emerald-700 underline underline-offset-2">
               commission calculator
             </NavLink>{' '}
             gives an estimate. If your buyer has an agent, you may still pay that agent’s commission; you can say in your listing whether you
@@ -267,7 +267,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
           <div>
             <button
               onClick={() => onNavigate('wizard')}
-              className="px-6 py-3.5 bg-[#F2C14E] hover:bg-[#e8b43a] text-slate-900 font-semibold rounded-md cursor-pointer min-h-[48px]"
+              className="om-btn om-btn-dark"
             >
               List your home in {page.name}
             </button>
@@ -307,7 +307,7 @@ const ProvinceHubView: React.FC<ListingProps & { hub: ProvinceHub }> = ({ hub, l
 export const RegionsPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => (
   <div className="text-slate-900 max-w-[1000px] mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col gap-10">
     <div className="flex flex-col gap-5">
-      <h1 className="font-display font-bold text-[42px] sm:text-[58px] leading-[0.95]">For sale by owner across Canada</h1>
+      <h1 className="font-semibold text-[34px] sm:text-[46px] leading-[1.05]">For sale by owner across Canada</h1>
       <p className="text-lg text-slate-700 leading-relaxed max-w-[44em]">
         Homes for sale by their owners, and what selling your own home involves in each province and territory: who handles closing, transfer tax
         and fees, and what to get ready before you list.
@@ -315,7 +315,7 @@ export const RegionsPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => (
       <CtaButtons onNavigate={onNavigate} />
     </div>
     <section className="flex flex-col gap-4">
-      <h2 className="font-display font-bold text-[30px] leading-none">What’s the same everywhere</h2>
+      <h2 className="font-semibold text-[24px] leading-[1.1]">What’s the same everywhere</h2>
       <p className="text-[17px] text-slate-700 leading-relaxed max-w-[44em]">
         Selling your own home is legal in every province and territory. You do the selling: photos, the listing, viewings and talking to buyers.
         Each side hires its own lawyer (or notary, in BC), who handles the contract, the money and the transfer. What changes from province to
@@ -323,7 +323,7 @@ export const RegionsPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => (
       </p>
     </section>
     <section className="flex flex-col gap-4">
-      <h2 className="font-display font-bold text-[30px] leading-none">Transfer tax and fees, at a glance</h2>
+      <h2 className="font-semibold text-[24px] leading-[1.1]">Transfer tax and fees, at a glance</h2>
       <ul className="divide-y divide-slate-200 border-y border-slate-200">
         {PROVINCE_HUBS.map((h) => (
           <li key={h.page.code} className="py-3 flex flex-col sm:flex-row sm:items-baseline sm:gap-4">
@@ -363,7 +363,7 @@ export const CityPage: React.FC<ListingProps & { slug: string }> = ({ slug, list
           </NavLink>{' '}
           / <span className="text-slate-900">{cityName}</span>
         </nav>
-        <h1 className="font-display font-bold text-[42px] sm:text-[58px] leading-[0.95]">
+        <h1 className="font-semibold text-[34px] sm:text-[46px] leading-[1.05]">
           Homes for sale by owner in {cityName}, {hub.page.code}
         </h1>
         <p className="text-lg text-slate-700 leading-relaxed max-w-[44em]">

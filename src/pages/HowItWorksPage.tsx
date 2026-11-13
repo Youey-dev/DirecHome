@@ -43,7 +43,7 @@ const FeatureSheetMock: React.FC = () => (
     className="bg-white rounded-md shadow-lg ring-1 ring-slate-200 p-4 flex flex-col gap-2.5 aspect-[8.5/11] w-full"
   >
     <div className="flex justify-between items-center">
-      <span className="font-display font-bold text-emerald-700 text-[15px]">OwnersMarket</span>
+      <span className="font-semibold text-emerald-700 text-[15px]">OwnersMarket</span>
     </div>
     <div className="rounded bg-[linear-gradient(160deg,#BCD3C3,#6A9476)] h-[34%]" />
     <div className="grid grid-cols-3 gap-1.5 h-[11%]">
@@ -51,7 +51,7 @@ const FeatureSheetMock: React.FC = () => (
       <div className="rounded bg-slate-200" />
       <div className="rounded bg-emerald-200" />
     </div>
-    <div className="font-display font-bold text-[clamp(16px,4.5vw,24px)] leading-none text-slate-900">$849,000</div>
+    <div className="font-semibold text-[clamp(16px,4.5vw,24px)] leading-[1.1] text-slate-900">$849,000</div>
     <div className="text-[10px] text-slate-600">3 bed · 2 bath · 1,640 sq ft</div>
     <div className="flex flex-col gap-1">
       <div className="h-1.5 rounded bg-slate-200 w-full" />
@@ -139,8 +139,8 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
     <div className="text-slate-900">
       {/* Intro */}
       <section className="max-w-[1100px] mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-12 flex flex-col gap-5">
-        <p className="text-sm font-bold text-emerald-700">How OwnersMarket works</p>
-        <h1 className="font-display font-bold text-[44px] sm:text-[60px] leading-[0.95] max-w-[14em]">
+        <p className="text-[15px] text-slate-600">How OwnersMarket works</p>
+        <h1 className="font-semibold text-[35px] sm:text-[48px] leading-[1.05] max-w-[14em]">
           Everything you need to sell it yourself, for {LISTING_FEE_LABEL} a month
         </h1>
         <p className="text-lg text-slate-700 leading-relaxed max-w-[38em]">
@@ -168,8 +168,8 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <section className="bg-white border-y border-slate-200">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div className="flex flex-col gap-4">
-            <p className="text-sm font-bold text-emerald-700">1 · Exposure</p>
-            <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Your home, in front of buyers</h2>
+            <p className="text-[15px] text-slate-600">1 · Exposure</p>
+            <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">Your home, in front of buyers</h2>
             <p className="text-[17px] text-slate-700 leading-relaxed">
               Your listing is built around your photos, so buyers can get a real feel for the home before they ask to see it.
             </p>
@@ -228,8 +228,8 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
           </div>
         </div>
         <div className="flex flex-col gap-4 order-1 lg:order-2">
-          <p className="text-sm font-bold text-emerald-700">2 · Marketing materials</p>
-          <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Signs and a feature sheet, ready to print</h2>
+          <p className="text-[15px] text-slate-600">2 · Marketing materials</p>
+          <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">Signs and a feature sheet, ready to print</h2>
           <p className="text-[17px] text-slate-700 leading-relaxed">
             Made from your listing in one click. Each one has a QR code: people scan it with their phone camera and land on your photos, price and
             the button to book a viewing.
@@ -256,8 +256,8 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <section className="bg-fern">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-4 max-w-[40em]">
-            <p className="text-sm font-bold text-emerald-700">3 · Tools to run your sale</p>
-            <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Handle buyers on your own terms</h2>
+            <p className="text-[15px] text-slate-600">3 · Tools to run your sale</p>
+            <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">Handle buyers on your own terms</h2>
           </div>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7">
             <Feature icon={<MessageSquare className="w-5 h-5" />} title="Messages and viewing requests">
@@ -289,12 +289,12 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
 
       {/* Steps */}
       <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col gap-10">
-        <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">From listing to sold</h2>
+        <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">From listing to sold</h2>
         <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
           {STEPS.map((s, i) => (
             <li key={s.title} className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <span className="font-display font-bold text-[40px] leading-none text-sign [-webkit-text-stroke:1px_#16261D]">{i + 1}</span>
+                <span className="font-semibold text-[32px] leading-[1.1] text-sign [-webkit-text-stroke:1px_#16261D]">{i + 1}</span>
                 <span className="w-9 h-9 rounded-full bg-emerald-700 text-white flex items-center justify-center">{s.icon}</span>
               </div>
               <h3 className="font-bold text-[19px]">{s.title}</h3>
@@ -308,7 +308,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <section className="bg-white border-y border-slate-200">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-10">
           <div className="flex flex-col gap-4">
-            <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">What OwnersMarket doesn’t do</h2>
+            <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">What OwnersMarket doesn’t do</h2>
             <p className="text-[17px] text-slate-700 leading-relaxed">
               We’re an advertising site, not a real estate brokerage. If you want someone to do these for you, a full-service agent is the better fit.
             </p>
@@ -333,7 +333,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
 
       {/* Comparison */}
       <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 sm:py-20 flex flex-col gap-6">
-        <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Listing with an agent vs. listing on OwnersMarket</h2>
+        <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">Listing with an agent vs. listing on OwnersMarket</h2>
         <div className="overflow-x-auto bg-white rounded-[10px] border border-slate-200">
           <table className="w-full text-sm text-left">
             <thead>
@@ -373,8 +373,8 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <section className="bg-fern">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16 grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-10">
           <div className="flex flex-col gap-4">
-            <p className="text-sm font-bold text-emerald-700">For real estate agents</p>
-            <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Bring your buyers</h2>
+            <p className="text-[15px] text-slate-600">For real estate agents</p>
+            <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">Bring your buyers</h2>
             <p className="text-[17px] text-slate-700 leading-relaxed">
               Owners on OwnersMarket can mark their listing “Agents welcome” and say up front what commission they’ll pay a buyer’s agent.
             </p>
@@ -414,7 +414,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       {/* FAQ */}
       <section className="bg-white border-t border-slate-200">
         <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-16 flex flex-col gap-6">
-          <h2 className="font-display font-bold text-[38px] sm:text-[44px] leading-none">Questions people ask</h2>
+          <h2 className="font-semibold text-[30px] sm:text-[35px] leading-[1.1]">Questions people ask</h2>
           <div className="flex flex-col divide-y divide-slate-200 border-y border-slate-200">
             {FAQ.map((f) => (
               <details key={f.q} className="group py-4">
@@ -446,7 +446,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <section className="max-w-[1100px] mx-auto px-4 sm:px-6 py-16">
         <div className="rounded-[10px] bg-emerald-900 text-white p-8 sm:p-12 flex flex-col md:flex-row md:items-center gap-6">
           <div className="flex-1 flex flex-col gap-2">
-            <h2 className="font-display font-bold text-[34px] sm:text-[40px] leading-none">Ready to list your home?</h2>
+            <h2 className="font-semibold text-[27px] sm:text-[32px] leading-[1.1]">Ready to list your home?</h2>
             <p className="text-emerald-100 text-[16px]">
               Most owners finish in about 15 minutes. Every listing gets a quick review before it goes live, and your signs and feature sheet are
               ready the moment it does.

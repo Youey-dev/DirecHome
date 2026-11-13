@@ -5,17 +5,7 @@ import { RecentlySold } from '../components/RecentlySold';
 import { AlertBox } from '../components/AlertBox';
 import { MapLibreMap } from '../components/LazyMap';
 import { OPEN_PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
-import { 
-  Filter, 
-  Map as MapIcon, 
-  List, 
-  Columns, 
-  Search, 
-  Sparkles, 
-  RotateCcw,
-  SlidersHorizontal,
-  X
-} from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 
 interface BrowsePageProps {
   listings: Listing[];
@@ -159,181 +149,170 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
     agentsOnly ||
     searchQuery.trim() !== '';
 
+  const where = selectedProvince === ALL_PROVINCES ? 'across Canada' : `in ${provinceName(selectedProvince)}`;
+  const viewChip = (mode: 'split' | 'list' | 'map', label: string, extra = '') => (
+    <button
+      type="button"
+      onClick={() => setViewMode(mode)}
+      aria-pressed={viewMode === mode}
+      className={`om-chip ${extra}`}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
-      <h1 className="font-display font-bold text-[40px] sm:text-[48px] leading-none text-slate-900">
-        Homes for sale by owner
-      </h1>
-
-      {/* Top Search & Filter Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by city, neighbourhood or postal code (e.g. Langley, Ottawa, V2Y)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:bg-white transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Quick Dropdowns (Desktop) */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Province Dropdown */}
-            <select
-              aria-label="Province or territory"
-              value={selectedProvince}
-              onChange={(e) => setSelectedProvince(e.target.value)}
-              className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
-            >
-              <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
-              {OPEN_PROVINCES.map((p) => (
-                <option key={p.code} value={p.code}>{p.name}</option>
-              ))}
-            </select>
-
-            {/* Property Type Dropdown */}
-            <select
-              value={propertyType}
-              onChange={(e) => setPropertyType(e.target.value)}
-              className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
-            >
-              <option value="All">All property types</option>
-              <option value="Single Family Detached">Detached house</option>
-              <option value="Townhouse">Townhouse</option>
-              <option value="Condo / apartment">Condo / Apartment</option>
-              <option value="Acreage / farm">Acreage / Farm</option>
-            </select>
-
-            {/* Beds Dropdown */}
-            <select
-              value={minBeds}
-              onChange={(e) => setMinBeds(Number(e.target.value))}
-              className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
-            >
-              <option value={0}>Any beds</option>
-              <option value={1}>1+ Beds</option>
-              <option value={2}>2+ Beds</option>
-              <option value={3}>3+ Beds</option>
-              <option value={4}>4+ Beds</option>
-            </select>
-
-            {/* Cash-back toggle button */}
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-2 sm:pt-4 pb-6 flex flex-col gap-8">
+      {/* Search */}
+      <form
+        role="search"
+        aria-label="Search homes"
+        onSubmit={(e) => e.preventDefault()}
+        className="w-full max-w-[560px] flex items-center gap-1.5 p-[5px] border-[1.5px] border-slate-900 rounded-[14px] bg-white focus-within:ring-2 focus-within:ring-emerald-700 focus-within:ring-offset-2"
+      >
+        <label className="relative flex-1 min-w-0 flex">
+          <span className="sr-only">City, neighbourhood or postal code</span>
+          <input
+            type="text"
+            placeholder="City or postal code"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="om-bare flex-1 min-w-0 h-11 border-0 bg-transparent pl-3 pr-10 text-[17px] text-slate-900 placeholder:text-slate-600 focus:outline-none"
+          />
+          {searchQuery && (
             <button
-              onClick={() => setCashbackOnly(!cashbackOnly)}
-              className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border ${
-                cashbackOnly
-                  ? 'bg-emerald-50 text-emerald-900 border-emerald-300 ring-1 ring-emerald-600'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-              }`}
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-slate-600 hover:text-slate-900 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Cash back offered only</span>
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
+          )}
+        </label>
+        <button
+          type="submit"
+          className="flex-none h-11 px-5 rounded-[9px] bg-emerald-700 hover:bg-emerald-800 text-white text-[16px] font-semibold cursor-pointer"
+        >
+          Search
+        </button>
+      </form>
+
+      {/* Result heading and filters */}
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+          <h1 className="text-[28px] sm:text-[40px] leading-[1.1] font-semibold tracking-[-0.03em] text-slate-900">
+            <span className="tabular-nums">{filteredListings.length}</span> {filteredListings.length === 1 ? 'home' : 'homes'} for sale by owner {where}
+          </h1>
+          {hasActiveFilters && (
             <button
-              onClick={() => setAgentsOnly(!agentsOnly)}
-              aria-pressed={agentsOnly}
-              className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border ${
-                agentsOnly
-                  ? 'bg-emerald-50 text-emerald-900 border-emerald-300 ring-1 ring-emerald-600'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-              }`}
+              onClick={resetFilters}
+              className="text-[15px] font-semibold text-emerald-700 hover:text-slate-900 underline underline-offset-[3px] min-h-[44px] cursor-pointer"
             >
-              <span>Agents welcome</span>
+              Reset filters
             </button>
-          </div>
-
-          {/* View Mode Segmented Control (Desktop) & Mobile Filter Button */}
-          <div className="flex items-center justify-between lg:justify-end gap-3">
-            <button
-              onClick={() => setMobileFiltersOpen(true)}
-              className="lg:hidden px-3.5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-2 border border-slate-200"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>Filters {hasActiveFilters ? '(Active)' : ''}</span>
-            </button>
-
-            {/* View Switcher */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-              <button
-                onClick={() => setViewMode('split')}
-                className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  viewMode === 'split' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Split Map & List"
-              >
-                <Columns className="w-3.5 h-3.5" />
-                <span>Split</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  viewMode === 'list' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="List View"
-              >
-                <List className="w-3.5 h-3.5" />
-                <span>List</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('map')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  viewMode === 'map' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Map View"
-              >
-                <MapIcon className="w-3.5 h-3.5" />
-                <span>Map</span>
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Results summary and Sort Strip */}
-        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-800 tabular-nums">
-              {filteredListings.length} {filteredListings.length === 1 ? 'home' : 'homes'} available
-            </span>
-            <span>{selectedProvince === ALL_PROVINCES ? 'across Canada' : `in ${provinceName(selectedProvince)}`}</span>
-            {hasActiveFilters && (
-              <button
-                onClick={resetFilters}
-                className="ml-2 text-emerald-800 hover:underline flex items-center gap-1 font-medium cursor-pointer"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset filters</span>
-              </button>
-            )}
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Phones and tablets: the full filter list opens in a panel */}
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(true)}
+            className={`om-chip lg:hidden ${hasActiveFilters ? 'om-chip-on' : ''}`}
+          >
+            <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
+            Filters{hasActiveFilters ? ' (on)' : ''}
+          </button>
 
-          {/* Sort dropdown */}
-          <div className="flex items-center gap-2">
-            <span>Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent font-medium text-slate-800 border-none focus:outline-none cursor-pointer"
-            >
-              <option value="newest">Newest listed</option>
-              <option value="price_asc">Price: low to high</option>
-              <option value="price_desc">Price: high to low</option>
-              <option value="cashback_desc">Highest cash back</option>
-            </select>
+          <select
+            aria-label="Province or territory"
+            value={selectedProvince}
+            onChange={(e) => setSelectedProvince(e.target.value)}
+            className="om-chip hidden lg:inline-flex"
+          >
+            <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
+            {OPEN_PROVINCES.map((p) => (
+              <option key={p.code} value={p.code}>{p.name}</option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Maximum price"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
+            className="om-chip hidden lg:inline-flex"
+          >
+            <option value="">Any price</option>
+            {[500000, 750000, 1000000, 1500000, 2000000].map((v) => (
+              <option key={v} value={v}>Up to ${v.toLocaleString('en-CA')}</option>
+            ))}
+            {maxPrice !== '' && ![500000, 750000, 1000000, 1500000, 2000000].includes(maxPrice) && (
+              <option value={maxPrice}>Up to ${maxPrice.toLocaleString('en-CA')}</option>
+            )}
+          </select>
+
+          <select
+            aria-label="Bedrooms"
+            value={minBeds}
+            onChange={(e) => setMinBeds(Number(e.target.value))}
+            className="om-chip hidden lg:inline-flex"
+          >
+            <option value={0}>Bedrooms</option>
+            <option value={1}>1+ beds</option>
+            <option value={2}>2+ beds</option>
+            <option value={3}>3+ beds</option>
+            <option value={4}>4+ beds</option>
+          </select>
+
+          <select
+            aria-label="Home type"
+            value={propertyType}
+            onChange={(e) => setPropertyType(e.target.value)}
+            className="om-chip hidden lg:inline-flex"
+          >
+            <option value="All">Home type</option>
+            <option value="Single Family Detached">Detached house</option>
+            <option value="Townhouse">Townhouse</option>
+            <option value="Condo / apartment">Condo / Apartment</option>
+            <option value="Acreage / farm">Acreage / Farm</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={() => setCashbackOnly(!cashbackOnly)}
+            aria-pressed={cashbackOnly}
+            className="om-chip hidden lg:inline-flex"
+          >
+            Cash back offered
+          </button>
+          <button
+            type="button"
+            onClick={() => setAgentsOnly(!agentsOnly)}
+            aria-pressed={agentsOnly}
+            className="om-chip hidden lg:inline-flex"
+          >
+            Agents welcome
+          </button>
+
+          <select
+            aria-label="Sort by"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="om-chip"
+          >
+            <option value="newest">Newest first</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+            <option value="cashback_desc">Highest cash back</option>
+          </select>
+
+          {/* Views */}
+          <div role="group" aria-label="View" className="flex items-center gap-2 lg:ml-auto">
+            {/* On phones the list-and-map view shows the list only, so "List" reads as chosen */}
+            {viewChip('list', 'List', viewMode === 'split' ? 'max-md:!bg-slate-900 max-md:!text-white max-md:!border-slate-900' : '')}
+            {viewChip('split', 'List and map', 'hidden md:inline-flex')}
+            {viewChip('map', 'Map')}
           </div>
         </div>
       </div>
@@ -357,19 +336,16 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
       {/* Main Content Area */}
       {filteredListings.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-4">
-          <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-            <Search className="w-6 h-6" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">{realLiveCount === 0 ? 'The first homes are going up now' : 'No matching homes found'}</h3>
-          <p className="text-sm text-slate-500">
+        <div className="py-16 text-center max-w-md mx-auto flex flex-col items-center gap-3">
+          <h2 className="text-[24px] font-semibold tracking-[-0.02em] text-slate-900">{realLiveCount === 0 ? 'The first homes are going up now' : 'No matching homes found'}</h2>
+          <p className="text-[16px] text-slate-600">
             {realLiveCount === 0
               ? 'Check back soon: new homes are listed by their owners every week.'
               : 'Try a wider price range, a different province, or another city or neighbourhood.'}
           </p>
           {realLiveCount > 0 && <button
             onClick={resetFilters}
-            className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl transition-all cursor-pointer"
+            className="mt-2 om-btn om-btn-outline"
           >
             Clear all filters
           </button>}
@@ -380,8 +356,8 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
           {viewMode === 'split' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Listings column (7 cols) */}
-              <div className="lg:col-span-7 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="lg:col-span-7">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-10">
                   {filteredListings.map((listing) => (
                     <div
                       key={listing.id}
@@ -399,7 +375,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               </div>
 
               {/* Sticky Map column (5 cols) */}
-              <div className="hidden lg:block lg:col-span-5 sticky top-20 h-[calc(100vh-100px)]">
+              <div className="hidden lg:block lg:col-span-5 sticky top-6 h-[calc(100vh-48px)] rounded-2xl overflow-hidden">
                 <MapLibreMap
                   listings={filteredListings}
                   selectedListingId={selectedListingId}
@@ -412,7 +388,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
           {/* View Mode: List Only (12 cols grid) */}
           {viewMode === 'list' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-7 gap-y-11">
               {filteredListings.map((listing) => (
                 <ListingCard
                   key={listing.id}
@@ -427,7 +403,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
           {/* View Mode: Map Only */}
           {viewMode === 'map' && (
-            <div className="w-full h-[calc(100vh-200px)]">
+            <div className="w-full h-[calc(100vh-200px)] min-h-[420px] rounded-2xl overflow-hidden">
               <MapLibreMap
                 listings={filteredListings}
                 selectedListingId={selectedListingId}
@@ -444,28 +420,29 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
       {/* Mobile Filters Drawer */}
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex justify-end animate-fadeIn">
-          <div className="bg-white w-full max-w-sm h-full p-6 overflow-y-auto space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-900">Filter homes</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/40 flex justify-end animate-fadeIn" role="dialog" aria-modal="true" aria-labelledby="filters-title">
+          <div className="bg-white w-full max-w-sm h-full p-6 overflow-y-auto space-y-6 rounded-l-2xl">
+            <div className="flex items-center justify-between pb-2">
+              <h2 id="filters-title" className="text-[22px] font-semibold tracking-[-0.02em] text-slate-900">Filter homes</h2>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Close filters"
+                className="p-2 text-slate-600 hover:text-slate-900 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
             {/* City */}
             <div>
-              <label htmlFor="mobile-province-filter" className="block text-xs font-semibold text-slate-700 mb-2">
+              <label htmlFor="mobile-province-filter" className="block text-[15px] font-medium text-slate-900 mb-2">
                 Province or territory
               </label>
               <select
                 id="mobile-province-filter"
                 value={selectedProvince}
                 onChange={(e) => setSelectedProvince(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                className="w-full h-12 px-3 bg-white border border-hairline-strong rounded-xl text-[16px]"
               >
                 <option value={ALL_PROVINCES}>{ALL_PROVINCES}</option>
                 {OPEN_PROVINCES.map((p) => (
@@ -474,16 +451,37 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               </select>
             </div>
 
+            {/* Maximum price */}
+            <div>
+              <label htmlFor="mobile-price-filter" className="block text-[15px] font-medium text-slate-900 mb-2">
+                Maximum price
+              </label>
+              <select
+                id="mobile-price-filter"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                className="w-full h-12 px-3 bg-white border border-hairline-strong rounded-xl text-[16px]"
+              >
+                <option value="">Any price</option>
+                {[500000, 750000, 1000000, 1500000, 2000000].map((v) => (
+                  <option key={v} value={v}>Up to ${v.toLocaleString('en-CA')}</option>
+                ))}
+                {maxPrice !== '' && ![500000, 750000, 1000000, 1500000, 2000000].includes(maxPrice) && (
+                  <option value={maxPrice}>Up to ${maxPrice.toLocaleString('en-CA')}</option>
+                )}
+              </select>
+            </div>
+
             {/* Property Type */}
             <div>
-              <label htmlFor="mobile-prop-type-filter" className="block text-xs font-semibold text-slate-700 mb-2">
+              <label htmlFor="mobile-prop-type-filter" className="block text-[15px] font-medium text-slate-900 mb-2">
                 Property type
               </label>
               <select
                 id="mobile-prop-type-filter"
                 value={propertyType}
                 onChange={(e) => setPropertyType(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                className="w-full h-12 px-3 bg-white border border-hairline-strong rounded-xl text-[16px]"
               >
                 <option value="All">All types</option>
                 <option value="Detached house">Single Family Detached</option>
@@ -495,7 +493,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
             {/* Minimum Bedrooms */}
             <div>
-              <span className="block text-xs font-semibold text-slate-700 mb-2">
+              <span className="block text-[15px] font-medium text-slate-900 mb-2">
                 Bedrooms
               </span>
               <div className="grid grid-cols-5 gap-1.5">
@@ -504,11 +502,8 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
                     key={num}
                     type="button"
                     onClick={() => setMinBeds(num)}
-                    className={`py-2 rounded-xl text-xs font-semibold border min-h-[44px] ${
-                      minBeds === num 
-                        ? 'bg-emerald-700 text-white border-emerald-700' 
-                        : 'bg-slate-50 text-slate-700 border-slate-200'
-                    }`}
+                    aria-pressed={minBeds === num}
+                    className="om-chip justify-center !px-0"
                   >
                     {num === 0 ? 'Any' : `${num}+`}
                   </button>
@@ -517,10 +512,10 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             </div>
 
             {/* Cash-back Toggle */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-4 border-t border-hairline flex items-center justify-between gap-4">
               <div>
-                <div className="text-sm font-semibold text-slate-900">Cash back offered</div>
-                <div className="text-xs text-slate-500">Only homes with closing credits</div>
+                <div className="text-[15px] font-medium text-slate-900">Cash back offered</div>
+                <div className="text-[13px] text-slate-600">Only homes with closing credits</div>
               </div>
               <input
                 type="checkbox"
@@ -531,10 +526,10 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             </div>
 
             {/* Agents welcome Toggle */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-4 border-t border-hairline flex items-center justify-between gap-4">
               <div>
-                <div className="text-sm font-semibold text-slate-900">Agents welcome</div>
-                <div className="text-xs text-slate-500">Owner pays a buyer's agent commission</div>
+                <div className="text-[15px] font-medium text-slate-900">Agents welcome</div>
+                <div className="text-[13px] text-slate-600">Owner pays a buyer's agent commission</div>
               </div>
               <input
                 type="checkbox"
@@ -544,16 +539,16 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
               />
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex gap-3">
+            <div className="pt-4 border-t border-hairline flex gap-3">
               <button
                 onClick={resetFilters}
-                className="flex-1 py-3 text-sm font-semibold text-slate-600 bg-slate-100 rounded-xl"
+                className="flex-1 om-btn om-btn-outline"
               >
                 Reset
               </button>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                className="flex-1 py-3 text-sm font-semibold text-white bg-emerald-700 rounded-xl"
+                className="flex-1 om-btn om-btn-primary"
               >
                 Show results
               </button>

@@ -34,15 +34,13 @@ export const AlertBox: React.FC<{
 
   return (
     <div
-      className={`rounded-2xl border-2 p-4 flex items-center gap-4 flex-wrap ${
-        saved ? 'border-emerald-200 bg-emerald-50' : 'border-emerald-700 bg-emerald-50/60'
-      }`}
+      className={`rounded-2xl p-4 sm:px-5 flex items-center gap-4 flex-wrap ${saved ? 'bg-fern' : 'bg-mist'}`}
     >
-      <div className="w-10 h-10 rounded-full bg-white border border-emerald-200 flex items-center justify-center flex-none">
+      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-none">
         {saved ? <Check className="w-5 h-5 text-emerald-700" /> : <Bell className="w-5 h-5 text-emerald-800" />}
       </div>
       <div className="flex-1 min-w-[14rem]">
-        <div className="font-bold text-slate-900">
+        <div className="font-semibold text-slate-900">
           {saved ? 'Alert saved' : 'Get new homes like these by email'}
         </div>
         <div className="text-sm text-slate-600">
@@ -58,7 +56,7 @@ export const AlertBox: React.FC<{
         <button
           onClick={() => void save()}
           disabled={busy}
-          className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-70 text-white text-sm font-semibold min-h-[44px] flex items-center gap-2 cursor-pointer"
+          className="px-5 rounded-[11px] bg-white hover:bg-slate-50 border-[1.5px] border-slate-900 disabled:opacity-70 text-slate-900 text-[15px] font-semibold min-h-[44px] flex items-center gap-2 cursor-pointer"
         >
           {busy && <Loader2 className="w-4 h-4 animate-spin" />}
           {signedIn ? 'Email me' : 'Sign in to get alerts'}

@@ -31,12 +31,16 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   const openHouse = upcomingOpenHouses(listing)[0];
   const drop = priceDrop(listing);
 
+  const typeWord = typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1);
+  const town = [listing.city, listing.province].filter(Boolean).join(', ');
+  const badge = 'bg-white/95 text-slate-900 text-[13px] font-medium px-2.5 py-1 rounded-full';
+
   return (
     <article
       onClick={() => onSelect(listing.id)}
-      className="group flex flex-col gap-3 cursor-pointer text-slate-900"
+      className="group relative flex flex-col gap-3.5 cursor-pointer text-slate-900"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-200">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[14px] bg-fern">
         {coverPhoto ? (
           <img
             src={coverPhoto.thumbnailUrl || coverPhoto.url}
@@ -48,7 +52,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         ) : null}
 
         {listing.isExample ? (
-          <div className="absolute top-3 left-3 bg-sign text-slate-900 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
+          <div className="absolute top-3 left-3 bg-sign text-slate-900 text-[13px] font-semibold px-2.5 py-1 rounded-full">
             Example · not for sale
           </div>
         ) : (
@@ -59,63 +63,66 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             onToggleFavorite(e, listing.id);
           }}
           aria-label={isFavorited ? 'Remove from saved' : 'Save this listing'}
-          className="absolute top-2.5 right-2.5 w-11 h-11 rounded-full bg-white text-slate-700 hover:text-rose-600 flex items-center justify-center shadow-sm transition-transform active:scale-90"
+          aria-pressed={isFavorited}
+          className="absolute z-10 top-2.5 right-2.5 w-11 h-11 rounded-full bg-white/95 text-slate-900 hover:text-rose-700 flex items-center justify-center transition-transform active:scale-90 cursor-pointer"
         >
-          <Heart className={`w-5 h-5 ${isFavorited ? 'fill-rose-500 text-rose-500' : 'text-slate-700'}`} />
+          <Heart className={`w-5 h-5 ${isFavorited ? 'fill-rose-600 text-rose-600' : ''}`} aria-hidden="true" />
         </button>
         )}
 
         {listing.status !== 'live' && !listing.isExample && (
-          <div className="absolute top-3 left-3 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1 rounded">
+          <div className="absolute top-3 left-3 bg-slate-900 text-white text-[13px] font-medium px-2.5 py-1 rounded-full">
             {listing.status === 'in_review' ? 'In review' : listing.status}
           </div>
         )}
 
-        <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2">
+        <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5">
           {openHouse && (
-            <span className="bg-emerald-800 text-white text-xs font-bold px-2.5 py-1 rounded">
+            <span className={badge}>
               Open house {shortDay(openHouse.startsAt, listing.province)} · {timeRange(openHouse, listing.province)}
             </span>
           )}
           {drop && (
-            <span className="bg-red-700 text-white text-xs font-bold px-2.5 py-1 rounded">↓ Price reduced {formatCAD(drop.amount)}</span>
-          )}
-          {listing.photos.length > 0 && !openHouse && !drop && (
-            <span className="bg-white text-slate-900 text-xs font-semibold px-2.5 py-1 rounded">
-              {listing.photos.length} {listing.photos.length === 1 ? 'photo' : 'photos'}
-            </span>
+            <span className={`${badge} !text-red-800`}>Price reduced {formatCAD(drop.amount)}</span>
           )}
           {listing.offersCashback && listing.cashbackAmount > 0 && (
-            <span className="bg-sign text-slate-900 text-xs font-semibold px-2.5 py-1 rounded">
+            <span className={badge}>
               {formatCAD(listing.cashbackAmount)} cash back
             </span>
           )}
           {listing.agentsWelcome && (
-            <span className="bg-emerald-700 text-white text-xs font-semibold px-2.5 py-1 rounded">Agents welcome</span>
+            <span className={badge}>Agents welcome</span>
+          )}
+          {listing.photos.length > 0 && !openHouse && !drop && !(listing.offersCashback && listing.cashbackAmount > 0) && !listing.agentsWelcome && (
+            <span className={badge}>
+              {listing.photos.length} {listing.photos.length === 1 ? 'photo' : 'photos'}
+            </span>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-0.5">
-        <span className="flex items-baseline gap-2 flex-wrap">
-          <span className="font-display font-bold text-[30px] leading-none tabular-nums">{formatCAD(listing.price)}</span>
-          {drop && <span className="text-[15px] text-slate-500 line-through tabular-nums">{formatCAD(drop.from)}</span>}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-baseline justify-between gap-4">
+          <h3 className="flex items-baseline gap-2 flex-wrap min-w-0">
+            {/* The whole card is one link: this link is stretched over it, so ctrl/cmd-click opens a new tab */}
+            <a
+              href={listing.isExample ? `/example/${listing.id.replace(/^example-/, '')}` : `/listing/${listing.id}`}
+              onClick={(e) => {
+                // Let the card's own click open the listing in the app; ctrl/cmd-click opens a new tab.
+                if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) e.preventDefault();
+              }}
+              className="om-stretched focus-visible:outline-none text-[24px] font-semibold tracking-[-0.02em] leading-tight tabular-nums text-slate-900 after:absolute after:inset-0 after:rounded-[14px] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-slate-900"
+            >
+              {formatCAD(listing.price)}
+              <span className="sr-only">, {listing.headline}, {place}</span>
+            </a>
+            {drop && <span className="text-[15px] text-slate-600 line-through tabular-nums">{formatCAD(drop.from)}</span>}
+          </h3>
+          <span className="text-[16px] text-slate-600 text-right truncate shrink min-w-0">{town}</span>
+        </div>
+        <span className="text-[16px] text-slate-600">
+          {typeWord}, {listing.bedrooms} bed, {listing.bathrooms} bath{listing.sqft ? `, ${listing.sqft.toLocaleString()} sq ft` : ''}
         </span>
-        <span className="text-[15px] font-medium pt-1">
-          {listing.bedrooms} bed, {listing.bathrooms} bath {typeLabel}, {listing.sqft.toLocaleString()} sq ft
-        </span>
-        <span className="text-[15px] text-slate-600 truncate">{place}</span>
-        <h3 className="text-sm font-semibold text-emerald-700 pt-1 line-clamp-1 group-hover:underline underline-offset-4">
-          <a
-            href={listing.isExample ? `/example/${listing.id.replace(/^example-/, '')}` : `/listing/${listing.id}`}
-            onClick={(e) => {
-              // Let the card's own click open the listing in the app; ctrl/cmd-click opens a new tab.
-              if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) e.preventDefault();
-            }}
-          >
-            {listing.headline}
-          </a>
-        </h3>
       </div>
     </article>
   );

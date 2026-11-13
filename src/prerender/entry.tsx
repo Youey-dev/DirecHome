@@ -42,12 +42,13 @@ const NAV: [string, string][] = [
 /** A plain header and the site footer so crawlers can follow links between pages. */
 const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="min-h-screen flex flex-col bg-white text-slate-900">
-    <header className="border-b border-slate-200">
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-[68px] flex items-center gap-6">
-        <a href="/" className="font-display font-bold text-[26px] leading-none text-slate-900">
+    <header>
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center justify-between gap-x-7 gap-y-1">
+        <a href="/" className="flex items-center gap-2.5 min-h-[44px] text-[20px] font-semibold tracking-[-0.01em] leading-none text-slate-900">
+          <img src="/logo.png" alt="" width={30} height={30} className="w-[30px] h-[30px]" />
           OwnersMarket
         </a>
-        <nav aria-label="Main" className="hidden lg:flex gap-5 text-sm text-slate-600">
+        <nav aria-label="Main" className="hidden sm:flex gap-7 text-[16px] text-slate-900">
           {NAV.slice(0, 4).map(([href, label]) => (
             <a key={href} href={href}>
               {label}
@@ -70,7 +71,7 @@ const PAGES: Record<string, () => React.ReactElement> = {
   [TAB_PATHS.calculator]: () => (
     <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
       <div className="mb-6">
-        <h1 className="font-display text-5xl font-bold text-slate-900 leading-none">Real estate commission calculator</h1>
+        <h1 className="text-[38px] font-semibold text-slate-900 leading-[1.1]">Real estate commission calculator</h1>
         <p className="text-base text-slate-600 mt-3 max-w-[40em]">
           Estimate what you could save using an example commission rate, and how much closing cash back you could offer. Commission rates vary
           by province and are negotiable. All figures are estimates.

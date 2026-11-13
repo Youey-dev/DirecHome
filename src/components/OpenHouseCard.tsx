@@ -46,9 +46,9 @@ export const OpenHouseCard: React.FC<{
   };
 
   return (
-    <div className="rounded-xl border-2 border-emerald-700 bg-emerald-50/60 p-4 space-y-2">
-      <div className="text-xs font-bold tracking-wider uppercase text-emerald-800">Open house</div>
-      <div className="font-display font-bold text-[28px] leading-none text-slate-900">{longDay(next.startsAt, listing.province)}</div>
+    <div className="rounded-xl bg-mist p-4 space-y-2">
+      <div className="text-[15px] font-medium text-emerald-700">Open house</div>
+      <div className="text-[22px] font-semibold tracking-[-0.02em] leading-tight text-slate-900">{longDay(next.startsAt, listing.province)}</div>
       <div className="text-base font-semibold text-slate-900">{timeRange(next, listing.province)}</div>
       {next.note && <p className="text-sm text-slate-700">{next.note}</p>}
       {!isOwner && (

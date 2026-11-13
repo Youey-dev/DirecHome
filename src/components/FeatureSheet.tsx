@@ -27,7 +27,7 @@ const Fact: React.FC<{ label: string; value: string }> = ({ label, value }) => (
 const List: React.FC<{ title: string; items: string[] }> = ({ title, items }) =>
   items.length ? (
     <div>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 2 }}>{title}</div>
+      <div style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em', fontSize: 16, marginBottom: 2 }}>{title}</div>
       <ul style={{ margin: 0, paddingLeft: 15, fontSize: 11, lineHeight: 1.4 }}>
         {items.slice(0, 4).map((it) => (
           <li key={it}>{it}</li>
@@ -120,7 +120,7 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
             boxSizing: 'border-box',
             padding: '0.15in',
             color: '#16261D',
-            fontFamily: "'Public Sans', system-ui, sans-serif",
+            fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
             display: 'flex',
             flexDirection: 'column',
             gap: 12,
@@ -131,7 +131,7 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
           <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <img src="/logo.png" alt="" width={34} height={34} />
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 24, color: '#0F5A40' }}>OwnersMarket</span>
+              <span style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em', fontSize: 24, color: '#0F5A40' }}>OwnersMarket</span>
             </div>
             <span style={{ background: '#F2C14E', fontWeight: 700, fontSize: 12, padding: '5px 12px', borderRadius: 999 }}>For sale by owner</span>
           </header>
@@ -139,12 +139,12 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
           {/* Headline and price */}
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
             <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 30, lineHeight: 1.02, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              <h1 style={{ margin: 0, fontFamily: "'Hanken Grotesk', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em', fontSize: 26, lineHeight: 1.1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 {listing.headline}
               </h1>
               <div style={{ fontSize: 13, color: '#4A5950', marginTop: 3 }}>{place}</div>
             </div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 40, lineHeight: 1, whiteSpace: 'nowrap', color: '#0F5A40' }}>
+            <div style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em', fontSize: 34, lineHeight: 1, whiteSpace: 'nowrap', color: '#0F5A40' }}>
               {formatCAD(listing.price)}
             </div>
           </div>
@@ -189,7 +189,7 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
               </div>
             </div>
             <div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 2 }}>Key facts</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em', fontSize: 16, marginBottom: 2 }}>Key facts</div>
               {facts.map(([label, value]) => (
                 <Fact key={label} label={label} value={value} />
               ))}
@@ -206,10 +206,10 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
           <footer style={{ display: 'flex', alignItems: 'center', gap: 14, borderTop: '1px solid #D5DED7', paddingTop: 10, flex: 'none' }}>
             <div style={{ width: '1.05in', height: '1.05in', flex: 'none' }} dangerouslySetInnerHTML={{ __html: qrSvg }} aria-label="QR code to this listing" role="img" />
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 20, lineHeight: 1.05 }}>
+              <div style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em', fontSize: 20, lineHeight: 1.05 }}>
                 Scan to see every photo and book a viewing
               </div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#0F5A40' }}>ownersmarket.ca</div>
+              <div style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", fontWeight: 600, letterSpacing: '-0.02em', fontSize: 16, color: '#0F5A40' }}>ownersmarket.ca</div>
               <div style={{ fontSize: 8.5, lineHeight: 1.4, color: '#4A5950' }}>
                 Information provided by the seller and not verified by OwnersMarket. OwnersMarket is an advertising service, not a real estate brokerage. Buyers should confirm details with their own lawyer or notary and a home inspector.
               </div>

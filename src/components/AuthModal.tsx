@@ -119,7 +119,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
             <div>
-              <span className="font-display font-bold text-slate-900 text-[22px] leading-none block">
+              <span className="font-semibold text-slate-900 text-[22px] leading-[1.1] block">
                 OwnersMarket
               </span>
               <span className="text-[10px] text-slate-400 font-medium">Homes for sale by owner across Canada</span>
