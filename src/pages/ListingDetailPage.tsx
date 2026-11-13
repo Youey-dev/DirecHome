@@ -4,7 +4,6 @@ import { FormattedText } from '../components/FormattedText';
 import { Listing, UserProfile } from '../types/listing';
 import { ListingGallery } from '../components/ListingGallery';
 import { MapLibreMap } from '../components/LazyMap';
-import { GoogleEmbedMap, GOOGLE_EMBED_KEY } from '../components/GoogleEmbedMap';
 import { ViewingModal } from '../components/ViewingModal';
 import { MessageModal } from '../components/MessageModal';
 import { ReportModal } from '../components/ReportModal';
@@ -397,20 +396,12 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
                 {listing.neighborhood}, {listing.city}
               </span>
             </div>
-            {GOOGLE_EMBED_KEY ? (
-              <GoogleEmbedMap
-                listing={listing}
-                approximate={!hasApprovedViewing}
-                heightClass="h-[340px]"
-              />
-            ) : (
-              <MapLibreMap
-                listings={[listing]}
-                singleListing={listing}
-                approximateMode={!hasApprovedViewing}
-                heightClass="h-[340px]"
-              />
-            )}
+            <MapLibreMap
+              listings={[listing]}
+              singleListing={listing}
+              approximateMode={!hasApprovedViewing}
+              heightClass="h-[340px]"
+            />
           </div>
           )}
 
