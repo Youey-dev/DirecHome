@@ -83,8 +83,8 @@ const PUBLISHED = {
     ].map((slug) => [slug, BATCH_OCT30]),
   ),
 };
-PUBLISHED['ways-to-sell-your-home-privately-in-canada'] = '2026-11-16';
-PUBLISHED['how-to-avoid-paying-realtor-commission'] = '2026-11-16';
+PUBLISHED['ways-to-sell-your-home-privately-in-canada'] = '2026-11-15';
+PUBLISHED['how-to-avoid-paying-realtor-commission'] = '2026-11-15';
 const FIRST_PUBLISHED = '2026-10-24';
 
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];

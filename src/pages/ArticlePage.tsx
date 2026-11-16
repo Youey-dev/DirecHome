@@ -85,8 +85,8 @@ const PROVINCE_LABEL: Record<string, string> = {
   'selling-without-a-realtor-newfoundland-and-labrador': 'Newfoundland and Labrador',
 };
 
-/** Guides first published in the last 30 days get a "New" tag. */
-const isNew = (a: Article, now = Date.now()) => now - Date.parse(a.published) < 30 * 86_400_000;
+/** Guides first published in the last 14 days get a "New" tag. */
+const isNew = (a: Article, now = Date.now()) => now - Date.parse(a.published) < 14 * 86_400_000;
 
 /** The tab and id that open a guide in the app (the Canada-wide and BC guides keep their own tab names). */
 const OWN_TABS: Record<string, string> = { 'selling-your-home': 'guide-selling', 'selling-without-a-realtor-bc': 'guide-bc' };
