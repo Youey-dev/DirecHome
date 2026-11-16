@@ -6,7 +6,7 @@ h1: How to sell your house privately in Saskatchewan
 main_keyword: how to sell a house privately in Saskatchewan
 related_keywords: sell house without realtor Saskatchewan; selling a home privately Regina; selling a home privately Saskatoon; can you sell a house without a realtor in Saskatchewan; for sale by owner Saskatchewan; Saskatchewan title transfer fee
 reading_time: About a 9-minute read
-last_checked: October 24, 2026
+last_checked: November 15, 2026
 internal_links:
   links to: /for-sale-by-owner/saskatchewan, /guides/selling-your-home, /guides/paperwork-to-sell-your-house-privately, /guides/should-i-sell-my-house-myself, /calculator, /sell
   should link here: /for-sale-by-owner/saskatchewan ("Read the full Saskatchewan guide"), /guides/selling-your-home ("What's different in your province"), /guides/paperwork-to-sell-your-house-privately (Saskatchewan line), Regina and Saskatoon city pages once they exist
@@ -16,7 +16,16 @@ internal_links:
 
 # How to sell your house privately in Saskatchewan
 
-**Short answer:** you can sell your own home in Saskatchewan without a realtor. You advertise it, show it and talk price with buyers; a Saskatchewan lawyer handles the offer, the deposit, the title transfer through ISC and closing. There's no land transfer tax: the buyer pays ISC a title fee of 0.4% of the property's value. If you're married or in a common-law relationship, your spouse will usually need to consent to the sale under the *Homesteads Act*, even if they're not on title.
+**Short answer:** yes, you can sell your own house in Saskatchewan without a realtor; the province's *Real Estate Act* exempts owners selling their own property. The steps:
+
+1. **Hire a Saskatchewan lawyer** to handle the offer, the deposit and the title transfer.
+2. **Set your price** from recent sales nearby, using your SAMA assessment only as a starting point.
+3. **Advertise** online and with a sign, and show the home yourself.
+4. **Send every offer to your lawyer** before you sign.
+5. **Get homestead consent** from your spouse or common-law partner if you have one, even if they're not on title.
+6. **Close through your lawyers**, who register the transfer with ISC.
+
+There's no land transfer tax: the buyer pays ISC a title transfer fee of 0.4% of the value. You pay your lawyer, your mortgage payout costs and your own advertising.
 
 This guide covers what's specific to Saskatchewan. For the steps that are the same across Canada (photos, safe viewings, advertising), see our [Canada-wide guide](/guides/selling-your-home).
 
@@ -116,7 +125,7 @@ The offer to purchase sets out the price, deposit, included items, conditions an
 
 Saskatchewan has no land transfer tax. Land titles are run by Information Services Corporation (ISC), and the buyer pays ISC to transfer the title into their name:
 
-- **Title transfer:** 0.4% of the property's value since July 29, 2023, about **$400 for every $100,000**. On a $350,000 home that's about $1,400.
+- **Title transfer:** 0.4% of the property's value over $6,300, about **$400 for every $100,000**. On a $350,000 home that's about $1,400.
 - **Mortgage registration:** a separate ISC fee for the buyer's mortgage, set in bands by the amount borrowed.
 - **Your mortgage discharge:** ISC also charges a small fee to register the discharge of your mortgage; your lawyer handles it from the sale proceeds.
 
@@ -180,12 +189,12 @@ Second link: [See homes for sale by owner in Saskatchewan](/for-sale-by-owner/sa
 
 ## Sources
 
-Checked October 24, 2026.
+Checked November 15, 2026.
 
 - Government of Saskatchewan, [The Real Estate Act](https://publications.saskatchewan.ca/api/v1/products/29381/formats/36391/download): section 3(1)(a), owner exemption.
 - Government of Saskatchewan, [The Homesteads Act, 1989](https://publications.saskatchewan.ca/api/v1/products/566/formats/772/download), and Public Legal Education Association of Saskatchewan, [Family home](https://familylaw.plea.org/home-property/family-home).
 - Public Legal Education Association of Saskatchewan, [Real estate contracts](https://plea.org/housing/buying-selling/contract-for-purchase-sale) and [Buying a condo](https://plea.org/housing/condos/buying-a-condo) (estoppel certificate, up to $200).
-- ISC, [Land Titles fees](https://www.isc.ca/SignedInHome/Fees/Pages/default.aspx). The 0.4% transfer rate from July 29, 2023 is also summarised by [Saskatchewan Real Estate Law](https://skrealestatelaw.com/iscpricingchanges/).
+- ISC, [Land Titles fees](https://www.isc.ca/LandTitles/Pages/LandTitlesFees.aspx): title transfer 0.4% of the value over $6,300; mortgage registration fees by amount.
 - SAMA, [Revaluations](https://www.sama.sk.ca/property-owner-services/understanding-assessment/revaluations): four-year cycle, 2025 revaluation on a 2023 base date.
 - Canada Revenue Agency, [Principal residence and other real estate](https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/personal-income/line-12700-capital-gains/principal-residence-other-real-estate.html).
 - Financial Consumer Agency of Canada, [Breaking your mortgage contract](https://www.canada.ca/en/financial-consumer-agency/services/mortgages/break-mortgage-contract.html).
@@ -202,6 +211,6 @@ Checked October 24, 2026.
 ## Notes for the founder (not part of the article)
 
 - **Legal flag:** Saskatchewan's *Real Estate Act* defines "trade" to include advertising real estate for sale. Owners are exempt; whether a paid advertising site like OwnersMarket is, needs your lawyer (see `claude/manitoba-private-sale-services-flag.md`). You chose to keep publishing while that's checked.
-- **ISC fee:** I couldn't open ISC's fee schedule directly. The 0.4% figure matches our province page and a Saskatchewan law firm's summary; check it on ISC's site once before publishing.
+- **ISC fee:** confirmed on ISC's Land Titles fees page on Nov 15, 2026 (0.4% over $6,300).
 - **Regina and Saskatoon** may assess homes themselves rather than through SAMA; the guide says "most properties" to stay accurate.
 - **Wording to keep:** "lawyer" only for Saskatchewan.

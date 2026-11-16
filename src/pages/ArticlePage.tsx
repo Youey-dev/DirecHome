@@ -54,6 +54,7 @@ export const GUIDE_GROUPS: { id: string; title: string; intro: string; slugs: st
       'what-a-real-estate-lawyer-does-when-you-sell',
       'selling-privately-when-buyer-has-an-agent',
       'how-long-does-it-take-to-sell-a-house-privately',
+      'how-deposits-work-in-a-private-sale',
     ],
   },
   {
@@ -72,6 +73,9 @@ export const GUIDE_GROUPS: { id: string; title: string; intro: string; slugs: st
     ],
   },
 ];
+
+/** Buyer guides written in Markdown, listed under the main buyer guide */
+const BUYING_SLUGS = ['how-to-find-homes-for-sale-by-owner', 'questions-to-ask-a-private-seller', 'do-you-need-a-realtor-to-buy-a-house'];
 
 /** Province tile labels ("selling-without-a-realtor-bc" → "British Columbia") */
 const PROVINCE_LABEL: Record<string, string> = {
@@ -321,6 +325,7 @@ export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) =
                 </NavLink>
               </li>
             </ul>
+            <GuideRows slugs={BUYING_SLUGS} onNavigate={onNavigate} />
           </section>
         </div>
       </div>
