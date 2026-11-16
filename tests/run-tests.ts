@@ -22,6 +22,7 @@ import { runShareTests } from './share.test';
 import { runArticleTests } from './articles.test';
 import { runListingNewsTests } from './listingNews.test';
 import { runBuyingCostTests } from './buyingCosts.test';
+import { runSearchTests } from './search.test';
 
 async function main() {
   console.log('====================================================');
@@ -40,6 +41,7 @@ async function main() {
     runShareTests();
     runArticleTests();
     runBuyingCostTests();
+    runSearchTests();
     runEmailTests();
     runTextTests();
     runAgentTests();

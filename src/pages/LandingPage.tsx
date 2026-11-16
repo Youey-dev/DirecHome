@@ -1,3 +1,5 @@
+import { SearchBox } from '../components/SearchBox';
+import { parseQuery } from '../lib/placeSearch';
 import { rememberPromo, type HomepagePromo } from '../lib/promo';
 import React, { useState } from 'react';
 import { Listing, isListingLive } from '../types/listing';
@@ -39,11 +41,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const exampleFees = LISTING_FEE_CAD_PER_MONTH * EXAMPLE_MONTHS;
   const exampleKeep = example.traditionalTotalCommission - exampleFees;
 
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const filters: BrowseFilters = { query: query.trim() || undefined };
+  const go = (filters: BrowseFilters) => {
     if (onSearch) onSearch(filters);
     else onNavigate('browse');
+  };
+  const submitSearch = (v: string) => {
+    // "BC", "Ontario"… on their own open that province
+    const p = parseQuery(v);
+    if (p.province && !p.text && !p.postal) go({ province: p.province });
+    else go({ query: v.trim() || undefined });
   };
 
   const startListing = () => {
@@ -61,30 +67,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <h1 className="text-[40px] sm:text-[60px] lg:text-[76px] leading-[1.02] font-semibold tracking-[-0.035em] text-slate-900 text-balance">
           Where do you want to live?
         </h1>
-        <form
-          aria-label="Search homes"
-          role="search"
+        <SearchBox
+          size="large"
+          value={query}
+          onChange={setQuery}
+          listings={liveListings}
           onSubmit={submitSearch}
-          className="w-full max-w-[640px] flex items-center gap-2 p-1.5 sm:p-2 border-[1.5px] border-slate-900 rounded-2xl bg-white focus-within:ring-2 focus-within:ring-emerald-700 focus-within:ring-offset-2"
-        >
-          <label className="flex-1 min-w-0 flex">
-            <span className="sr-only">City or postal code</span>
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="City or postal code"
-              autoComplete="off"
-              className="om-bare flex-1 min-w-0 h-[52px] border-0 bg-transparent px-3 sm:px-3.5 text-[17px] sm:text-[19px] text-slate-900 placeholder:text-slate-600 focus:outline-none focus-visible:outline-none"
-            />
-          </label>
-          <button
-            type="submit"
-            className="flex-none h-[52px] px-5 sm:px-7 rounded-[10px] bg-emerald-700 hover:bg-emerald-800 text-white text-[17px] font-semibold cursor-pointer"
-          >
-            Search
-          </button>
-        </form>
+          onPick={(sug) => go({ query: sug.query || undefined, province: sug.province ?? undefined })}
+        />
         <p className="text-[17px] sm:text-[18px] leading-normal text-slate-600 text-balance">
           Homes for sale by their owners, across Canada.{' '}
           <NavLink to="wizard" onNavigate={onNavigate} className={link}>
