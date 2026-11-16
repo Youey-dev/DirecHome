@@ -97,7 +97,7 @@ export const ARTICLE_META: ArticleMeta[] = [
     "description": "Selling your home privately in Saskatchewan: your lawyer, ISC title transfer fees (no land transfer tax), what to prepare and closing day.",
     "h1": "How to sell your house privately in Saskatchewan",
     "published": "2026-10-24",
-    "modified": "2026-10-24"
+    "modified": "2026-11-15"
   },
   {
     "path": "/guides/selling-without-a-realtor-ontario",
@@ -153,7 +153,7 @@ export const ARTICLE_META: ArticleMeta[] = [
     "description": "Every cost of selling a house in BC: realtor commission and GST, lawyer or notary, mortgage payout, strata forms and taxes, with or without a realtor.",
     "h1": "How much does it cost to sell a house in BC?",
     "published": "2026-10-30",
-    "modified": "2026-10-30"
+    "modified": "2026-11-15"
   },
   {
     "path": "/guides/cost-to-sell-a-house-in-ontario",
@@ -250,5 +250,53 @@ export const ARTICLE_META: ArticleMeta[] = [
     "h1": "Selling an acreage or rural home privately",
     "published": "2026-10-30",
     "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/ways-to-sell-your-home-privately-in-canada",
+    "title": "Ways to Sell Your Home Privately in Canada · OwnersMarket",
+    "description": "For-sale-by-owner sites, flat-fee MLS, Kijiji and Facebook: the ways to sell your home without a full-service agent in Canada, what each costs and who it suits.",
+    "h1": "Ways to sell your home privately in Canada, compared",
+    "published": "2026-11-15",
+    "modified": "2026-11-15"
+  },
+  {
+    "path": "/guides/how-to-avoid-paying-realtor-commission",
+    "title": "Avoid Paying Realtor Commission in Canada · OwnersMarket",
+    "description": "Five legal ways to pay less or no realtor commission when you sell your home in Canada, what each one saves, and how the buyer's agent fits in.",
+    "h1": "How to avoid paying realtor commission when you sell your home in Canada",
+    "published": "2026-11-15",
+    "modified": "2026-11-15"
+  },
+  {
+    "path": "/guides/how-to-find-homes-for-sale-by-owner",
+    "title": "How to Find Homes For Sale by Owner in Canada · OwnersMarket",
+    "description": "Where to find homes for sale by owner in Canada: private sale websites, flat-fee MLS listings, classifieds and lawn signs, plus how to avoid scams.",
+    "h1": "How to find homes for sale by owner in Canada",
+    "published": "2026-11-15",
+    "modified": "2026-11-15"
+  },
+  {
+    "path": "/guides/questions-to-ask-a-private-seller",
+    "title": "Questions to Ask a Private Home Seller · OwnersMarket",
+    "description": "The questions to ask a private seller before you make an offer on a home in Canada: the sale, the house, condos, rural homes, and what to get in writing.",
+    "h1": "Questions to ask when you buy a house from a private seller",
+    "published": "2026-11-15",
+    "modified": "2026-11-15"
+  },
+  {
+    "path": "/guides/do-you-need-a-realtor-to-buy-a-house",
+    "title": "Do You Need a Realtor to Buy a House? · OwnersMarket",
+    "description": "No: using a realtor to buy a home in Canada is optional. What you do need, who pays a buyer's agent in a private sale, and how to buy without one.",
+    "h1": "Do you need a realtor to buy a house in Canada?",
+    "published": "2026-11-15",
+    "modified": "2026-11-15"
+  },
+  {
+    "path": "/guides/how-deposits-work-in-a-private-sale",
+    "title": "How Deposits Work in a Private Home Sale · OwnersMarket",
+    "description": "Who holds the deposit when you buy or sell a home privately in Canada, how to pay it safely, and what happens if a condition fails or the buyer backs out.",
+    "h1": "How deposits work in a private home sale",
+    "published": "2026-11-15",
+    "modified": "2026-11-15"
   }
 ];

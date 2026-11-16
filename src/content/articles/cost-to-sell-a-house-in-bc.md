@@ -4,9 +4,9 @@ title: How Much Does It Cost to Sell a House in BC? · OwnersMarket
 meta_description: Every cost of selling a house in BC: realtor commission and GST, lawyer or notary, mortgage payout, strata forms and taxes, with or without a realtor.
 h1: How much does it cost to sell a house in BC?
 main_keyword: how much does it cost to sell a house in BC
-related_keywords: realtor fees BC; realtor fees BC calculator; real estate commission BC; realtor commission BC; seller closing costs BC; do sellers pay property transfer tax in BC
+related_keywords: how much does it cost to sell a house in BC without a realtor; cost to sell a house privately in BC; realtor fees BC; realtor fees BC calculator; real estate commission BC; realtor commission BC; seller closing costs BC; do sellers pay property transfer tax in BC
 reading_time: About a 7-minute read
-last_checked: October 30, 2026
+last_checked: November 15, 2026
 internal_links:
   links to: /calculator, /guides/selling-without-a-realtor-bc, /for-sale-by-owner/british-columbia, /guides/selling-privately-when-buyer-has-an-agent, /guides/selling-a-house-with-a-mortgage, /guides/selling-privately-vs-discount-brokerage-vs-flat-fee-mls, /sell
   should link here: /calculator (under the result, "Every cost of selling in BC"), /guides/selling-without-a-realtor-bc (section 9), /for-sale-by-owner/british-columbia, /guides/selling-privately-vs-discount-brokerage-vs-flat-fee-mls (section 2)
@@ -17,6 +17,8 @@ internal_links:
 # How much does it cost to sell a house in BC?
 
 **Short answer:** the biggest cost of selling a house in BC is usually the real estate commission, plus 5% GST on it. Commissions aren't set by law and are negotiable. On top of that, every seller pays a lawyer or notary, a fee to discharge their mortgage, and possibly a mortgage prepayment penalty, moving costs and, for strata homes, small fees for the strata's forms. The buyer, not the seller, pays BC's property transfer tax.
+
+**Without a realtor**, there's no listing commission. You still pay your lawyer or notary, your mortgage discharge (and any prepayment penalty), strata forms if it's a strata home, your own advertising, and a buyer's agent's commission only if you agree to pay one.
 
 > **Estimates only.** The commission figures below use an example rate, not a standard one. Your costs depend on your price, your agreement and your buyer.
 
@@ -107,7 +109,25 @@ More in [Selling a house with a mortgage](/guides/selling-a-house-with-a-mortgag
 
 ---
 
-## 8. Comparing the ways to sell
+## 8. Selling in BC without a realtor: what you still pay
+
+*The listing commission goes; most other costs stay.*
+
+| Cost | Selling without a realtor |
+|---|---|
+| Listing commission | None |
+| Buyer's agent commission + GST | Only if your buyer has an agent and you agree to pay it |
+| Advertising | You pay (for example, $24.99 a month on OwnersMarket), plus a sign and photos if you want them |
+| Lawyer or notary | Yes: get two or three written quotes |
+| Mortgage discharge and any penalty | Yes, if you have a mortgage |
+| Strata Form B and Form F | Yes, for strata homes: up to $35 and $15 |
+| Property transfer tax | No: the buyer pays it |
+
+If a buyer cancels within BC's 3-day rescission period, they pay **you** 0.25% of the price. See [selling your own home in BC](/guides/selling-without-a-realtor-bc).
+
+---
+
+## 9. Comparing the ways to sell
 
 | On the $900,000 example | Commission + GST you pay |
 |---|---|
@@ -122,6 +142,9 @@ Lawyer or notary, mortgage costs and moving apply in every case. For the full co
 ---
 
 ## Frequently asked questions
+
+**How much does it cost to sell a house in BC without a realtor?**
+There's no listing commission. You pay your lawyer or notary, your mortgage discharge and any prepayment penalty, strata forms for a strata home (up to $35 for Form B and $15 for Form F), and your own advertising. If your buyer has an agent and you agree to pay them, add that commission plus 5% GST. Get written quotes for the legal work, because fees vary by firm.
 
 **What are realtor fees in BC?**
 There's no set fee. Commissions are negotiable and usually a percentage of the price, sometimes with a higher rate on the first $100,000, plus 5% GST. Ask any agent for their rate and what's included, in writing.
@@ -150,7 +173,7 @@ Second link: [Try the commission calculator](/calculator) · [Selling your own h
 
 ## Sources
 
-Checked October 30, 2026.
+Checked November 15, 2026.
 
 - Financial Consumer Agency of Canada, [Selling a home](https://www.canada.ca/en/financial-consumer-agency/services/selling-home.html) and [Prepayment penalties](https://www.canada.ca/en/financial-consumer-agency/services/mortgages/reduce-prepayment-penalties.html).
 - Canada Revenue Agency, [GST/HST calculator and rates](https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate/calculator.html): 5% GST in BC.

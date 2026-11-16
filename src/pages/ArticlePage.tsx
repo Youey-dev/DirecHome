@@ -8,54 +8,89 @@ type Nav = (tab: string, id?: string) => void;
 
 export const articleBySlug = (slug: string): Article | undefined => ARTICLES.find((a) => a.slug === slug);
 
-/** Guides grouped for the /guides page and the "More guides" list. */
-export const GUIDE_GROUPS: { title: string; slugs: string[] }[] = [
+/** Guides grouped by topic for the /guides page (with jump links) and the "More guides" list. */
+export const GUIDE_GROUPS: { id: string; title: string; intro: string; slugs: string[] }[] = [
   {
+    id: 'start',
     title: 'Start here',
+    intro: 'New to selling privately? Read these first.',
     slugs: ['should-i-sell-my-house-myself', 'selling-your-home', 'paperwork-to-sell-your-house-privately', 'how-to-list-your-house-for-sale-by-owner'],
   },
   {
-    title: 'Selling step by step',
-    slugs: [
-      'how-to-research-your-asking-price',
-      'what-a-real-estate-lawyer-does-when-you-sell',
-      'selling-privately-when-buyer-has-an-agent',
-      'getting-your-home-ready-to-sell',
-      'how-to-show-your-home-safely',
-      'how-long-does-it-take-to-sell-a-house-privately',
-      'selling-privately-vs-discount-brokerage-vs-flat-fee-mls',
-    ],
+    id: 'compare',
+    title: 'Compare your options',
+    intro: 'Every way to sell, side by side, including when another option suits you better.',
+    slugs: ['ways-to-sell-your-home-privately-in-canada', 'selling-privately-vs-discount-brokerage-vs-flat-fee-mls'],
   },
   {
-    title: 'What it costs',
-    slugs: ['cost-to-sell-a-house-in-bc', 'cost-to-sell-a-house-in-ontario', 'cost-to-sell-a-house-in-alberta', 'selling-a-house-with-a-mortgage'],
+    id: 'costs',
+    title: 'Costs and taxes',
+    intro: 'What selling really costs, with worked examples you can check.',
+    slugs: ['how-to-avoid-paying-realtor-commission', 'cost-to-sell-a-house-in-bc', 'cost-to-sell-a-house-in-ontario', 'cost-to-sell-a-house-in-alberta'],
   },
   {
-    title: 'Your situation',
-    slugs: [
-      'selling-a-condo-privately',
-      'selling-a-house-with-tenants',
-      'selling-an-inherited-house',
-      'selling-your-house-during-separation-or-divorce',
-      'selling-a-house-as-is',
-      'selling-a-vacant-house',
-      'selling-an-acreage-or-rural-home-privately',
-    ],
-  },
-  {
-    title: 'Selling in your province',
+    id: 'provinces',
+    title: 'Province guides',
+    intro: 'The rules, forms and taxes where your home is.',
     slugs: [
       'selling-without-a-realtor-bc',
       'selling-without-a-realtor-alberta',
       'selling-without-a-realtor-saskatchewan',
       'selling-without-a-realtor-ontario',
-      'selling-without-a-realtor-new-brunswick',
       'selling-without-a-realtor-nova-scotia',
+      'selling-without-a-realtor-new-brunswick',
       'selling-without-a-realtor-pei',
       'selling-without-a-realtor-newfoundland-and-labrador',
     ],
   },
+  {
+    id: 'steps',
+    title: 'Step by step',
+    intro: 'One stage of the sale at a time.',
+    slugs: [
+      'how-to-research-your-asking-price',
+      'getting-your-home-ready-to-sell',
+      'how-to-show-your-home-safely',
+      'what-a-real-estate-lawyer-does-when-you-sell',
+      'selling-privately-when-buyer-has-an-agent',
+      'how-long-does-it-take-to-sell-a-house-privately',
+      'how-deposits-work-in-a-private-sale',
+    ],
+  },
+  {
+    id: 'situations',
+    title: 'Special situations',
+    intro: 'When your sale isn’t the usual kind.',
+    slugs: [
+      'selling-a-condo-privately',
+      'selling-an-acreage-or-rural-home-privately',
+      'selling-a-house-with-tenants',
+      'selling-a-house-with-a-mortgage',
+      'selling-an-inherited-house',
+      'selling-your-house-during-separation-or-divorce',
+      'selling-a-vacant-house',
+      'selling-a-house-as-is',
+    ],
+  },
 ];
+
+/** Buyer guides written in Markdown, listed under the main buyer guide */
+const BUYING_SLUGS = ['how-to-find-homes-for-sale-by-owner', 'questions-to-ask-a-private-seller', 'do-you-need-a-realtor-to-buy-a-house'];
+
+/** Province tile labels ("selling-without-a-realtor-bc" → "British Columbia") */
+const PROVINCE_LABEL: Record<string, string> = {
+  'selling-without-a-realtor-bc': 'British Columbia',
+  'selling-without-a-realtor-alberta': 'Alberta',
+  'selling-without-a-realtor-saskatchewan': 'Saskatchewan',
+  'selling-without-a-realtor-ontario': 'Ontario',
+  'selling-without-a-realtor-nova-scotia': 'Nova Scotia',
+  'selling-without-a-realtor-new-brunswick': 'New Brunswick',
+  'selling-without-a-realtor-pei': 'Prince Edward Island',
+  'selling-without-a-realtor-newfoundland-and-labrador': 'Newfoundland and Labrador',
+};
+
+/** Guides first published in the last 14 days get a "New" tag. */
+const isNew = (a: Article, now = Date.now()) => now - Date.parse(a.published) < 14 * 86_400_000;
 
 /** The tab and id that open a guide in the app (the Canada-wide and BC guides keep their own tab names). */
 const OWN_TABS: Record<string, string> = { 'selling-your-home': 'guide-selling', 'selling-without-a-realtor-bc': 'guide-bc' };
@@ -163,50 +198,147 @@ export const ArticlePage: React.FC<{ slug: string; onNavigate: Nav }> = ({ slug,
 // ---------------------------------------------------------------------------
 // All guides: /guides
 // ---------------------------------------------------------------------------
-export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => (
-  <div className="text-slate-900 max-w-[980px] mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col gap-10">
-    <div className="flex flex-col gap-4">
-      <p className="text-[15px] text-slate-600">Seller guides · Canada, outside Québec</p>
-      <h1 className="font-semibold text-[34px] sm:text-[46px] leading-[1.05]">Guides to selling your home yourself</h1>
-      <p className="text-lg text-slate-700 leading-relaxed max-w-[44em]">
-        Free, plain-English guides to selling your home without a realtor in Canada: deciding if it’s right for you, the paperwork, pricing
-        research, viewings, buyers’ agents, what it costs, situations like tenants or an estate, and what’s different in your province. Every fact links to an official source.
-      </p>
-    </div>
-    {GUIDE_GROUPS.map((g) => (
-      <section key={g.title} className="flex flex-col gap-4">
-        <h2 className="font-semibold text-[24px] leading-[1.1]">{g.title}</h2>
-        <GuideList slugs={g.slugs} onNavigate={onNavigate} />
-        {g.title === 'Selling in your province' && (
-          <p className="text-[15px] text-slate-600">
-            For Manitoba and the territories, see the{' '}
-            <NavLink to="regions" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
-              province pages
-            </NavLink>
-            .
-          </p>
-        )}
-      </section>
-    ))}
-    <section className="flex flex-col gap-3">
-      <h2 className="font-semibold text-[24px] leading-[1.1]">Buying a home</h2>
-      <p className="text-[16px] text-slate-700">
-        <NavLink to="guide-buying" onNavigate={onNavigate} className="font-semibold text-emerald-800 underline underline-offset-2">
-          How to buy a house for sale by owner in Canada
-        </NavLink>
-      </p>
-    </section>
-    <div className="rounded-2xl bg-mist text-slate-900 p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
-      <div>
-        <p className="font-semibold text-[22px] leading-[1.1]">Ready to sell?</p>
-        <p className="text-slate-600 mt-2">List your home for $24.99 a month, with no commission. Buyers message you directly.</p>
-      </div>
-      <button
-        onClick={() => onNavigate('wizard')}
-        className="om-btn om-btn-dark shrink-0"
-      >
-        List your home
-      </button>
-    </div>
-  </div>
+const NewTag = () => (
+  <span className="ml-2 align-[2px] inline-block text-[11px] font-bold tracking-wide text-emerald-800 border border-emerald-700 rounded-full px-[7px] py-px">
+    NEW
+  </span>
 );
+
+const GuideRows: React.FC<{ slugs: string[]; onNavigate: Nav }> = ({ slugs, onNavigate }) => (
+  <ul>
+    {slugs
+      .map(articleBySlug)
+      .filter((a): a is Article => !!a)
+      .map((a) => {
+        const link = guideLink(a.slug);
+        return (
+          <li key={a.slug} className="border-t border-hairline">
+            <NavLink to={link.to} listingId={link.id} onNavigate={onNavigate} className="group block py-3.5">
+              <span className="block text-[17px] font-semibold leading-snug text-slate-900 group-hover:text-emerald-800">
+                {a.h1}
+                {isNew(a) && <NewTag />}
+              </span>
+              <span className="block mt-1 text-[14px] text-slate-600 leading-relaxed">{a.description}</span>
+            </NavLink>
+          </li>
+        );
+      })}
+  </ul>
+);
+
+const GroupSection: React.FC<{ g: (typeof GUIDE_GROUPS)[number]; onNavigate: Nav; children?: React.ReactNode }> = ({ g, onNavigate, children }) => (
+  <section id={g.id} className="scroll-mt-20 flex flex-col gap-2">
+    <div className="flex items-baseline justify-between gap-4">
+      <h2 className="font-semibold text-[26px] leading-[1.1] tracking-[-0.02em]">{g.title}</h2>
+      <span className="text-[14px] text-slate-600 tabular-nums">
+        {g.slugs.length} {g.slugs.length === 1 ? 'guide' : 'guides'}
+      </span>
+    </div>
+    <p className="text-[15px] text-slate-600 mb-1">{g.intro}</p>
+    {children ?? <GuideRows slugs={g.slugs} onNavigate={onNavigate} />}
+  </section>
+);
+
+export const GuidesIndexPage: React.FC<{ onNavigate: Nav }> = ({ onNavigate }) => {
+  const byId = (id: string) => GUIDE_GROUPS.find((g) => g.id === id)!;
+  const chips = [...GUIDE_GROUPS.map((g) => ({ id: g.id, title: g.title })), { id: 'buying', title: 'Buying privately' }];
+  const link = 'font-semibold text-emerald-800 underline underline-offset-2';
+  return (
+    <div className="text-slate-900 max-w-[1100px] mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col gap-8">
+      <div className="flex flex-col gap-4">
+        <p className="text-[15px] text-slate-600">Guides · Canada, outside Québec</p>
+        <h1 className="font-semibold text-[36px] sm:text-[52px] leading-[1.05] tracking-[-0.035em]">Guides to selling and buying privately</h1>
+        <p className="text-lg text-slate-600 leading-relaxed max-w-[44em]">
+          Plain-English answers for Canadians selling or buying a home without a realtor. Every guide starts with the short answer, shows when
+          it was last checked, and links to official sources.
+        </p>
+      </div>
+
+      {/* Jump to a topic */}
+      <nav aria-label="Guide topics" className="sticky top-0 z-10 bg-white py-2.5 border-b border-hairline -mx-4 px-4 sm:mx-0 sm:px-0">
+        <ul className="flex gap-2 overflow-x-auto sm:flex-wrap pb-0.5">
+          {chips.map((c) => (
+            <li key={c.id} className="shrink-0">
+              <a href={`#${c.id}`} className="om-chip">
+                {c.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-x-12 gap-y-10">
+        <div className="flex flex-col gap-10">
+          <GroupSection g={byId('start')} onNavigate={onNavigate} />
+          <GroupSection g={byId('compare')} onNavigate={onNavigate} />
+          <GroupSection g={byId('costs')} onNavigate={onNavigate}>
+            <GuideRows slugs={byId('costs').slugs} onNavigate={onNavigate} />
+            <p className="border-t border-hairline pt-3.5 text-[15px] text-slate-700">
+              Try your own numbers in the{' '}
+              <NavLink to="calculator" onNavigate={onNavigate} className={link}>
+                savings estimator
+              </NavLink>
+              .
+            </p>
+          </GroupSection>
+          <GroupSection g={byId('steps')} onNavigate={onNavigate} />
+        </div>
+        <div className="flex flex-col gap-10">
+          <GroupSection g={byId('provinces')} onNavigate={onNavigate}>
+            <ul className="grid grid-cols-2 gap-2">
+              {byId('provinces').slugs.map((slug) => {
+                const l = guideLink(slug);
+                return (
+                  <li key={slug}>
+                    <NavLink
+                      to={l.to}
+                      listingId={l.id}
+                      onNavigate={onNavigate}
+                      className="block h-full px-3.5 py-3 rounded-xl border-[1.5px] border-hairline hover:border-emerald-700 font-semibold text-[15px] text-slate-900"
+                    >
+                      {PROVINCE_LABEL[slug]}
+                    </NavLink>
+                  </li>
+                );
+              })}
+              <li className="px-3.5 py-3 rounded-xl border-[1.5px] border-dashed border-hairline text-[14px] text-slate-600">
+                Manitoba and the territories:{' '}
+                <NavLink to="regions" onNavigate={onNavigate} className={link}>
+                  province pages
+                </NavLink>
+              </li>
+            </ul>
+          </GroupSection>
+          <GroupSection g={byId('situations')} onNavigate={onNavigate} />
+          <section id="buying" className="scroll-mt-20 flex flex-col gap-2">
+            <h2 className="font-semibold text-[26px] leading-[1.1] tracking-[-0.02em]">Buying privately</h2>
+            <p className="text-[15px] text-slate-600 mb-1">For buyers dealing directly with an owner.</p>
+            <ul>
+              <li className="border-t border-hairline">
+                <NavLink to="guide-buying" onNavigate={onNavigate} className="group block py-3.5">
+                  <span className="block text-[17px] font-semibold leading-snug text-slate-900 group-hover:text-emerald-800">
+                    How to buy a house for sale by owner in Canada
+                  </span>
+                  <span className="block mt-1 text-[14px] text-slate-600 leading-relaxed">
+                    Eight steps, from getting pre-approved to getting the keys.
+                  </span>
+                </NavLink>
+              </li>
+            </ul>
+            <GuideRows slugs={BUYING_SLUGS} onNavigate={onNavigate} />
+          </section>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-mist text-slate-900 p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+        <div>
+          <p className="font-semibold text-[22px] leading-[1.1]">Ready to sell?</p>
+          <p className="text-slate-600 mt-2">List your home for $24.99 a month, with no commission. Buyers message you directly.</p>
+        </div>
+        <button onClick={() => onNavigate('wizard')} className="om-btn om-btn-dark shrink-0">
+          List your home
+        </button>
+      </div>
+    </div>
+  );
+};

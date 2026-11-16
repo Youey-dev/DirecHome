@@ -79,8 +79,8 @@ export const PAGES: Record<string, PageMeta> = {
   },
   ...Object.fromEntries(PROVINCE_PAGES.map((p) => [provincePath(p.slug), { title: p.title, description: p.description }])),
   '/guides': {
-    title: 'Seller Guides: Selling Your Home Yourself in Canada · OwnersMarket',
-    description: 'Free guides to selling your home without a realtor in Canada: should you, the paperwork, pricing research, viewings, buyers’ agents and your province.',
+    title: 'Guides to Selling and Buying Privately in Canada · OwnersMarket',
+    description: 'Free guides to selling or buying a home without a realtor in Canada: your options compared, costs and commission, paperwork, viewings and your province.',
   },
   // Seller guides written in Markdown (src/content/articles); these override any entry above
   ...Object.fromEntries(ARTICLE_META.map((a) => [a.path, { title: a.title, description: a.description }])),

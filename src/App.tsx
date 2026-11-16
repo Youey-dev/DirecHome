@@ -69,7 +69,7 @@ const TAB_TITLES: Record<string, string> = {
   'not-found': 'Page not found · OwnersMarket',
   example: 'Page not found · OwnersMarket',
   'guide-selling': ARTICLE_META.find((m) => m.path === '/guides/selling-your-home')?.title ?? 'How to Sell Your House Privately in Canada · OwnersMarket',
-  guides: 'Seller Guides: Selling Your Home Yourself in Canada · OwnersMarket',
+  guides: 'Guides to Selling and Buying Privately in Canada · OwnersMarket',
   'guide-bc': ARTICLE_META.find((m) => m.path === '/guides/selling-without-a-realtor-bc')?.title ?? 'Selling Your Own Home in BC Without a Realtor · OwnersMarket',
   'guide-buying': 'How to Buy a House For Sale by Owner in Canada · OwnersMarket',
 };

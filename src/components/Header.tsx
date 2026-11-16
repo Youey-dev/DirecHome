@@ -75,6 +75,13 @@ export const Header: React.FC<HeaderProps> = ({
           <NavLink to="wizard" onNavigate={handleNav} className={linkClass(currentTab === 'wizard')}>
             {hasDraft ? 'Resume listing' : 'Sell'}
           </NavLink>
+          <NavLink
+            to="guides"
+            onNavigate={handleNav}
+            className={linkClass(['guides', 'article', 'guide-selling', 'guide-bc', 'guide-buying'].includes(currentTab))}
+          >
+            Guides
+          </NavLink>
           <NavLink to="pricing" onNavigate={handleNav} className={linkClass(currentTab === 'pricing')}>
             Pricing
           </NavLink>
@@ -222,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({
               Savings estimator
             </NavLink>
             <NavLink to="guides" onNavigate={handleNav} className={drawerItem}>
-              Seller guides
+              All guides
             </NavLink>
             <NavLink to="guide-buying" onNavigate={handleNav} className={drawerItem}>
               Buyer guide
