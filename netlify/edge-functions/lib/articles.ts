@@ -250,5 +250,21 @@ export const ARTICLE_META: ArticleMeta[] = [
     "h1": "Selling an acreage or rural home privately",
     "published": "2026-10-30",
     "modified": "2026-10-30"
+  },
+  {
+    "path": "/guides/ways-to-sell-your-home-privately-in-canada",
+    "title": "Ways to Sell Your Home Privately in Canada · OwnersMarket",
+    "description": "For-sale-by-owner sites, flat-fee MLS, Kijiji and Facebook: the ways to sell your home without a full-service agent in Canada, what each costs and who it suits.",
+    "h1": "Ways to sell your home privately in Canada, compared",
+    "published": "2026-11-16",
+    "modified": "2026-11-15"
+  },
+  {
+    "path": "/guides/how-to-avoid-paying-realtor-commission",
+    "title": "Avoid Paying Realtor Commission in Canada · OwnersMarket",
+    "description": "Five legal ways to pay less or no realtor commission when you sell your home in Canada, what each one saves, and how the buyer's agent fits in.",
+    "h1": "How to avoid paying realtor commission when you sell your home in Canada",
+    "published": "2026-11-16",
+    "modified": "2026-11-15"
   }
 ];

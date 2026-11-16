@@ -54,6 +54,9 @@ const ORDER = [
   'getting-your-home-ready-to-sell',
   'selling-a-condo-privately',
   'selling-an-acreage-or-rural-home-privately',
+  // November 16, 2026
+  'ways-to-sell-your-home-privately-in-canada',
+  'how-to-avoid-paying-realtor-commission',
 ];
 
 /** When each guide first went live. Guides not listed here went live on FIRST_PUBLISHED. */
@@ -80,6 +83,8 @@ const PUBLISHED = {
     ].map((slug) => [slug, BATCH_OCT30]),
   ),
 };
+PUBLISHED['ways-to-sell-your-home-privately-in-canada'] = '2026-11-16';
+PUBLISHED['how-to-avoid-paying-realtor-commission'] = '2026-11-16';
 const FIRST_PUBLISHED = '2026-10-24';
 
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
