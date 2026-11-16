@@ -3,6 +3,8 @@ import { Listing, PropertyType, isListingLive } from '../types/listing';
 import { ListingCard } from '../components/ListingCard';
 import { RecentlySold } from '../components/RecentlySold';
 import { AlertBox } from '../components/AlertBox';
+import { SearchBox } from '../components/SearchBox';
+import { listingMatchesQuery, parseQuery } from '../lib/placeSearch';
 import { MapLibreMap } from '../components/LazyMap';
 import { OPEN_PROVINCES, ALL_PROVINCES, provinceName } from '../data/cities';
 import { SlidersHorizontal, X } from 'lucide-react';
@@ -57,6 +59,7 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const realLiveCount = listings.filter((l) => isListingLive(l) && !l.isExample).length;
+  const liveListings = useMemo(() => listings.filter((l) => isListingLive(l)), [listings]);
 
   // Filter listings
   const filteredListings = useMemo(() => {
@@ -64,16 +67,8 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
       .filter((l) => isListingLive(l))
       .filter((l) => {
         // Search query
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const match = 
-            (l.postalFsa ?? '').toLowerCase().includes(q) ||
-            l.city.toLowerCase().includes(q) ||
-            provinceName(l.province).toLowerCase().includes(q) ||
-            l.neighborhood.toLowerCase().includes(q) ||
-            l.headline.toLowerCase().includes(q);
-          if (!match) return false;
-        }
+        // Understands "BC", "Abbotsford, BC", postal codes, accents and small typos
+        if (searchQuery.trim() && !listingMatchesQuery(l, searchQuery)) return false;
 
         // Province or territory
         if (selectedProvince !== ALL_PROVINCES && (l.province || 'BC') !== selectedProvince) {
@@ -163,40 +158,24 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-2 sm:pt-4 pb-6 flex flex-col gap-8">
-      {/* Search */}
-      <form
-        role="search"
-        aria-label="Search homes"
-        onSubmit={(e) => e.preventDefault()}
-        className="w-full max-w-[560px] flex items-center gap-1.5 p-[5px] border-[1.5px] border-slate-900 rounded-[14px] bg-white focus-within:ring-2 focus-within:ring-emerald-700 focus-within:ring-offset-2"
-      >
-        <label className="relative flex-1 min-w-0 flex">
-          <span className="sr-only">City, neighbourhood or postal code</span>
-          <input
-            type="text"
-            placeholder="City or postal code"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="om-bare flex-1 min-w-0 h-11 border-0 bg-transparent pl-3 pr-10 text-[17px] text-slate-900 placeholder:text-slate-600 focus:outline-none"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              aria-label="Clear search"
-              className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-slate-600 hover:text-slate-900 cursor-pointer"
-            >
-              <X className="w-4 h-4" aria-hidden="true" />
-            </button>
-          )}
-        </label>
-        <button
-          type="submit"
-          className="flex-none h-11 px-5 rounded-[9px] bg-emerald-700 hover:bg-emerald-800 text-white text-[16px] font-semibold cursor-pointer"
-        >
-          Search
-        </button>
-      </form>
+      {/* Search, with suggestions as you type */}
+      <SearchBox
+        value={searchQuery}
+        onChange={setSearchQuery}
+        listings={liveListings}
+        onSubmit={(v) => {
+          // "BC", "Ontario"… on their own: filter by province instead
+          const p = parseQuery(v);
+          if (p.province && !p.text && !p.postal) {
+            setSelectedProvince(p.province);
+            setSearchQuery('');
+          }
+        }}
+        onPick={(sug) => {
+          setSearchQuery(sug.query);
+          setSelectedProvince(sug.province ?? ALL_PROVINCES);
+        }}
+      />
 
       {/* Result heading and filters */}
       <div className="flex flex-col gap-5">
