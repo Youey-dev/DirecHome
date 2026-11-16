@@ -48,8 +48,8 @@ export const OpenHouseCard: React.FC<{
   return (
     <div className="rounded-xl bg-mist p-4 space-y-2">
       <div className="text-[15px] font-medium text-emerald-700">Open house</div>
-      <div className="text-[22px] font-semibold tracking-[-0.02em] leading-tight text-slate-900">{longDay(next.startsAt, listing.province)}</div>
-      <div className="text-base font-semibold text-slate-900">{timeRange(next, listing.province)}</div>
+      <div className="text-[22px] font-semibold tracking-[-0.02em] leading-tight text-slate-900">{longDay(next.startsAt, listing)}</div>
+      <div className="text-base font-semibold text-slate-900">{timeRange(next, listing)}</div>
       {next.note && <p className="text-sm text-slate-700">{next.note}</p>}
       {!isOwner && (
         <p className="text-xs text-slate-600">
@@ -86,7 +86,7 @@ export const OpenHouseCard: React.FC<{
       <p className="text-xs text-slate-600">
         {next.goingCount > 0 && `${next.goingCount} ${next.goingCount === 1 ? 'person plans' : 'people plan'} to come`}
         {next.goingCount > 0 && more.length > 0 && ' · '}
-        {more.length > 0 && `also ${more.map((o) => `${longDay(o.startsAt, listing.province).split(',')[0]} ${timeRange(o, listing.province)}`).join(', ')}`}
+        {more.length > 0 && `also ${more.map((o) => `${longDay(o.startsAt, listing).split(',')[0]} ${timeRange(o, listing)}`).join(', ')}`}
       </p>
     </div>
   );

@@ -1,4 +1,4 @@
-import { isoToLocal, localToIso, openHouseIcs, priceDrop, isAlertableDrop, shortDay, timeRange, upcomingOpenHouses } from '../src/lib/listingNews';
+import { isoToLocal, localToIso, timeZoneFor, openHouseIcs, priceDrop, isAlertableDrop, shortDay, timeRange, upcomingOpenHouses } from '../src/lib/listingNews';
 
 export function runListingNewsTests() {
 const fail = (m: string) => { throw new Error(m); };
@@ -14,6 +14,18 @@ eq(localToIso('2026-11-15', '14:00', 'NL'), '2026-11-15T17:30:00.000Z', 'Newfoun
 eq(localToIso('2026-07-15', '14:00', 'SK'), '2026-07-15T20:00:00.000Z', 'Saskatchewan has no daylight time');
 const back = isoToLocal('2026-11-15T21:00:00.000Z', 'BC');
 eq(back.date + ' ' + back.time, '2026-11-15 14:00', 'Back to the form');
+
+// Cities that keep different time from their province (compared with the zone they follow, so
+// these checks don't depend on each year's clock rules)
+const at2 = (place: Parameters<typeof localToIso>[2]) => localToIso('2026-11-15', '14:00', place);
+eq(timeZoneFor({ province: 'BC', city: 'Cranbrook' }), 'America/Edmonton', 'Cranbrook is on Mountain time');
+eq(at2({ province: 'BC', city: 'Cranbrook' }), at2('AB'), 'Cranbrook keeps Alberta time');
+eq(at2({ province: 'SK', city: 'Lloydminster' }), at2('AB'), 'Lloydminster keeps Alberta time');
+eq(at2({ province: 'ON', city: 'Kenora' }), at2('MB'), 'Kenora is on Central time');
+eq(timeZoneFor({ province: 'NL', city: 'Happy Valley-Goose Bay' }), 'America/Goose_Bay', 'Labrador is on Atlantic time');
+eq(timeZoneFor({ province: 'BC', city: 'Fort St. John' }), 'America/Dawson_Creek', 'Peace region');
+eq(timeZoneFor({ province: 'QC', city: 'Îles-de-la-Madeleine' }), 'America/Halifax', 'Accents and dashes in city names');
+eq(at2({ province: 'BC', city: 'Abbotsford' }), at2('BC'), 'Other BC cities use the province zone');
 
 // Labels
 const oh = { id: 'x', listingId: 'l', startsAt: '2026-11-15T21:00:00.000Z', endsAt: '2026-11-15T23:00:00.000Z', goingCount: 0 };

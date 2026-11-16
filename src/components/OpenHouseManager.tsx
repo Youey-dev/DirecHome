@@ -32,8 +32,8 @@ export const OpenHouseManager: React.FC<{ listing: Listing; onToast: (m: string)
       setEnd('16:00');
       setNote('');
     } else {
-      const a = isoToLocal(o.startsAt, listing.province);
-      const b = isoToLocal(o.endsAt, listing.province);
+      const a = isoToLocal(o.startsAt, listing);
+      const b = isoToLocal(o.endsAt, listing);
       setDate(a.date);
       setStart(a.time);
       setEnd(b.time);
@@ -48,8 +48,8 @@ export const OpenHouseManager: React.FC<{ listing: Listing; onToast: (m: string)
     setBusy(true);
     setError(null);
     try {
-      const startsAt = localToIso(date, start, listing.province);
-      const endsAt = localToIso(date, end, listing.province);
+      const startsAt = localToIso(date, start, listing);
+      const endsAt = localToIso(date, end, listing);
       if (editing === 'new') await db.addOpenHouse(listing.id, startsAt, endsAt, note);
       else if (editing) await db.updateOpenHouse(editing.id, startsAt, endsAt, note);
       onToast(editing === 'new' ? 'Open house added. It shows on your listing now.' : 'Open house updated. Anyone coming has been told.');
@@ -62,7 +62,7 @@ export const OpenHouseManager: React.FC<{ listing: Listing; onToast: (m: string)
   };
 
   const cancel = async (o: OpenHouse) => {
-    if (!window.confirm(`Cancel the open house on ${longDay(o.startsAt, listing.province)}? Anyone coming will be told.`)) return;
+    if (!window.confirm(`Cancel the open house on ${longDay(o.startsAt, listing)}? Anyone coming will be told.`)) return;
     try {
       await db.cancelOpenHouse(o.id);
       onToast('Open house cancelled. Anyone coming has been told.');
@@ -107,7 +107,7 @@ export const OpenHouseManager: React.FC<{ listing: Listing; onToast: (m: string)
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex-1 min-w-[10rem]">
               <div className="font-semibold text-slate-900 text-sm">
-                {longDay(o.startsAt, listing.province)} · {timeRange(o, listing.province)}
+                {longDay(o.startsAt, listing)} · {timeRange(o, listing)}
               </div>
               <button onClick={() => void showGuests(o)} className="text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer">
                 <Users className="w-3.5 h-3.5" /> {o.goingCount} coming{o.goingCount > 0 ? (guests?.id === o.id ? ' · hide' : ' · see who') : ''}

@@ -54,7 +54,7 @@ export const OfferModal: React.FC<{ listing: Listing; isOpen: boolean; onClose: 
         amount: value,
         deposit: money(deposit) || null,
         possessionDate: possession || null,
-        openUntil: localToIso(openDate, '17:00', listing.province),
+        openUntil: localToIso(openDate, '17:00', listing),
         conditions,
         financing,
         message,

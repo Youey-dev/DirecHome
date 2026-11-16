@@ -14,8 +14,61 @@ const TZ: Record<string, string> = {
   NU: 'America/Iqaluit',
 };
 
-/** The time zone of a listing's province (open house times are shown in the home's local time) */
-export const timeZoneFor = (province?: string) => TZ[(province ?? '').toUpperCase()] ?? 'America/Toronto';
+/**
+ * Places that keep a different time from the rest of their province (keyed "PROVINCE:city",
+ * city lower case without accents). Kept in step with public.listing_time_zone in the database.
+ */
+const CITY_TZ: Record<string, string> = {
+  // BC: East Kootenay is on Mountain time; Creston and the Peace region stay on UTC-7
+  ...Object.fromEntries(
+    ['cranbrook', 'kimberley', 'fernie', 'sparwood', 'elkford', 'invermere', 'golden', 'radium hot springs', 'canal flats', 'jaffray', 'field']
+      .map((c) => [`BC:${c}`, 'America/Edmonton']),
+  ),
+  'BC:creston': 'America/Creston',
+  ...Object.fromEntries(
+    ['dawson creek', 'pouce coupe', 'chetwynd', 'fort st john', 'fort saint john', 'taylor', "hudson's hope", 'hudsons hope', 'tumbler ridge']
+      .map((c) => [`BC:${c}`, 'America/Dawson_Creek']),
+  ),
+  'BC:fort nelson': 'America/Fort_Nelson',
+  // Saskatchewan: Lloydminster keeps Alberta time
+  'SK:lloydminster': 'America/Edmonton',
+  // Northwestern Ontario on Central time (Atikokan stays on Eastern Standard)
+  ...Object.fromEntries(
+    ['kenora', 'dryden', 'sioux lookout', 'fort frances', 'rainy river', 'red lake', 'emo', 'keewatin', 'vermilion bay', 'ear falls', 'ignace']
+      .map((c) => [`ON:${c}`, 'America/Winnipeg']),
+  ),
+  'ON:atikokan': 'America/Atikokan',
+  // Quebec: Magdalen Islands on Atlantic time
+  ...Object.fromEntries(['iles de la madeleine', 'magdalen islands', 'cap aux meules'].map((c) => [`QC:${c}`, 'America/Halifax'])),
+  // Labrador (most of it) on Atlantic time
+  ...Object.fromEntries(
+    ['happy valley goose bay', 'goose bay', 'happy valley', 'labrador city', 'wabush', 'churchill falls', 'north west river', 'nain', 'hopedale', 'makkovik']
+      .map((c) => [`NL:${c}`, 'America/Goose_Bay']),
+  ),
+  // Nunavut's other two zones
+  ...Object.fromEntries(
+    ['rankin inlet', 'arviat', 'baker lake', 'chesterfield inlet', 'naujaat', 'whale cove', 'coral harbour']
+      .map((c) => [`NU:${c}`, 'America/Rankin_Inlet']),
+  ),
+  ...Object.fromEntries(['cambridge bay', 'kugluktuk', 'gjoa haven', 'taloyoak', 'kugaaruk'].map((c) => [`NU:${c}`, 'America/Cambridge_Bay'])),
+  'NU:resolute': 'America/Resolute',
+};
+
+const cityKey = (city: string) =>
+  city.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[.]/g, '').replace(/[-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+/** Where a home is: its province, and its city when that's known. */
+export type Place = string | { province?: string; city?: string } | undefined;
+
+/**
+ * The time zone of the home (open house times and offer deadlines are in the home's local time):
+ * the province's zone, or the city's when it differs (Cranbrook, Lloydminster, Kenora, Labrador…).
+ */
+export function timeZoneFor(place: Place): string {
+  const province = (typeof place === 'string' ? place : place?.province ?? '').toUpperCase();
+  const city = typeof place === 'string' ? '' : place?.city ?? '';
+  return (city && CITY_TZ[`${province}:${cityKey(city)}`]) || TZ[province] || 'America/Toronto';
+}
 
 /** Upcoming open houses (not cancelled, not over), soonest first */
 export function upcomingOpenHouses(l: Pick<Listing, 'openHouses'>, now = Date.now()): OpenHouse[] {
@@ -33,8 +86,8 @@ function clock(d: Date, tz: string): string {
 }
 
 /** "2–4 pm", "11 am – 1 pm" */
-export function timeRange(o: Pick<OpenHouse, 'startsAt' | 'endsAt'>, province?: string): string {
-  const tz = timeZoneFor(province);
+export function timeRange(o: Pick<OpenHouse, 'startsAt' | 'endsAt'>, place?: Place): string {
+  const tz = timeZoneFor(place);
   const a = clock(new Date(o.startsAt), tz);
   const b = clock(new Date(o.endsAt), tz);
   const [aTime, aPart] = a.split(' ');
@@ -43,15 +96,15 @@ export function timeRange(o: Pick<OpenHouse, 'startsAt' | 'endsAt'>, province?: 
 }
 
 /** "Sat Nov 15" */
-export function shortDay(iso: string, province?: string): string {
+export function shortDay(iso: string, place?: Place): string {
   const d = new Date(iso);
-  const tz = timeZoneFor(province);
+  const tz = timeZoneFor(place);
   return `${part(d, tz, { weekday: 'short' })} ${part(d, tz, { month: 'short' })} ${part(d, tz, { day: 'numeric' })}`.replace(/\./g, '');
 }
 
 /** "Saturday, November 15" */
-export function longDay(iso: string, province?: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', { timeZone: timeZoneFor(province), weekday: 'long', month: 'long', day: 'numeric' });
+export function longDay(iso: string, place?: Place): string {
+  return new Date(iso).toLocaleDateString('en-CA', { timeZone: timeZoneFor(place), weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 /** The price drop to show, if the price went down in the last 14 days */
@@ -96,10 +149,10 @@ function offsetMinutes(utcMs: number, tz: string): number {
 }
 
 /** "2026-11-15" + "14:00" in the home's province → an exact moment (ISO, UTC) */
-export function localToIso(date: string, time: string, province?: string): string {
+export function localToIso(date: string, time: string, place?: Place): string {
   const [y, m, d] = date.split('-').map(Number);
   const [h, mi] = time.split(':').map(Number);
-  const tz = timeZoneFor(province);
+  const tz = timeZoneFor(place);
   const wall = Date.UTC(y, m - 1, d, h, mi);
   let utc = wall - offsetMinutes(wall, tz) * 60000;
   utc = wall - offsetMinutes(utc, tz) * 60000; // second pass settles daylight-saving changes
@@ -107,8 +160,8 @@ export function localToIso(date: string, time: string, province?: string): strin
 }
 
 /** An exact moment → "2026-11-15" and "14:00" in the home's province (for the edit form) */
-export function isoToLocal(iso: string, province?: string): { date: string; time: string } {
-  const tz = timeZoneFor(province);
+export function isoToLocal(iso: string, place?: Place): { date: string; time: string } {
+  const tz = timeZoneFor(place);
   const p = Object.fromEntries(
     new Intl.DateTimeFormat('en-US', {
       timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',

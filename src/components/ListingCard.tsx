@@ -79,7 +79,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5">
           {openHouse && (
             <span className={badge}>
-              Open house {shortDay(openHouse.startsAt, listing.province)} · {timeRange(openHouse, listing.province)}
+              Open house {shortDay(openHouse.startsAt, listing)} · {timeRange(openHouse, listing)}
             </span>
           )}
           {drop && (
