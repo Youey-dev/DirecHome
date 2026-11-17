@@ -31,7 +31,7 @@ internal_links:
 | **Who sets the price** | You | You | You, with the agent's input | You, with the agent's advice |
 | **Who shows the home** | You | Usually you | Varies by brokerage | The agent |
 | **Who negotiates** | You (your lawyer handles the legal side) | Usually you | Varies | The agent |
-| **Exposure** | For-sale-by-owner sites, classifieds, signs, local sharing | The MLS and REALTOR.ca, plus your own advertising | The MLS and the brokerage's marketing | The MLS and the agent's marketing |
+| **Exposure** | For-sale-by-owner sites, classifieds, signs, local sharing | The MLS and agent listing sites, plus your own advertising | The MLS and the brokerage's marketing | The MLS and the agent's marketing |
 | **Your lawyer** | Needed | Needed | Needed | Needed |
 
 In every option, a real estate lawyer (or, in BC, a lawyer or notary) handles the legal transfer. That cost is the same whichever way you sell.
@@ -65,7 +65,7 @@ The buyer's agent's commission is often the biggest single cost left after you c
 
 ## 3. Selling privately
 
-**How it works:** you advertise the home yourself on for-sale-by-owner sites (such as OwnersMarket, PropertyGuys or ComFree), with a lawn sign and local sharing. You show it, talk to buyers and agree the price. Your lawyer handles the offer paperwork, the deposit and closing.
+**How it works:** you advertise the home yourself on a for-sale-by-owner site such as OwnersMarket, with a lawn sign and local sharing. You show it, talk to buyers and agree the price. Your lawyer handles the offer paperwork, the deposit and closing.
 
 **Good fit if:** your home is move-in ready, similar homes nearby sell regularly, you can open the door for viewings, and you're comfortable talking price.
 
@@ -75,7 +75,7 @@ The buyer's agent's commission is often the biggest single cost left after you c
 
 ## 4. Flat-fee MLS listing
 
-**How it works:** you pay a brokerage a set fee to put your home on the MLS (and so on REALTOR.ca). Only realtors who are members of the Canadian Real Estate Association can list on an MLS system, which is why a brokerage is needed. You typically still show the home and negotiate yourself; extra services may cost more.
+**How it works:** you pay a brokerage a set fee to put your home on the MLS (and so on agent listing sites). Only realtors who are members of the Canadian Real Estate Association can list on an MLS system, which is why a brokerage is needed. You typically still show the home and negotiate yourself; extra services may cost more.
 
 **Good fit if:** you want the biggest possible audience, including every buyer working with an agent, but you're happy to do the selling yourself.
 
@@ -168,6 +168,6 @@ Checked October 24, 2026.
 
 ## Notes for the founder (not part of the article)
 
-- **Fair to competitors:** PropertyGuys and ComFree are named neutrally among private-sale options; no competitor prices are quoted, because they change and couldn't be verified. Flat-fee MLS and discount brokerages are described as models, not by company name.
+- **No other company or website is named**, per your instruction (Nov 16, 2026). Flat-fee MLS and discount brokerages are described as models.
 - **Honesty box:** the article says plainly that OwnersMarket is one of the options compared. That's good for trust and for Google's quality guidelines on comparison content.
 - **Guardrails:** the example commission and the buyer's-agent caveat appear wherever savings do; no "keep 100%".

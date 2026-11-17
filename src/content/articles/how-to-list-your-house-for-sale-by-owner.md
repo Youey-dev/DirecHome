@@ -94,9 +94,9 @@ A simple structure:
 
 | Option | How it works | Good for | Trade-offs |
 |---|---|---|---|
-| **For-sale-by-owner sites** (such as OwnersMarket, PropertyGuys, ComFree) | You pay the site a fee to advertise your home; you handle buyers yourself | Buyers specifically looking for private sales; keeping costs low | Smaller audience than the MLS; services and pricing vary, so compare what's included |
-| **Flat-fee MLS listing** | You pay a brokerage a set fee to put your home on the MLS (and so on REALTOR.ca) | The widest audience, including every buyer working with an agent | Only realtors can list on the MLS, so you need a brokerage; buyers' agents will usually expect you to pay their commission |
-| **Classifieds** (such as Kijiji's real estate section) | You post the home yourself | Free or low-cost local reach | Mixed audience; more spam and scam messages |
+| **For-sale-by-owner sites** (such as OwnersMarket) | You pay the site a fee to advertise your home; you handle buyers yourself | Buyers specifically looking for private sales; keeping costs low | Smaller audience than the MLS; services and pricing vary, so compare what's included |
+| **Flat-fee MLS listing** | You pay a brokerage a set fee to put your home on the MLS (and so on agent listing sites) | The widest audience, including every buyer working with an agent | Only realtors can list on the MLS, so you need a brokerage; buyers' agents will usually expect you to pay their commission |
+| **Free online classifieds** | You post the home yourself | Free or low-cost local reach | Mixed audience; more spam and scam messages |
 | **Social media and community groups** | Share your listing link with friends, neighbours and local buy-and-sell groups | Word of mouth; local buyers | Follow each group's rules; many limit self-promotion |
 | **A lawn sign** | A sign on your property pointing to your listing | Drivers and walkers who already like the area | Local only |
 
@@ -212,7 +212,6 @@ Checked October 24, 2026.
 
 ## Notes for the founder (not part of the article)
 
-- **Competitors** are named neutrally with no prices, because their packages change and I couldn't verify current pricing. If you'd prefer not to name them, swap in "other for-sale-by-owner sites".
+- **No other company or website is named**, per your instruction (Nov 16, 2026).
 - **The example description** is clearly labelled and describes a made-up home, not a listing.
 - **Human rights wording** is kept general (no specific code sections), because the rules differ by province.
-- **Facebook Marketplace** isn't named because its rules for home sales in Canada vary and I couldn't confirm them; "community groups" covers it.

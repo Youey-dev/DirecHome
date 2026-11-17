@@ -254,10 +254,10 @@ export const ARTICLE_META: ArticleMeta[] = [
   {
     "path": "/guides/ways-to-sell-your-home-privately-in-canada",
     "title": "Ways to Sell Your Home Privately in Canada · OwnersMarket",
-    "description": "For-sale-by-owner sites, flat-fee MLS, Kijiji and Facebook: the ways to sell your home without a full-service agent in Canada, what each costs and who it suits.",
+    "description": "For-sale-by-owner sites, flat-fee MLS listings and free classifieds: the ways to sell your home without a full-service agent in Canada, and who each suits.",
     "h1": "Ways to sell your home privately in Canada, compared",
     "published": "2026-11-15",
-    "modified": "2026-11-15"
+    "modified": "2026-11-16"
   },
   {
     "path": "/guides/how-to-avoid-paying-realtor-commission",
@@ -273,7 +273,7 @@ export const ARTICLE_META: ArticleMeta[] = [
     "description": "Where to find homes for sale by owner in Canada: private sale websites, flat-fee MLS listings, classifieds and lawn signs, plus how to avoid scams.",
     "h1": "How to find homes for sale by owner in Canada",
     "published": "2026-11-15",
-    "modified": "2026-11-15"
+    "modified": "2026-11-16"
   },
   {
     "path": "/guides/questions-to-ask-a-private-seller",
