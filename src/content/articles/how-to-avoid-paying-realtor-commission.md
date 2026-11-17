@@ -50,10 +50,10 @@ Many private sales still involve a buyer with an agent. That agent works for the
 
 ### Option 3: A flat-fee MLS® listing: a set fee instead of the listing commission
 
-A flat-fee MLS® service is a brokerage that puts your home on the MLS® and REALTOR.ca for a set fee. You still show the home and negotiate, and most buyers who find you this way have an agent you'll be expected to pay.
+A flat-fee MLS® service is a brokerage that puts your home on the MLS® for a set fee, so it shows on agent listing sites. You still show the home and negotiate, and most buyers who find you this way have an agent you'll be expected to pay.
 
 - **You pay:** the flat fee, plus the buyer's agent.
-- Compare services in [ways to sell your home privately in Canada](/guides/ways-to-sell-your-home-privately-in-canada).
+- Compare the options in [ways to sell your home privately in Canada](/guides/ways-to-sell-your-home-privately-in-canada).
 
 ### Option 4: A discount brokerage: a lower commission with an agent
 

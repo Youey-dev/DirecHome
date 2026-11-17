@@ -123,7 +123,7 @@ There's no wrong answer here. Plenty of people try privately first; others go st
 
 *It isn't all-or-nothing. Here's the honest range.*
 
-- **Sell privately:** advertise on a for-sale-by-owner site (such as OwnersMarket, PropertyGuys or ComFree), Kijiji, Facebook Marketplace and a lawn sign. Lowest cost; you do the most.
+- **Sell privately:** advertise on a for-sale-by-owner site such as OwnersMarket, free online classifieds and a lawn sign. Lowest cost; you do the most.
 - **Flat-fee MLS listing:** you pay a brokerage a set fee to put your home on the MLS, and still handle viewings yourself. More exposure, and buyers' agents will usually expect to be paid.
 - **Discount or reduced-commission brokerage:** an agent does part or all of the job for a lower commission.
 - **Full-service agent:** the agent prices, markets and negotiates for you. Remember that commissions are negotiable.

@@ -63,7 +63,7 @@ A private sale is different. There's no listing brokerage, so the owner decides 
 
 1. **Get pre-approved** and budget for closing costs as well as your down payment.
 2. **Choose your lawyer** (or BC notary) before you find the home.
-3. **Find homes** on for-sale-by-owner sites, REALTOR.ca, classifieds and lawn signs. See [how to find homes for sale by owner](/guides/how-to-find-homes-for-sale-by-owner).
+3. **Find homes** on for-sale-by-owner sites, agent listing sites, classifieds and lawn signs. See [how to find homes for sale by owner](/guides/how-to-find-homes-for-sale-by-owner).
 4. **View the home and ask questions**, in writing where you can. See [questions to ask a private seller](/guides/questions-to-ask-a-private-seller).
 5. **Check what similar homes sold for** nearby, to decide your offer.
 6. **Have your lawyer prepare or review your offer**, with conditions such as financing and inspection.

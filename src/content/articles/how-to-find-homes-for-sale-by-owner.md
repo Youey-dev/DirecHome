@@ -4,9 +4,9 @@ title: How to Find Homes For Sale by Owner in Canada · OwnersMarket
 meta_description: Where to find homes for sale by owner in Canada: private sale websites, flat-fee MLS listings, classifieds and lawn signs, plus how to avoid scams.
 h1: How to find homes for sale by owner in Canada
 main_keyword: where to find homes for sale by owner Canada
-related_keywords: for sale by owner listings Canada; private sale houses near me; private sale houses Calgary; FSBO homes Canada; houses for sale without a realtor; how to find private home sales; are private sale houses on REALTOR.ca
+related_keywords: for sale by owner listings Canada; private sale houses near me; private sale houses Calgary; FSBO homes Canada; houses for sale without a realtor; how to find private home sales; are private sale houses on the MLS
 reading_time: About a 6-minute read
-last_checked: November 15, 2026
+last_checked: November 16, 2026
 internal_links:
   links to: /browse, /guides/buying-a-home, /guides/questions-to-ask-a-private-seller, /guides/do-you-need-a-realtor-to-buy-a-house, /guides/how-deposits-work-in-a-private-sale, /guides/ways-to-sell-your-home-privately-in-canada
   should link here: /guides/buying-a-home, /guides, /browse (empty state), province pages
@@ -16,9 +16,9 @@ internal_links:
 
 # How to find homes for sale by owner in Canada
 
-**Short answer:** homes for sale by owner are spread across several places, so check more than one. Start with **for-sale-by-owner websites** such as OwnersMarket, PropertyGuys, ComFree and ForSaleByOwner.ca, which are free to browse. Then check **REALTOR.ca**, where owners who pay for a flat-fee MLS® listing appear alongside agents' listings, and **Kijiji and Facebook Marketplace**. Finally, look for **lawn signs** in the neighbourhoods you like. Set up alerts where a site offers them, because good private listings can go quickly.
+**Short answer:** homes for sale by owner are spread across several places, so check more than one. Start with **for-sale-by-owner websites** such as OwnersMarket, which are free for buyers to browse. Then check **agent listing sites**, where owners who pay for a flat-fee MLS® listing appear alongside agents' listings, and **free online classifieds**. Finally, look for **lawn signs** in the neighbourhoods you like. Set up alerts where a site offers them, because good private listings can go quickly.
 
-> **Written by OwnersMarket**, a for-sale-by-owner site. Every place listed below is free for buyers to search.
+> **Written by OwnersMarket**, a for-sale-by-owner site that's free for buyers to search.
 
 ---
 
@@ -26,13 +26,13 @@ internal_links:
 
 | Where | What you'll find | Good to know |
 |---|---|---|
-| **For-sale-by-owner sites** (OwnersMarket, PropertyGuys, ComFree, ForSaleByOwner.ca) | Homes listed by their owners, with photos and details | Each site has different homes, so check several |
-| **REALTOR.ca** | Agent listings, plus owners who paid a flat-fee brokerage to list on the MLS® | Owner-listed homes there look like any other listing; the listing brokerage is named on it |
-| **Kijiji and Facebook Marketplace** | Owners posting in the real estate sections | Little checking of who posts, so be extra careful about scams |
+| **For-sale-by-owner sites** such as OwnersMarket | Homes listed by their owners, with photos and details | Free to browse; set up alerts for your area |
+| **Agent listing sites** | Agent listings, plus owners who paid a flat-fee brokerage to list on the MLS® | Owner-listed homes there look like any other listing; the listing brokerage is named on it |
+| **Free online classifieds** | Owners posting in real estate sections | Little checking of who posts, so be extra careful about scams |
 | **Lawn signs** | Owners who only advertise locally | Drive or walk the areas you like, and note the phone number |
 | **Local papers, community boards, word of mouth** | Smaller towns and rural homes especially | Tell friends and family what you're looking for |
 
-In Québec, private sales are mostly advertised on DuProprio. OwnersMarket covers every other province and territory.
+OwnersMarket covers every province and territory except Québec.
 
 ---
 
@@ -71,13 +71,13 @@ Before you sign anything or pay any money, have your lawyer (or notary in BC) se
 ## Frequently asked questions
 
 **Where can I find homes for sale by owner in Canada?**
-On for-sale-by-owner websites (OwnersMarket, PropertyGuys, ComFree, ForSaleByOwner.ca), on REALTOR.ca for owners using a flat-fee MLS® listing, on Kijiji and Facebook Marketplace, and on lawn signs in the areas you like. In Québec, DuProprio is the main private sale site.
+On for-sale-by-owner websites such as OwnersMarket, on agent listing sites for owners using a flat-fee MLS® listing, on free online classifieds, and on lawn signs in the areas you like.
 
-**Are homes for sale by owner on REALTOR.ca?**
-Only if the owner pays a brokerage to list it there. REALTOR.ca shows homes listed on the MLS® by licensed brokerages, so most private sales that don't use a brokerage aren't on it.
+**Are homes for sale by owner on the MLS®?**
+Only if the owner pays a brokerage to list it there. Only licensed brokerages can list on an MLS® system, so most private sales that don't use a brokerage aren't on it.
 
 **Is it free to look at for-sale-by-owner homes?**
-Yes. Buyers don't pay to search OwnersMarket or the other sites listed here. Sellers pay to advertise.
+Yes. Buyers don't pay to search OwnersMarket. Sellers pay to advertise.
 
 **Can I use a realtor to buy a for-sale-by-owner home?**
 Yes, but ask the owner first whether they'll pay your agent's commission. If they won't, your agreement with your agent may say you pay it.
@@ -94,16 +94,15 @@ Second link: [How to buy a house for sale by owner](/guides/buying-a-home) · [Q
 
 ## Sources
 
-Checked November 15, 2026.
+Checked November 16, 2026.
 
 - Canadian Real Estate Association, [The meaning of REALTOR® and MLS®](https://www.crea.ca/media-hub/news/the-meaning-of-realtor-and-mls/): MLS® listings come from licensed brokerages.
 - Financial Consumer Agency of Canada, [Buying a home](https://www.canada.ca/en/financial-consumer-agency/services/buying-home.html).
 - RCMP (BC), [Rental scams](https://rcmp.ca/en/bc/safety-tips/frauds-and-scams/rental-scams): the same warning signs (no viewing, money up front, prices that are too low) apply to fake homes for sale.
-- ComFree, [home page](https://comfree.com/), PropertyGuys, [Sell with PropertyGuys](https://sell.propertyguys.com) and ForSaleByOwner.ca, [home page](https://www.forsalebyowner.ca/): homes listed by owners.
 
 ---
 
 ## Notes for the founder (not part of the article)
 
+- No other company or website is named, per your instruction (Nov 16, 2026).
 - Targets the tracked questions D3 ("Where can I find homes for sale by owner in Canada?") and U4 ("private sale houses in Calgary"). A Calgary city page would target U4 more directly later.
-- Names competitors neutrally because the AI answers already list them; leaving them out would make the page less useful and less quotable.
