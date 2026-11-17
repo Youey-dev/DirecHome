@@ -9,7 +9,7 @@ import type { Listing } from '../types/listing';
 
 export const SITE = 'https://ownersmarket.ca';
 
-export type ShareChannel = 'facebook' | 'whatsapp' | 'sms' | 'email' | 'copy' | 'native';
+export type ShareChannel = 'facebook' | 'community' | 'whatsapp' | 'sms' | 'email' | 'copy' | 'native';
 
 export function shareUrl(listingId: string, channel: ShareChannel): string {
   return `${SITE}/listing/${listingId}?utm_source=${channel}&utm_medium=share`;
@@ -33,3 +33,51 @@ export function shareLinks(l: L) {
     email: `mailto:?subject=${enc(`For sale by owner: ${l.headline}`)}&body=${enc(friendMessage(l, 'email'))}`,
   };
 }
+
+type PostListing = Pick<Listing, 'id' | 'headline' | 'city' | 'province' | 'price' | 'bedrooms' | 'bathrooms'>;
+
+/** "argyle shore" → "Argyle Shore" (leaves "McBride" and "St. John's" alone) */
+const titleCase = (s: string) => s.trim().replace(/(^|[\s-])([a-z])/g, (_m, a: string, b: string) => a + b.toUpperCase());
+
+const PROVINCE_LABEL: Record<string, string> = { PE: 'PEI' };
+
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
+
+/**
+ * A ready-to-paste post for local community groups, written from the listing's public details.
+ * Never includes the street address or a phone number.
+ */
+export function communityPost(l: PostListing, channel: ShareChannel = 'community'): string {
+  const place = `${titleCase(l.city)}, ${PROVINCE_LABEL[l.province] ?? l.province}`;
+  const facts = [
+    `$${Math.round(l.price).toLocaleString('en-CA')}`,
+    l.bedrooms > 0 ? plural(l.bedrooms, 'bedroom') : '',
+    l.bathrooms > 0 ? plural(Number(l.bathrooms), 'bathroom') : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  return [
+    `🏡 For sale by owner in ${place}`,
+    '',
+    facts,
+    l.headline.trim(),
+    '',
+    'We’re selling it ourselves, so you can message us directly. Photos and details:',
+    shareUrl(l.id, channel),
+    '',
+    'Please share if you know someone looking in the area!',
+  ].join('\n');
+}
+
+/** Share links that carry the full community post (WhatsApp, text, email). */
+export function postShareLinks(l: PostListing) {
+  const enc = encodeURIComponent;
+  return {
+    whatsapp: `https://wa.me/?text=${enc(communityPost(l, 'whatsapp'))}`,
+    sms: `sms:?&body=${enc(communityPost(l, 'sms'))}`,
+    email: `mailto:?subject=${enc(`For sale by owner in ${titleCase(l.city)}`)}&body=${enc(communityPost(l, 'email'))}`,
+  };
+}
+
+/** Where "Copy post & open Facebook" sends the seller: their groups, ready to paste. */
+export const FACEBOOK_GROUPS_URL = 'https://www.facebook.com/groups/feed/';
