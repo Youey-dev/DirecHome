@@ -7,6 +7,7 @@ import { db } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { SellerChecklist } from '../components/SellerChecklist';
 import { PromoteListing } from '../components/PromoteListing';
+import { SharePromptModal, sharePromptSeen } from '../components/SharePromptModal';
 import { DeleteListingDialog } from '../components/DeleteListingDialog';
 import { AlertsPanel } from '../components/AlertsPanel';
 import type { BrowseFilters } from './BrowsePage';
@@ -105,6 +106,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // RLS Enforced: Sellers see their own listings in the portal; admins see all
   const myListings = listings.filter((l) => l.userId === activeUser.id);
   const myListingIds = new Set(myListings.map((l) => l.id));
+
+  // "Your home is live, now tell your neighbours": once per listing, after it goes live
+  const [sharePromptId, setSharePromptId] = useState<string | null>(null);
+  useEffect(() => {
+    if (sharePromptId) return;
+    const fresh = myListings.find((l) => isListingLive(l) && !sharePromptSeen(l.id));
+    if (fresh) setSharePromptId(fresh.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listings]);
+  const sharePromptListing = sharePromptId ? myListings.find((l) => l.id === sharePromptId) : undefined;
   // Requests other people made for MY homes
   const myViewings = viewings.filter((v) => myListingIds.has(v.listingId) && v.buyerId !== activeUser.id);
   // Viewings I asked for on OTHER people's homes
@@ -315,6 +326,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 pb-20 space-y-6">
+      {sharePromptListing && <SharePromptModal listing={sharePromptListing} onClose={() => setSharePromptId('')} />}
       
       {sheetListing && (
         <React.Suspense fallback={null}>
