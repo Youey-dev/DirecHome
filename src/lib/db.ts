@@ -231,6 +231,8 @@ export interface PromoCode {
   active: boolean;
   /** The one on the homepage */
   featured: boolean;
+  /** Custom wording for the homepage bar (empty = "Your first N months are on us.") */
+  homepageMessage: string;
   note: string;
   createdAt: string;
   uses: number;
@@ -1538,7 +1540,7 @@ class DataStore {
           const { data, error } = await supabase.rpc('homepage_promo');
           if (error) return null;
           const row = (data as Row[] | null)?.[0];
-          this.homepagePromo = row ? { code: row.code, months: Number(row.free_months) } : null;
+          this.homepagePromo = row ? { code: row.code, months: Number(row.free_months), message: row.message ?? null } : null;
         } catch {
           this.homepagePromo = null;
         }
@@ -1570,6 +1572,16 @@ class DataStore {
     await this.loadHomepagePromo(true);
   }
 
+  /** Admin: set the homepage bar's wording for a code ('' = back to the default). */
+  async adminSetPromoMessage(code: string, message: string): Promise<void> {
+    this.requireUser();
+    const text = stripHtml(message).replace(/\s+/g, ' ').trim();
+    if (text && (text.length < 3 || text.length > 120)) throw new Error('Keep the message between 3 and 120 characters.');
+    const { error } = await supabase.from('promo_codes').update({ homepage_message: text || null }).eq('code', code);
+    if (error) fail(error);
+    await this.loadHomepagePromo(true);
+  }
+
   /** Admin: every promo code with how many listings used it, newest first. */
   async loadPromoCodes(): Promise<PromoCode[]> {
     this.requireUser();
@@ -1589,6 +1601,7 @@ class DataStore {
       validUntil: r.valid_until ?? null,
       active: !!r.active,
       featured: !!r.featured,
+      homepageMessage: r.homepage_message ?? '',
       note: r.note ?? '',
       createdAt: r.created_at,
       uses: Number(r.promo_redemptions?.[0]?.count ?? 0),

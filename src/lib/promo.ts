@@ -7,6 +7,18 @@
 export interface HomepagePromo {
   code: string;
   months: number;
+  /** The admin's own wording for the offer bar; empty means the default */
+  message?: string | null;
+}
+
+/** "Your first 3 months are on us." */
+export function defaultPromoMessage(months: number): string {
+  return months === 1 ? 'Your first month is on us.' : `Your first ${months} months are on us.`;
+}
+
+/** What the homepage bar says for this offer */
+export function promoMessage(p: HomepagePromo): string {
+  return p.message?.trim() || defaultPromoMessage(p.months);
 }
 
 const KEY = 'om_promo_code';
