@@ -1272,6 +1272,16 @@ class DataStore {
   }
 
   /** Admin: pause any listing with a reason the owner sees. Only an admin can put it back up. */
+  /** Admin: set a listing's view count (raise or lower it). */
+  async adminSetViews(listingId: string, views: number): Promise<void> {
+    this.requireUser();
+    const n = Math.max(0, Math.round(views));
+    const { data, error } = await supabase.from('listings').update({ views_count: n }).eq('id', listingId).select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('Could not update the view count.');
+    await this.refresh();
+  }
+
   async adminPauseListing(listingId: string, reason: string): Promise<void> {
     this.requireUser();
     const { data, error } = await supabase
