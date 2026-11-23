@@ -22,16 +22,23 @@ export const AdminPromotions: React.FC = () => {
   const [maxUses, setMaxUses] = useState('');
   const [validUntil, setValidUntil] = useState('');
   const [note, setNote] = useState('');
+  const [newMessage, setNewMessage] = useState('');
 
   const [homeBusy, setHomeBusy] = useState(false);
   const featured = codes?.find((c) => c.featured && c.active) ?? null;
+  // Your own codes that can go on the homepage (the ready-made WELCOME offers have their own buttons)
+  const usable = (p: PromoCode) =>
+    p.active &&
+    !(p.validUntil && new Date(`${p.validUntil}T23:59:59`) < new Date()) &&
+    !(p.maxUses !== null && p.uses >= p.maxUses);
+  const customCodes = (codes ?? []).filter((p) => !/^WELCOME(1|3|6|9|12)$/.test(p.code) && usable(p));
   const setHomepage = async (months: number) => {
     setError(null);
     setDone(null);
     setHomeBusy(true);
     try {
       await db.adminSetHomepagePromo(months);
-      setDone(months ? `The homepage now says “Your first ${months === 1 ? 'month is' : `${months} months are`} on us”.` : 'The homepage offer is off.');
+      setDone(months ? `The ${months}-month offer is on the homepage.` : 'The homepage offer is off.');
       await load();
     } catch (err: any) {
       setError(err?.message || 'Could not change the homepage offer.');
@@ -46,11 +53,7 @@ export const AdminPromotions: React.FC = () => {
     setHomeBusy(true);
     try {
       await db.adminFeaturePromo(p ? p.code : null);
-      setDone(
-        p
-          ? `The homepage now shows ${p.code}: “Your first ${p.freeMonths === 1 ? 'month is' : `${p.freeMonths} months are`} on us”.`
-          : 'The homepage offer is off.',
-      );
+      setDone(p ? `${p.code} is on the homepage. Write its message in Homepage offer.` : 'The homepage offer is off.');
       await load();
     } catch (err: any) {
       setError(err?.message || 'Could not change the homepage offer.');
@@ -101,12 +104,13 @@ export const AdminPromotions: React.FC = () => {
     if (uses !== null && (!Number.isInteger(uses) || uses < 1)) return setError('Max uses must be a whole number, or leave it empty.');
     setBusy(true);
     try {
-      await db.createPromoCode({ code, freeMonths: months, cardRequired, maxUses: uses, validUntil: validUntil || null, note });
+      await db.createPromoCode({ code, freeMonths: months, cardRequired, maxUses: uses, validUntil: validUntil || null, note, homepageMessage: newMessage });
       setDone(`${code.trim().toUpperCase()} is ready. Sellers can type it on their dashboard.`);
       setCode('');
       setMaxUses('');
       setValidUntil('');
       setNote('');
+      setNewMessage('');
       await load();
     } catch (err: any) {
       setError(err?.message || 'Could not create the code.');
@@ -136,85 +140,93 @@ export const AdminPromotions: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {(error || done) && (
+        <div
+          role={error ? 'alert' : 'status'}
+          className={`rounded-xl px-4 py-3 text-sm ${error ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-900 border border-emerald-200'}`}
+        >
+          {error || done}
+        </div>
+      )}
+
       <section className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
         <div>
           <h2 className="text-lg font-bold text-slate-900">Homepage offer</h2>
           <p className="text-sm text-slate-600">
-            Tick one and it goes live straight away: a thin bar above the menu and a line under the search on the homepage
-            (“Your first 3 months are on us”), and the code is filled in for sellers on their dashboard. No card needed.
-            To show one of your own codes instead, pick it from the list below with <strong>Show on homepage</strong>.
+            Pick the offer to show on the homepage: a ready-made free-months offer or one of your own codes. It goes live straight away
+            in the bar above the menu and the “Selling?” line, and the code is filled in for sellers on their dashboard.
+            Then write the message for it below.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Homepage offer">
-          {[0, 1, 3, 6, 9, 12].map((m) => {
-            const on = m === 0 ? !featured : featured?.freeMonths === m && featured.code === `WELCOME${m}`;
-            return (
-              <button
-                key={m}
-                type="button"
-                role="radio"
-                aria-checked={on}
-                disabled={homeBusy || codes === null}
-                onClick={() => !on && void setHomepage(m)}
-                className={`px-4 py-2.5 rounded-xl border text-sm font-semibold min-h-[44px] cursor-pointer disabled:opacity-60 flex items-center gap-2 ${
-                  on
-                    ? m === 0
-                      ? 'bg-slate-800 border-slate-800 text-white'
-                      : 'bg-emerald-700 border-emerald-700 text-white'
-                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <span
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${on ? 'border-white' : 'border-slate-400'}`}
-                  aria-hidden="true"
-                >
-                  {on && <span className="w-2 h-2 rounded-full bg-white" />}
-                </span>
-                {m === 0 ? 'Off' : `${m} ${m === 1 ? 'month' : 'months'} free`}
-              </button>
-            );
-          })}
-          {homeBusy && <Loader2 className="w-5 h-5 animate-spin text-slate-500 self-center" />}
+
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-slate-700">Ready-made offers (no card needed)</p>
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Ready-made homepage offers">
+            {[0, 1, 3, 6, 9, 12].map((m) => {
+              const on = m === 0 ? !featured : featured?.code === `WELCOME${m}`;
+              return (
+                <Choice key={m} on={on} off={m === 0} disabled={homeBusy || codes === null} onPick={() => void setHomepage(m)}>
+                  {m === 0 ? 'Off' : `${m} ${m === 1 ? 'month' : 'months'} free`}
+                </Choice>
+              );
+            })}
+          </div>
         </div>
-        <p className="text-sm text-slate-700">
-          {featured ? (
-            <>
-              <strong>Live now:</strong> “{featured.homepageMessage || defaultPromoMessage(featured.freeMonths)}”, code{' '}
-              <span className="font-mono font-bold">{featured.code}</span>
-              {featured.cardRequired ? ' (card needed at checkout)' : ''}, used by {featured.uses}{' '}
-              {featured.uses === 1 ? 'listing' : 'listings'} so far.
-            </>
-          ) : (
-            <span className="text-slate-500">No offer on the homepage.</span>
-          )}
-        </p>
-        {featured && (
+
+        {customCodes.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-slate-700">Your promo codes</p>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Your promo codes for the homepage">
+              {customCodes.map((p) => (
+                <Choice key={p.code} on={featured?.code === p.code} disabled={homeBusy} onPick={() => void feature(p)}>
+                  <span className="font-mono">{p.code}</span>
+                  <span className="font-normal opacity-80">
+                    · {p.freeMonths} {p.freeMonths === 1 ? 'month' : 'months'}
+                    {p.cardRequired ? ', card' : ''}
+                  </span>
+                </Choice>
+              ))}
+            </div>
+          </div>
+        )}
+        {homeBusy && <Loader2 className="w-5 h-5 animate-spin text-slate-500" />}
+
+        {featured ? (
           <form
             onSubmit={(e) => {
               e.preventDefault();
               void saveMessage(message);
             }}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2"
+            className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 space-y-3"
           >
+            <p className="text-sm text-slate-800">
+              <strong>Live now:</strong> <span className="font-mono font-bold">{featured.code}</span>, {featured.freeMonths}{' '}
+              {featured.freeMonths === 1 ? 'month' : 'months'} free{featured.cardRequired ? ' (card needed at checkout)' : ''}, used by{' '}
+              {featured.uses} {featured.uses === 1 ? 'listing' : 'listings'} so far.
+            </p>
             <label className="block">
-              <span className="block text-xs font-semibold text-slate-700 mb-1">Homepage message</span>
+              <span className="block text-xs font-semibold text-slate-700 mb-1">Homepage message for {featured.code}</span>
               <input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={120}
-                placeholder={defaultPromoMessage(featured.freeMonths)}
+                placeholder={`Selling your home? ${defaultPromoMessage(featured.freeMonths)}`}
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700"
               />
             </label>
             <p className="text-xs text-slate-600">
-              Shown in the bar above the menu, followed by a “List it free” link. Leave it empty for the default:{' '}
-              “Selling your home? {defaultPromoMessage(featured.freeMonths)}” {message.length > 0 && <span className="tabular-nums">· {message.length}/120</span>}
+              Leave it empty to use the default. Up to 120 characters
+              {message.length > 0 && <span className="tabular-nums"> ({message.length} so far)</span>}. Saved with this code, so it comes
+              back if you show this code again later.
             </p>
-            <div className="rounded-lg bg-white border border-slate-200 px-3 py-2 text-[13px] text-center text-slate-900">
-              <span className="font-medium">{message.trim() || `Selling your home? ${defaultPromoMessage(featured.freeMonths)}`}</span>{' '}
-              <span className="text-emerald-700 underline underline-offset-2 font-semibold">List it free</span>
+            <div>
+              <p className="text-xs font-semibold text-slate-700 mb-1">Preview</p>
+              <div className="rounded-lg bg-white border border-slate-200 px-3 py-2 text-[13px] text-center text-slate-900">
+                <span className="font-medium">{message.trim() || `Selling your home? ${defaultPromoMessage(featured.freeMonths)}`}</span>{' '}
+                <span className="text-emerald-700 underline underline-offset-2 font-semibold">List it free</span>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 type="submit"
                 disabled={msgBusy || message.trim() === (featured.homepageMessage ?? '').trim()}
@@ -237,10 +249,10 @@ export const AdminPromotions: React.FC = () => {
               )}
             </div>
           </form>
+        ) : (
+          <p className="text-sm text-slate-500">No offer on the homepage.</p>
         )}
-        <p className="text-xs text-slate-500">
-          Sellers who already used a code keep their free months when you switch or turn it off.
-        </p>
+        <p className="text-xs text-slate-500">Sellers who already used a code keep their free months when you switch or turn it off.</p>
       </section>
 
       <form onSubmit={create} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
@@ -308,12 +320,21 @@ export const AdminPromotions: React.FC = () => {
         </fieldset>
 
         <label className="block">
+          <span className="block text-xs font-semibold text-slate-700 mb-1">Homepage message (optional, if you’ll show it on the homepage)</span>
+          <input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            maxLength={120}
+            placeholder={`Selling your home? ${defaultPromoMessage(months)}`}
+            className={input}
+          />
+        </label>
+
+        <label className="block">
           <span className="block text-xs font-semibold text-slate-700 mb-1">Internal note (only you see it)</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder="e.g. Abbotsford Facebook group, spring" className={input} />
         </label>
 
-        {error && <p className="text-sm text-rose-700" role="alert">{error}</p>}
-        {done && <p className="text-sm text-emerald-800">{done}</p>}
 
         <button
           type="submit"
@@ -354,6 +375,11 @@ export const AdminPromotions: React.FC = () => {
                     {p.code}
                     {p.featured && p.active && (
                       <span className="ml-2 font-sans text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-700 text-white">On homepage</span>
+                    )}
+                    {p.homepageMessage && (
+                      <span className="block font-sans font-normal text-xs text-slate-600 max-w-[18rem] truncate" title={p.homepageMessage}>
+                        “{p.homepageMessage}”
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-3">{p.freeMonths} {p.freeMonths === 1 ? 'month' : 'months'} free</td>
@@ -404,3 +430,28 @@ export const AdminPromotions: React.FC = () => {
     </div>
   );
 };
+
+/** A radio-style chip in Homepage offer */
+const Choice: React.FC<{ on: boolean; off?: boolean; disabled?: boolean; onPick: () => void; children: React.ReactNode }> = ({
+  on,
+  off,
+  disabled,
+  onPick,
+  children,
+}) => (
+  <button
+    type="button"
+    role="radio"
+    aria-checked={on}
+    disabled={disabled}
+    onClick={() => !on && onPick()}
+    className={`px-4 py-2.5 rounded-xl border text-sm font-semibold min-h-[44px] cursor-pointer disabled:opacity-60 flex items-center gap-2 ${
+      on ? (off ? 'bg-slate-800 border-slate-800 text-white' : 'bg-emerald-700 border-emerald-700 text-white') : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+    }`}
+  >
+    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${on ? 'border-white' : 'border-slate-400'}`} aria-hidden="true">
+      {on && <span className="w-2 h-2 rounded-full bg-white" />}
+    </span>
+    {children}
+  </button>
+);

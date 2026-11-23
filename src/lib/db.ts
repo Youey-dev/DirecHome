@@ -222,6 +222,13 @@ export interface PromoResult {
   freeUntil: string;
 }
 
+/** Homepage offer wording: plain text, one line, 3 to 120 characters ('' = use the default). */
+function cleanPromoMessage(message: string): string {
+  const text = stripHtml(message).replace(/\s+/g, ' ').trim();
+  if (text && (text.length < 3 || text.length > 120)) throw new Error('Keep the homepage message between 3 and 120 characters.');
+  return text;
+}
+
 export interface PromoCode {
   code: string;
   freeMonths: number;
@@ -1575,8 +1582,7 @@ class DataStore {
   /** Admin: set the homepage bar's wording for a code ('' = back to the default). */
   async adminSetPromoMessage(code: string, message: string): Promise<void> {
     this.requireUser();
-    const text = stripHtml(message).replace(/\s+/g, ' ').trim();
-    if (text && (text.length < 3 || text.length > 120)) throw new Error('Keep the message between 3 and 120 characters.');
+    const text = cleanPromoMessage(message);
     const { error } = await supabase.from('promo_codes').update({ homepage_message: text || null }).eq('code', code);
     if (error) fail(error);
     await this.loadHomepagePromo(true);
@@ -1616,10 +1622,12 @@ class DataStore {
     maxUses: number | null;
     validUntil: string | null;
     note: string;
+    homepageMessage?: string;
   }): Promise<void> {
     this.requireUser();
     const code = p.code.trim().toUpperCase();
     if (!/^[A-Z0-9-]{3,30}$/.test(code)) throw new Error('Use 3 to 30 letters, numbers or dashes for the code.');
+    const message = cleanPromoMessage(p.homepageMessage ?? '');
     const { error } = await supabase.from('promo_codes').insert({
       code,
       free_months: p.freeMonths,
@@ -1627,6 +1635,7 @@ class DataStore {
       max_uses: p.maxUses,
       valid_until: p.validUntil || null,
       note: p.note.trim() || null,
+      ...(message ? { homepage_message: message } : {}),
     });
     if (error) {
       if (error.code === '23505') throw new Error(`There is already a code called ${code}.`);

@@ -112,7 +112,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <h2 id="sell-heading" className={h2}>Selling? List it yourself.</h2>
           <p className="text-[17px] sm:text-[18px] leading-normal text-slate-600">
             Add your photos and price, and buyers message you directly. No commission
-            {promo ? `, and ${promo.months === 1 ? 'your first month is' : `your first ${promo.months} months are`} free.` : '.'}
+            {promo
+              ? promo.message?.trim()
+                ? `. ${promo.message.trim()}`
+                : `, and ${promo.months === 1 ? 'your first month is' : `your first ${promo.months} months are`} free.`
+              : '.'}
           </p>
         </div>
         <button
