@@ -2,7 +2,7 @@ import { isAlertableDrop } from '../lib/listingNews';
 import React, { useState, useEffect, useRef } from 'react';
 import { FormattedText } from '../components/FormattedText';
 import { Listing, PropertyType, PhotoItem, UserProfile } from '../types/listing';
-import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
+import { CONTRACT_NOTICE } from '../lib/legalText';
 import { db, TERMS_VERSION, ADMIN_DISPLAY_NAME } from '../lib/db';
 import { coachListing, measureDarkPhotos } from '../lib/listingCoach';
 import { geocodeAddress } from '../lib/geocode';
@@ -53,7 +53,7 @@ const STEPS = [
   { id: 2, title: 'Details and price', subtitle: 'Size, rooms and asking price' },
   { id: 3, title: 'Photos', subtitle: 'Upload clear photos (resized on your device)' },
   { id: 4, title: 'Description', subtitle: 'What makes your home special?' },
-  { id: 5, title: 'Buyers and agents', subtitle: 'Optional: cash back for the buyer, and whether agents are welcome' },
+  { id: 5, title: 'Buyers and agents', subtitle: 'Optional: whether buyers’ agents are welcome' },
   { id: 6, title: 'Review and submit', subtitle: 'Confirm and send your listing for review' }
 ];
 
@@ -114,7 +114,8 @@ export const WizardPage: React.FC<WizardPageProps> = ({
   const [inclusionsInput, setInclusionsInput] = useState('');
 
   // Step 5 Cash-back
-  const [offersCashback, setOffersCashback] = useState(false);
+  // Buyer cash back was removed (Nov 2026): new and edited listings never offer it
+  const offersCashback = false;
   const [cashbackType, setCashbackType] = useState<'fixed' | 'percentage'>('fixed');
   const [cashbackAmount, setCashbackAmount] = useState(10000);
   // "Agents welcome": the seller's own buyer's agent commission offer
@@ -170,7 +171,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
     else if (draft.upgradesInput) setUpgradesInput(draft.upgradesInput);
     if (Array.isArray(draft.inclusions)) setInclusionsInput(draft.inclusions.join(', '));
     else if (draft.inclusionsInput) setInclusionsInput(draft.inclusionsInput);
-    if (typeof draft.offersCashback === 'boolean') setOffersCashback(draft.offersCashback);
     if (draft.cashbackType) setCashbackType(draft.cashbackType);
     if (draft.cashbackAmount) setCashbackAmount(draft.cashbackAmount);
     if (typeof draft.agentsWelcome === 'boolean') setAgentsWelcome(draft.agentsWelcome);
@@ -654,12 +654,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
             <span className="text-slate-600">Asking price</span>
             <span className="font-bold text-slate-900 tabular-nums">{formatCAD(submittedSummary.price)}</span>
           </div>
-          {submittedSummary.offersCashback && (
-            <div className="flex justify-between text-sm py-1 border-b border-slate-200/60">
-              <span className="text-slate-600">Buyer cash back</span>
-              <span className="font-bold text-emerald-800 tabular-nums">+{formatCAD(submittedSummary.cashbackAmount)}</span>
-            </div>
-          )}
           <div className="flex justify-between text-sm py-1">
             <span className="text-slate-600">Photos uploaded</span>
             <span className="font-medium text-slate-800 tabular-nums">{submittedSummary.photoCount} photos</span>
@@ -1298,81 +1292,11 @@ export const WizardPage: React.FC<WizardPageProps> = ({
           </div>
         )}
 
-        {/* ---------------- STEP 5: Cash-Back & Live BC Commission Simulator ---------------- */}
+        {/* ---------------- STEP 5: Buyers' agents ---------------- */}
         {currentStep === 5 && (
           <div className="space-y-6">
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200/80 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
-                <Gift className="w-4 h-4 text-emerald-700" />
-                <span>Optional: offer a buyer cash back</span>
-              </div>
-              <p className="text-xs text-emerald-950/90 leading-relaxed">
-                At an example commission rate (7% on the first $100k + 2.5% on the balance + {commissionTax(province).label}; commissions are negotiable), a brokerage commission on your {formatCAD(price)} home would be an estimated <strong>{formatCAD(commissionBreakdown.traditionalTotalCommission)}</strong>. OwnersMarket charges no commission, just a flat $24.99/month per active listing. You may choose to offer part of what you could save as a cash-back to your buyer. This estimate assumes no real estate agent is involved. If your buyer uses an agent, that agent may ask you to pay their commission, which would reduce your savings.
-              </p>
-            </div>
-
-            {/* Toggle */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-              <div>
-                <div className="text-sm font-bold text-slate-900">Offer buyer cash back at completion?</div>
-                <div className="text-xs text-slate-500">Your voluntary offer, written into the purchase contract by the parties' lawyers or notaries</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={offersCashback}
-                onChange={(e) => setOffersCashback(e.target.checked)}
-                className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
-              />
-            </div>
-
-            {offersCashback && (
-              <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold text-slate-700">
-                    Cash back amount
-                  </span>
-                  <span className="text-lg font-bold text-emerald-800 tabular-nums">
-                    {formatCAD(cashbackAmount)}
-                  </span>
-                </div>
-
-                <input
-                  type="range"
-                  min="2500"
-                  max="40000"
-                  step="2500"
-                  value={cashbackAmount}
-                  onChange={(e) => setCashbackAmount(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-700"
-                />
-
-                <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
-                  <div className="p-3 bg-white rounded-xl border border-slate-200">
-                    <div className="text-slate-400">Buyer receives:</div>
-                    <div className="text-base font-bold text-slate-900 mt-0.5 tabular-nums">
-                      {formatCAD(cashbackAmount)} credit
-                    </div>
-                  </div>
-                  <div className="p-3 bg-emerald-100/60 rounded-xl border border-emerald-200">
-                    <div className="text-emerald-800 font-medium">You could still keep (estimate):</div>
-                    <div className="text-base font-bold text-emerald-900 mt-0.5 tabular-nums">
-                      {formatCAD(commissionBreakdown.netSellerSavingsWithCashback)}
-                    </div>
-                    <div className="text-[10px] text-emerald-800/80">before $24.99/month listing fees</div>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 leading-relaxed space-y-1">
-                  <div className="font-semibold text-slate-800">Important:</div>
-                  <p>{CASHBACK_SELLER_OFFER_NOTICE}</p>
-                  <p>{CONTRACT_NOTICE}</p>
-                  <p className="font-medium text-slate-800">{CASHBACK_LENDER_NOTICE}</p>
-                </div>
-              </div>
-            )}
-
             {/* Agents welcome */}
-            <div className="pt-4 border-t border-slate-200 space-y-4">
+            <div className="space-y-4">
               <div className="flex items-start justify-between gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <label htmlFor="wizard-agents-welcome" className="cursor-pointer">
                   <div className="text-sm font-bold text-slate-900">Agents welcome: pay a buyer's agent commission?</div>
@@ -1487,12 +1411,6 @@ export const WizardPage: React.FC<WizardPageProps> = ({
                   <span className="font-bold text-slate-900 text-right">{describeAgentCommission({ agentsWelcome, agentCommissionType, agentCommissionValue: Number(agentCommissionValue) || undefined })}</span>
                 </div>
               )}
-              {offersCashback && (
-                <div className="bg-emerald-100/70 p-3 rounded-xl text-xs text-emerald-950 flex items-center justify-between">
-                  <span>Buyer cash back incentive offered:</span>
-                  <span className="font-bold text-emerald-900 tabular-nums">+{formatCAD(cashbackAmount)}</span>
-                </div>
-              )}
             </div>
 
             {/* Listing coach: tips before submitting (never about price) */}
@@ -1538,7 +1456,7 @@ export const WizardPage: React.FC<WizardPageProps> = ({
 
             {editListing && ['live', 'paused'].includes(editListing.status) && !editListing.adminHold && !adminEditing && (
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs text-amber-950 leading-relaxed">
-                <strong>Editing an approved listing.</strong> Changes to the headline, description, photos or address get a quick review (usually within 1 business day). Your listing stays live as it is meanwhile, and the new version replaces it once approved. Changes to the price and home details (rooms, size, fees, cash-back) go live right away.
+                <strong>Editing an approved listing.</strong> Changes to the headline, description, photos or address get a quick review (usually within 1 business day). Your listing stays live as it is meanwhile, and the new version replaces it once approved. Changes to the price and home details (rooms, size, fees) go live right away.
               </div>
             )}
 

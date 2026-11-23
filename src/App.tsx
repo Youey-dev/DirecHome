@@ -63,7 +63,6 @@ const TAB_TITLES: Record<string, string> = {
   terms: 'Terms of use · OwnersMarket',
   privacy: 'Privacy policy · OwnersMarket',
   rules: 'Listing rules · OwnersMarket',
-  cashback: 'Cash-back policy · OwnersMarket',
   notifications: 'Notification Preferences · OwnersMarket',
   calculator: 'Real Estate Commission Calculator · OwnersMarket',
   'not-found': 'Page not found · OwnersMarket',
@@ -494,7 +493,7 @@ function MainApp() {
             <GuideRoute key={currentTab} tab={currentTab} onNavigate={handleNavigate} />
           )}
 
-          {['terms', 'privacy', 'rules', 'cashback', 'notifications'].includes(currentTab) && (
+          {['terms', 'privacy', 'rules', 'notifications'].includes(currentTab) && (
             <LegalPage initialTab={currentTab as any} activeUser={activeUser} onNavigate={handleNavigate} />
           )}
 
@@ -505,7 +504,7 @@ function MainApp() {
                   Real estate commission calculator
                 </h1>
                 <p className="text-base text-slate-600 mt-3 max-w-[40em]">
-                  Estimate what you could save using an example commission rate, and how much closing cash back you could offer. Commission rates vary by province and are negotiable. All figures are estimates.
+                  Estimate what you could save using an example commission rate. Commission rates vary by province and are negotiable. All figures are estimates.
                 </p>
               </div>
               <SavingsCalculator onApplyToListing={() => handleNavigate('wizard')} onNavigate={handleNavigate} />

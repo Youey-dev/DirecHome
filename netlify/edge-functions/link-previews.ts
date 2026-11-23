@@ -171,7 +171,7 @@ const shorten = (text: string, max: number) => {
 
 async function listingMeta(id: string): Promise<(PageMeta & { body?: string }) | undefined> {
   const rows = await readPublic<ListingRow[]>(
-    `listings?id=eq.${id}&select=headline,description,price,bedrooms,bathrooms,city,province,neighborhood,property_type,sqft,year_built,property_taxes_annual,neighborhood_highlights,inclusions,offers_cashback,cashback_amount,agents_welcome,show_address,listing_photos(url,is_cover,sort_order)`,
+    `listings?id=eq.${id}&select=headline,description,price,bedrooms,bathrooms,city,province,neighborhood,property_type,sqft,year_built,property_taxes_annual,neighborhood_highlights,inclusions,agents_welcome,show_address,listing_photos(url,is_cover,sort_order)`,
   );
   // Database not reachable (or not configured): leave the page as it is rather than guess.
   if (rows === null) return undefined;
@@ -201,7 +201,6 @@ async function listingMeta(id: string): Promise<(PageMeta & { body?: string }) |
     ['Interior size', l.sqft ? `${Number(l.sqft).toLocaleString('en-CA')} sq ft` : ''],
     ['Year built', l.year_built ?? ''],
     ['Property taxes', l.property_taxes_annual ? `${money(Number(l.property_taxes_annual))} a year` : ''],
-    ['Cash back to the buyer', l.offers_cashback && Number(l.cashback_amount) > 0 ? money(Number(l.cashback_amount)) : ''],
     ['Agents welcome', l.agents_welcome ? 'Yes, the owner pays a buyer’s agent commission' : ''],
   ].filter(([, v]) => v !== '' && v !== null && v !== undefined);
   // The visible page, in plain HTML, for crawlers and link previews (the app replaces it in browsers)

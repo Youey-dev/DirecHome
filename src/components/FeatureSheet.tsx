@@ -5,7 +5,6 @@ import QRCode from 'qrcode';
 import { Printer, X } from 'lucide-react';
 import type { Listing } from '../types/listing';
 import { formatCAD } from '../lib/commissionCalc';
-import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE } from '../lib/legalText';
 
 /**
  * One-page feature sheet (US Letter) for sellers to hand out at viewings and open houses.
@@ -74,12 +73,6 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
     ['Buyer\'s agents', listing.agentsWelcome ? `Welcome: ${describeAgentCommission(listing)}` : ''],
   ].filter(([, v]) => v) as [string, string][];
 
-  const cashback =
-    listing.offersCashback && listing.cashbackAmount > 0
-      ? listing.cashbackType === 'percentage'
-        ? `${listing.cashbackAmount}% of the price`
-        : formatCAD(listing.cashbackAmount)
-      : '';
 
   return createPortal(
     <div
@@ -176,7 +169,7 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
                   lineHeight: 1.5,
                   overflow: 'hidden',
                   display: '-webkit-box',
-                  WebkitLineClamp: cashback ? 8 : 11,
+                  WebkitLineClamp: 11,
                   WebkitBoxOrient: 'vertical',
                   whiteSpace: 'pre-line',
                 }}
@@ -196,11 +189,6 @@ export const FeatureSheet: React.FC<{ listing: Listing; onClose: () => void }> =
             </div>
           </div>
 
-          {cashback && (
-            <div style={{ background: '#EEF4EF', borderRadius: 6, padding: '6px 10px', fontSize: 9, lineHeight: 1.4, flex: 'none' }}>
-              <b style={{ fontSize: 11 }}>The seller offers {cashback} cash back to the buyer at closing.</b> {CASHBACK_SELLER_OFFER_NOTICE} {CASHBACK_LENDER_NOTICE}
-            </div>
-          )}
 
           {/* Footer: QR and disclaimer */}
           <footer style={{ display: 'flex', alignItems: 'center', gap: 14, borderTop: '1px solid #D5DED7', paddingTop: 10, flex: 'none' }}>

@@ -85,15 +85,10 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           {drop && (
             <span className={`${badge} !text-red-800`}>Price reduced {formatCAD(drop.amount)}</span>
           )}
-          {listing.offersCashback && listing.cashbackAmount > 0 && (
-            <span className={badge}>
-              {formatCAD(listing.cashbackAmount)} cash back
-            </span>
-          )}
           {listing.agentsWelcome && (
             <span className={badge}>Agents welcome</span>
           )}
-          {listing.photos.length > 0 && !openHouse && !drop && !(listing.offersCashback && listing.cashbackAmount > 0) && !listing.agentsWelcome && (
+          {listing.photos.length > 0 && !openHouse && !drop && !listing.agentsWelcome && (
             <span className={badge}>
               {listing.photos.length} {listing.photos.length === 1 ? 'photo' : 'photos'}
             </span>

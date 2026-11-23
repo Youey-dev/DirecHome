@@ -31,7 +31,7 @@ export const SavedPage: React.FC<SavedPageProps> = ({
           Saved homes
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Keep track of homes you want to tour or monitor for price & cash-back updates.
+          Keep track of homes you want to tour or watch for price changes.
         </p>
       </div>
 

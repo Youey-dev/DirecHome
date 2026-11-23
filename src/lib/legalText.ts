@@ -3,12 +3,9 @@
  * Change it here only, so every page stays identical.
  */
 export const CASHBACK_LENDER_NOTICE =
-  'Buyers must disclose any seller cash-back or credit to their mortgage lender and insurer before signing. ' +
+  'Buyers must disclose any seller credit or incentive to their mortgage lender and insurer before signing. ' +
   'Lenders may treat a credit as reducing the purchase price, which can change the mortgage amount, or may not allow it. ' +
-  'Ask your lender and lawyer or notary before accepting a cash-back offer.';
-
-export const CASHBACK_SELLER_OFFER_NOTICE =
-  "Any cash-back is the seller's voluntary offer. OwnersMarket does not fund, pay or guarantee it.";
+  'Ask your lender and lawyer or notary before accepting one.';
 
 export const CONTRACT_NOTICE =
   "The buyer's and seller's own lawyer or notary prepares the purchase contract. " +

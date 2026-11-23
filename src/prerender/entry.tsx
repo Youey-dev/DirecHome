@@ -73,8 +73,8 @@ const PAGES: Record<string, () => React.ReactElement> = {
       <div className="mb-6">
         <h1 className="text-[38px] font-semibold text-slate-900 leading-[1.1]">Real estate commission calculator</h1>
         <p className="text-base text-slate-600 mt-3 max-w-[40em]">
-          Estimate what you could save using an example commission rate, and how much closing cash back you could offer. Commission rates vary
-          by province and are negotiable. All figures are estimates.
+          Estimate what you could save using an example commission rate. Commission rates vary by province and are negotiable. All figures
+          are estimates.
         </p>
       </div>
       <SavingsCalculator onApplyToListing={noop} onNavigate={noop} />

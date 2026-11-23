@@ -51,9 +51,8 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
   const [maxPrice, setMaxPrice] = useState<number | ''>(initialFilters?.maxPrice ?? '');
   const [minBeds, setMinBeds] = useState<number>(initialFilters?.minBeds ?? 0);
   const [minBaths, setMinBaths] = useState<number>(initialFilters?.minBaths ?? 0);
-  const [cashbackOnly, setCashbackOnly] = useState<boolean>(false);
   const [agentsOnly, setAgentsOnly] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc' | 'cashback_desc'>('newest');
+  const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
   
   // Mobile filter drawer state
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -90,11 +89,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
         // Bathrooms
         if (minBaths > 0 && l.bathrooms < minBaths) return false;
 
-        // Cash-back available
-        if (cashbackOnly && (!l.offersCashback || l.cashbackAmount <= 0)) {
-          return false;
-        }
-
         // Owner welcomes buyer's agents (pays a buyer's agent commission)
         if (agentsOnly && !l.agentsWelcome) return false;
 
@@ -103,7 +97,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
       .sort((a, b) => {
         if (sortBy === 'price_asc') return a.price - b.price;
         if (sortBy === 'price_desc') return b.price - a.price;
-        if (sortBy === 'cashback_desc') return (b.cashbackAmount || 0) - (a.cashbackAmount || 0);
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
   }, [
@@ -115,7 +108,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
     maxPrice,
     minBeds,
     minBaths,
-    cashbackOnly,
     agentsOnly,
     sortBy
   ]);
@@ -128,7 +120,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
     setMaxPrice('');
     setMinBeds(0);
     setMinBaths(0);
-    setCashbackOnly(false);
     setAgentsOnly(false);
     setSortBy('newest');
   };
@@ -140,7 +131,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
     maxPrice !== '' ||
     minBeds > 0 ||
     minBaths > 0 ||
-    cashbackOnly ||
     agentsOnly ||
     searchQuery.trim() !== '';
 
@@ -259,14 +249,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
 
           <button
             type="button"
-            onClick={() => setCashbackOnly(!cashbackOnly)}
-            aria-pressed={cashbackOnly}
-            className="om-chip hidden lg:inline-flex"
-          >
-            Cash back offered
-          </button>
-          <button
-            type="button"
             onClick={() => setAgentsOnly(!agentsOnly)}
             aria-pressed={agentsOnly}
             className="om-chip hidden lg:inline-flex"
@@ -283,7 +265,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
             <option value="newest">Newest first</option>
             <option value="price_asc">Price: low to high</option>
             <option value="price_desc">Price: high to low</option>
-            <option value="cashback_desc">Highest cash back</option>
           </select>
 
           {/* Views */}
@@ -488,20 +469,6 @@ export const BrowsePage: React.FC<BrowsePageProps> = ({
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Cash-back Toggle */}
-            <div className="pt-4 border-t border-hairline flex items-center justify-between gap-4">
-              <div>
-                <div className="text-[15px] font-medium text-slate-900">Cash back offered</div>
-                <div className="text-[13px] text-slate-600">Only homes with closing credits</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={cashbackOnly}
-                onChange={(e) => setCashbackOnly(e.target.checked)}
-                className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
-              />
             </div>
 
             {/* Agents welcome Toggle */}

@@ -17,12 +17,12 @@ import {
   Mail
 } from 'lucide-react';
 import { UserProfile } from '../types/listing';
-import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE, SUPABASE_REGION, PRIVACY_VERSION } from '../lib/legalText';
+import { CASHBACK_LENDER_NOTICE, CONTRACT_NOTICE, SUPABASE_REGION, PRIVACY_VERSION } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { analyticsAvailable } from '../lib/analytics';
 import { useAuth } from '../context/AuthContext';
 
-export type LegalDocTab = 'terms' | 'privacy' | 'rules' | 'cashback' | 'notifications';
+export type LegalDocTab = 'terms' | 'privacy' | 'rules' | 'notifications';
 
 interface LegalPageProps {
   initialTab?: LegalDocTab;
@@ -185,18 +185,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('cashback')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
-            activeTab === 'cashback'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>How cash back works</span>
-        </button>
-
-        <button
           onClick={() => setActiveTab('notifications')}
           className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
             activeTab === 'notifications'
@@ -225,7 +213,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               Terms of use and advertising agreement
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Last updated: October 17, 2026 · Applies across Canada
+              Last updated: November 23, 2026 · Applies across Canada
             </p>
           </div>
 
@@ -257,13 +245,13 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">2. Cash-back offer terms and conditions</h2>
+            <h2 className="text-base font-bold text-slate-900">2. Offers and incentives made by sellers</h2>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2">
               <p>
-                <strong>Seller's offer, not a platform guarantee:</strong> Any cash-back amount displayed on listing cards, estimators, or detail pages is a voluntary offer made solely by the seller. OwnersMarket does not fund, pay, or guarantee cash-back payments.
+                <strong>Seller's offer, not a platform guarantee:</strong> Any incentive a seller describes in their listing, such as a credit to the buyer at closing, is an offer made solely by the seller. OwnersMarket does not fund, pay, or guarantee it.
               </p>
               <p>
-                <strong>Written into the contract by your lawyer or notary:</strong> For a cash-back offer to take effect, it must be included in the purchase contract. {CONTRACT_NOTICE}
+                <strong>Written into the contract by your lawyer or notary:</strong> For any such offer to take effect, it must be included in the purchase contract. {CONTRACT_NOTICE}
               </p>
               <p className="font-semibold text-slate-900">
                 Lender disclosure: {CASHBACK_LENDER_NOTICE}
@@ -345,7 +333,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <p>We collect only what is needed to run the marketplace:</p>
             <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
               <li><strong>Account:</strong> your name, email address, phone number (optional), password (stored only in encrypted, hashed form by our sign-in provider), and the date and version of the Terms you accepted.</li>
-              <li><strong>Listings (sellers):</strong> the property address, property details, photos, description, asking price and any cash-back offer. The exact street address is kept private and is only shown to a buyer after you confirm their viewing.</li>
+              <li><strong>Listings (sellers):</strong> the property address, property details, photos, description and asking price. The exact street address is kept private and is only shown to a buyer after you confirm their viewing.</li>
               <li><strong>Viewing requests:</strong> the requesting buyer's name, email, phone number, preferred date and time, and any note.</li>
               <li><strong>Messages</strong> sent between buyers and sellers on the site.</li>
               <li><strong>Saved homes, reports</strong> you file about listings, and the <strong>notifications</strong> we show you.</li>
@@ -515,56 +503,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <h2 className="text-base font-bold text-slate-900">3. No scams and no deposits outside the legal process</h2>
             <p>
               Never wire money, send an e-Transfer or pay a deposit directly to a stranger. Deposits should be paid only into the trust account of a lawyer, or of a notary in provinces where notaries handle real estate, as set out in the purchase contract. OwnersMarket never asks for, holds or handles deposits or any other money between buyers and sellers.
-            </p>
-          </section>
-        </article>
-      )}
-
-      {/* ---------------- SECTION 4: HOW CASH-BACK WORKS ---------------- */}
-      {activeTab === 'cashback' && (
-        <article className="prose prose-slate max-w-none bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-sm text-slate-700 leading-relaxed">
-          <div className="border-b border-slate-100 pb-4">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              How buyer cash back works
-            </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              General information only, not legal or financial advice · Last updated: October 14, 2026
-            </p>
-          </div>
-
-          <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs sm:text-sm text-emerald-950 space-y-1.5">
-            <div className="font-bold text-emerald-900 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-700" />
-              <span>The basics</span>
-            </div>
-            <p>
-              OwnersMarket charges no commission — sellers pay a flat $24.99/month per active listing. A seller who would otherwise pay a listing commission could save a significant amount (any figures shown on this site are estimates using an example commission rate; commissions are negotiable). A seller may choose to offer part of that amount to the buyer as a credit at closing. {CASHBACK_SELLER_OFFER_NOTICE}
-            </p>
-          </div>
-
-          <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">How it works at closing</h2>
-            <ol className="list-decimal pl-5 space-y-2 text-xs sm:text-sm">
-              <li>
-                <strong>Agreed in writing:</strong> If the buyer and seller agree to a cash-back, it must be included in the purchase contract. {CONTRACT_NOTICE}
-              </li>
-              <li>
-                <strong>Handled by the lawyers or notaries:</strong> How the credit is shown and applied at completion is decided by the buyer's and seller's own lawyers or notaries.
-              </li>
-            </ol>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">Mortgage lender and insurer disclosure</h2>
-            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs sm:text-sm text-amber-950 font-medium">
-              {CASHBACK_LENDER_NOTICE}
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">What OwnersMarket does not do</h2>
-            <p className="text-xs text-slate-600">
-              OwnersMarket is not a party to the purchase contract, does not provide, draft or review contracts, does not hold deposit trust monies, and does not fund, pay or guarantee cash-back payments. Any cash-back is a commitment made directly between the seller and buyer.
             </p>
           </section>
         </article>
