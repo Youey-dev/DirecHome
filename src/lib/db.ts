@@ -1556,6 +1556,20 @@ class DataStore {
     await this.loadHomepagePromo(true);
   }
 
+  /** Admin: show this code on the homepage instead of the current one (null = take the homepage offer off). */
+  async adminFeaturePromo(code: string | null): Promise<void> {
+    this.requireUser();
+    const off = supabase.from('promo_codes').update({ featured: false }).eq('featured', true);
+    const { error: offError } = code ? await off.neq('code', code) : await off;
+    if (offError) fail(offError);
+    if (code) {
+      const { data, error } = await supabase.from('promo_codes').update({ featured: true }).eq('code', code).eq('active', true).select('code');
+      if (error) fail(error);
+      if (!data?.length) throw new Error('That code is paused. Restart it first.');
+    }
+    await this.loadHomepagePromo(true);
+  }
+
   /** Admin: every promo code with how many listings used it, newest first. */
   async loadPromoCodes(): Promise<PromoCode[]> {
     this.requireUser();
@@ -1610,8 +1624,10 @@ class DataStore {
   /** Admin: pause or restart a promo code (listings that already used it keep their free months). */
   async setPromoCodeActive(code: string, active: boolean): Promise<void> {
     this.requireUser();
-    const { error } = await supabase.from('promo_codes').update({ active }).eq('code', code);
+    // Pausing also takes it off the homepage, so restarting it later doesn't bring it back by surprise
+    const { error } = await supabase.from('promo_codes').update(active ? { active } : { active, featured: false }).eq('code', code);
     if (error) fail(error);
+    await this.loadHomepagePromo(true);
   }
 
   /** Admin: lift a pause and put the listing back up (it shows to buyers if its billing is in order). */

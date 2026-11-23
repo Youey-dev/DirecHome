@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Loader2, Pause, Play, Plus } from 'lucide-react';
+import { Home, Loader2, Pause, Play, Plus } from 'lucide-react';
 import { db, type PromoCode } from '../lib/db';
 
 const shortDate = (d: string) =>
@@ -31,6 +31,25 @@ export const AdminPromotions: React.FC = () => {
     try {
       await db.adminSetHomepagePromo(months);
       setDone(months ? `The homepage now says “Your first ${months === 1 ? 'month is' : `${months} months are`} on us”.` : 'The homepage offer is off.');
+      await load();
+    } catch (err: any) {
+      setError(err?.message || 'Could not change the homepage offer.');
+    } finally {
+      setHomeBusy(false);
+    }
+  };
+
+  const feature = async (p: PromoCode | null) => {
+    setError(null);
+    setDone(null);
+    setHomeBusy(true);
+    try {
+      await db.adminFeaturePromo(p ? p.code : null);
+      setDone(
+        p
+          ? `The homepage now shows ${p.code}: “Your first ${p.freeMonths === 1 ? 'month is' : `${p.freeMonths} months are`} on us”.`
+          : 'The homepage offer is off.',
+      );
       await load();
     } catch (err: any) {
       setError(err?.message || 'Could not change the homepage offer.');
@@ -100,6 +119,7 @@ export const AdminPromotions: React.FC = () => {
           <p className="text-sm text-slate-600">
             Tick one and it goes live straight away: a thin bar above the menu and a line under the search on the homepage
             (“Your first 3 months are on us”), and the code is filled in for sellers on their dashboard. No card needed.
+            To show one of your own codes instead, pick it from the list below with <strong>Show on homepage</strong>.
           </p>
         </div>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Homepage offer">
@@ -137,7 +157,8 @@ export const AdminPromotions: React.FC = () => {
           {featured ? (
             <>
               <strong>Live now:</strong> “Your first {featured.freeMonths === 1 ? 'month is' : `${featured.freeMonths} months are`} on us”, code{' '}
-              <span className="font-mono font-bold">{featured.code}</span>, used by {featured.uses}{' '}
+              <span className="font-mono font-bold">{featured.code}</span>
+              {featured.cardRequired ? ' (card needed at checkout)' : ''}, used by {featured.uses}{' '}
               {featured.uses === 1 ? 'listing' : 'listings'} so far.
             </>
           ) : (
@@ -270,7 +291,26 @@ export const AdminPromotions: React.FC = () => {
                   <td className="px-4 py-3">
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${st.cls}`}>{st.label}</span>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    {p.featured && p.active ? (
+                      <button
+                        onClick={() => void feature(null)}
+                        disabled={homeBusy}
+                        className="mr-2 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1 cursor-pointer min-h-[36px] disabled:opacity-50"
+                      >
+                        Take off homepage
+                      </button>
+                    ) : (
+                      st.label === 'Active' && (
+                        <button
+                          onClick={() => void feature(p)}
+                          disabled={homeBusy}
+                          className="mr-2 px-3 py-1.5 rounded-lg border border-emerald-700 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 inline-flex items-center gap-1 cursor-pointer min-h-[36px] disabled:opacity-50"
+                        >
+                          <Home className="w-3.5 h-3.5" /> Show on homepage
+                        </button>
+                      )
+                    )}
                     <button
                       onClick={() => void toggle(p)}
                       className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1 cursor-pointer min-h-[36px]"
@@ -285,7 +325,8 @@ export const AdminPromotions: React.FC = () => {
         </table>
       </div>
       <p className="text-xs text-slate-500">
-        Pausing a code stops new sellers from using it. Listings that already used it keep their free months.
+        Pausing a code stops new sellers from using it, and takes it off the homepage. Listings that already used it keep their free months.
+        Only one code can be on the homepage at a time.
       </p>
     </div>
   );
