@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source not "../.netlify";
 
 /*
  * OwnersMarket theme (Draft 1, "one question": minimal, one typeface).
