@@ -1297,6 +1297,15 @@ class DataStore {
     await this.refresh();
   }
 
+  /** Admin: lower or reset a listing's view count (logged with the reason). Returns the new count. */
+  async adminCorrectViews(listingId: string, newCount: number, reason: string): Promise<number> {
+    this.requireUser();
+    const { data, error } = await supabase.rpc('admin_correct_views', { _listing_id: listingId, _new_count: newCount, _reason: reason });
+    if (error) fail(error);
+    await this.refresh();
+    return Number(data);
+  }
+
   // ---------------------------------------------------------------------------
   // Open houses
   // ---------------------------------------------------------------------------

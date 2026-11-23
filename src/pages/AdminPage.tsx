@@ -52,7 +52,8 @@ type Pending =
   | { kind: 'delete'; listing: Listing }
   | { kind: 'message'; listing: Listing }
   | { kind: 'free'; listing: Listing }
-  | { kind: 'endfree'; listing: Listing };
+  | { kind: 'endfree'; listing: Listing }
+  | { kind: 'views'; listing: Listing };
 
 const STATUS_LABEL: Record<ListingStatus, string> = {
   draft: 'Draft',
@@ -98,6 +99,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
   const [text, setText] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [freeMonths, setFreeMonths] = useState(3);
+  const [newViews, setNewViews] = useState('0');
   const [busy, setBusy] = useState(false);
 
   // Listings tab filters
@@ -154,6 +156,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
 
   const open = (p: Pending) => {
     setPending(p);
+    if (p.kind === 'views') setNewViews(String(p.listing.viewsCount));
     setText('');
     setConfirmed(false);
   };
@@ -241,6 +244,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
           ? `“${listing.headline}” is showing to buyers, free for ${freeMonths} ${freeMonths === 1 ? 'month' : 'months'}. ${listing.sellerName} was told the end date.`
           : `Free listing ended. “${listing.headline}” is hidden until the owner activates it.`,
       );
+      if (ok) close();
+      return;
+    }
+    if (pending.kind === 'views') {
+      const n = Number(newViews);
+      if (!Number.isInteger(n) || n < 0 || n > listing.viewsCount) {
+        return flash(`Enter a whole number from 0 to ${listing.viewsCount}. View counts can only be lowered.`, true);
+      }
+      if (n === listing.viewsCount) return flash('That’s the current count. Enter a lower number.', true);
+      if (reason.length < 3) return flash('Add a short reason, for example “my own test visits”.', true);
+      const ok = await run(async () => { await db.adminCorrectViews(listing.id, n, reason); }, `Views for “${listing.headline}” corrected to ${n}.`);
       if (ok) close();
       return;
     }
@@ -399,6 +413,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
         {['live', 'paused'].includes(l.status) && (
           <ActionButton tone="danger" onClick={() => open({ kind: 'takedown', listing: l })}>
             Take down
+          </ActionButton>
+        )}
+        {l.viewsCount > 0 && (
+          <ActionButton onClick={() => open({ kind: 'views', listing: l })} title="Remove test visits or bot traffic from the view count">
+            Correct views
           </ActionButton>
         )}
         <ActionButton tone="danger" onClick={() => open({ kind: 'delete', listing: l })}>
@@ -645,6 +664,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
           placeholder: 'e.g. Your free period has ended. Tap “Activate listing” in your dashboard to keep it up.',
           button: 'End free listing',
           danger: true,
+        };
+      case 'views':
+        return {
+          title: `Correct the view count for “${l.headline}”`,
+          body: `It has ${l.viewsCount} ${l.viewsCount === 1 ? 'view' : 'views'}. Lower it to remove your own test visits, bot traffic or other views that weren’t real buyers. Counts can’t be raised. ${l.sellerName} sees the new number on their dashboard, and the change is logged with your reason. Visits by admins and by the owner are no longer counted.`,
+          label: 'Reason (kept in the log, not shown to the owner)',
+          placeholder: 'e.g. My own test visits while checking the listing',
+          button: 'Save view count',
+          danger: false,
         };
       case 'message':
         return {
@@ -1114,6 +1142,25 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
               <label className="flex items-start gap-2 text-sm text-slate-800">
                 <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-1 w-4 h-4" />
                 I understand this deletes the listing for good.
+              </label>
+            )}
+            {pending.kind === 'views' && (
+              <label className="flex items-center gap-2 text-sm text-slate-800 rounded-lg bg-slate-50 border border-slate-200 p-3 flex-wrap">
+                <span className="font-semibold">New view count</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={pending.listing.viewsCount}
+                  step={1}
+                  inputMode="numeric"
+                  value={newViews}
+                  onChange={(e) => setNewViews(e.target.value)}
+                  className="w-28 px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-sm tabular-nums"
+                />
+                <span className="text-slate-600">· now {pending.listing.viewsCount}</span>
+                <button type="button" onClick={() => setNewViews('0')} className="ml-auto text-xs font-semibold text-slate-700 underline cursor-pointer">
+                  Reset to 0
+                </button>
               </label>
             )}
             {pending.kind === 'free' && (
