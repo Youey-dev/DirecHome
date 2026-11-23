@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Home, Loader2, Pause, Play, Plus } from 'lucide-react';
 import { db, type PromoCode } from '../lib/db';
+import { defaultPromoMessage } from '../lib/promo';
 
 const shortDate = (d: string) =>
   new Date(d.length === 10 ? `${d}T12:00:00` : d).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -55,6 +56,28 @@ export const AdminPromotions: React.FC = () => {
       setError(err?.message || 'Could not change the homepage offer.');
     } finally {
       setHomeBusy(false);
+    }
+  };
+
+  // Homepage message for the code that's live
+  const [message, setMessage] = useState('');
+  const [msgBusy, setMsgBusy] = useState(false);
+  useEffect(() => {
+    setMessage(featured?.homepageMessage ?? '');
+  }, [featured?.code, featured?.homepageMessage]);
+  const saveMessage = async (text: string) => {
+    if (!featured) return;
+    setError(null);
+    setDone(null);
+    setMsgBusy(true);
+    try {
+      await db.adminSetPromoMessage(featured.code, text);
+      setDone(text.trim() ? 'The homepage message is updated.' : 'The homepage message is back to the default.');
+      await load();
+    } catch (err: any) {
+      setError(err?.message || 'Could not save the message.');
+    } finally {
+      setMsgBusy(false);
     }
   };
 
@@ -156,7 +179,7 @@ export const AdminPromotions: React.FC = () => {
         <p className="text-sm text-slate-700">
           {featured ? (
             <>
-              <strong>Live now:</strong> “Your first {featured.freeMonths === 1 ? 'month is' : `${featured.freeMonths} months are`} on us”, code{' '}
+              <strong>Live now:</strong> “{featured.homepageMessage || defaultPromoMessage(featured.freeMonths)}”, code{' '}
               <span className="font-mono font-bold">{featured.code}</span>
               {featured.cardRequired ? ' (card needed at checkout)' : ''}, used by {featured.uses}{' '}
               {featured.uses === 1 ? 'listing' : 'listings'} so far.
@@ -165,6 +188,56 @@ export const AdminPromotions: React.FC = () => {
             <span className="text-slate-500">No offer on the homepage.</span>
           )}
         </p>
+        {featured && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void saveMessage(message);
+            }}
+            className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2"
+          >
+            <label className="block">
+              <span className="block text-xs font-semibold text-slate-700 mb-1">Homepage message</span>
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                maxLength={120}
+                placeholder={defaultPromoMessage(featured.freeMonths)}
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700"
+              />
+            </label>
+            <p className="text-xs text-slate-600">
+              Shown in the bar above the menu, followed by a “List it free” link. Leave it empty for the default:{' '}
+              “Selling your home? {defaultPromoMessage(featured.freeMonths)}” {message.length > 0 && <span className="tabular-nums">· {message.length}/120</span>}
+            </p>
+            <div className="rounded-lg bg-white border border-slate-200 px-3 py-2 text-[13px] text-center text-slate-900">
+              <span className="font-medium">{message.trim() || `Selling your home? ${defaultPromoMessage(featured.freeMonths)}`}</span>{' '}
+              <span className="text-emerald-700 underline underline-offset-2 font-semibold">List it free</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={msgBusy || message.trim() === (featured.homepageMessage ?? '').trim()}
+                className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-sm font-semibold min-h-[40px] cursor-pointer"
+              >
+                {msgBusy ? 'Saving…' : 'Save message'}
+              </button>
+              {featured.homepageMessage && (
+                <button
+                  type="button"
+                  disabled={msgBusy}
+                  onClick={() => {
+                    setMessage('');
+                    void saveMessage('');
+                  }}
+                  className="px-4 py-2 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 min-h-[40px] cursor-pointer"
+                >
+                  Use the default
+                </button>
+              )}
+            </div>
+          </form>
+        )}
         <p className="text-xs text-slate-500">
           Sellers who already used a code keep their free months when you switch or turn it off.
         </p>
