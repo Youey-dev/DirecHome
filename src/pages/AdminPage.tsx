@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   Eye,
+  Minus,
+  Plus,
   Flag,
   Home,
   LayoutDashboard,
@@ -1148,7 +1150,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
                   onClick={() => setNewViews((v) => String(Math.max(0, (parseInt(v, 10) || 0) - 1)))}
                   className="w-11 h-11 rounded-lg border border-slate-300 bg-white text-lg font-bold cursor-pointer hover:bg-slate-100"
                 >
-                  −
+                  <Minus className="w-4 h-4 mx-auto" aria-hidden="true" />
                 </button>
                 <input
                   autoFocus
@@ -1159,7 +1161,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
                   aria-label="View count"
                   value={newViews}
                   onChange={(e) => setNewViews(e.target.value)}
-                  className="w-32 h-11 px-3 rounded-lg border border-slate-300 bg-white text-base text-center tabular-nums"
+                  className="w-28 h-11 px-3 rounded-lg border border-slate-300 bg-white text-base text-center tabular-nums"
                 />
                 <button
                   type="button"
@@ -1167,7 +1169,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
                   onClick={() => setNewViews((v) => String((parseInt(v, 10) || 0) + 1))}
                   className="w-11 h-11 rounded-lg border border-slate-300 bg-white text-lg font-bold cursor-pointer hover:bg-slate-100"
                 >
-                  +
+                  <Plus className="w-4 h-4 mx-auto" aria-hidden="true" />
                 </button>
                 <span className="text-slate-600">views</span>
               </div>
