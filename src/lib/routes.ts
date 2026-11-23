@@ -13,7 +13,6 @@ export const TAB_PATHS: Record<string, string> = {
   terms: '/terms',
   privacy: '/privacy',
   rules: '/rules',
-  cashback: '/cashback',
   notifications: '/notifications',
   calculator: '/calculator',
   'guide-selling': '/guides/selling-your-home',

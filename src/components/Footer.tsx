@@ -73,7 +73,6 @@ export const Footer: React.FC<{ onNavigate: (tab: string, id?: string) => void }
               <FooterLink to="terms" onNavigate={onNavigate}>Terms of use</FooterLink>
               <FooterLink to="privacy" onNavigate={onNavigate}>Privacy policy</FooterLink>
               <FooterLink to="rules" onNavigate={onNavigate}>Community and listing rules</FooterLink>
-              <FooterLink to="cashback" onNavigate={onNavigate}>How cash back works</FooterLink>
               <FooterLink to="notifications" onNavigate={onNavigate}>Email preferences (CASL)</FooterLink>
               {analyticsAvailable && (
                 <li>

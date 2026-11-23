@@ -5,7 +5,7 @@
  *
  * Back to review: headline, description, neighbourhood, highlights, upgrades, inclusions,
  * city, province, street address, unit, postal code, and photos (added, removed or re-captioned).
- * Straight through: price and home details (rooms, size, year, parking, fees, taxes, cash-back),
+ * Straight through: price and home details (rooms, size, year, parking, fees, taxes),
  * and reordering photos or choosing a different cover.
  */
 import type { Listing, PhotoItem } from '../types/listing';

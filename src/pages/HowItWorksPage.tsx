@@ -1,5 +1,5 @@
 import React from 'react';
-import { CASHBACK_LENDER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
+import { CONTRACT_NOTICE } from '../lib/legalText';
 import { LISTING_FEE_LABEL } from '../lib/commissionCalc';
 import { NavLink } from '../components/NavLink';
 import {
@@ -114,15 +114,6 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   {
     q: 'Where do I print the signs and feature sheet?',
     a: 'Download them from your dashboard once your listing is live. The lawn sign (24 × 18 in) can be printed on corrugated plastic with a wire stake at most print and copy shops. The window sign and feature sheet print on regular letter-size paper at home. The downloads are free; you only pay for printing.',
-  },
-  {
-    q: 'How does the buyer receive cash back?',
-    a: (
-      <>
-        If the buyer and seller agree to cash back, it must be written into the purchase contract. {CONTRACT_NOTICE} How the credit is applied at
-        completion is handled by their lawyers or notaries. {CASHBACK_LENDER_NOTICE}
-      </>
-    ),
   },
   {
     q: 'What if a buyer has their own agent?',
@@ -272,10 +263,6 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
             <Feature icon={<CheckCircle2 className="w-5 h-5" />} title="Tips to improve your listing">
               While you create your listing, we point out what buyers usually ask about, like taxes, strata fees or a missing photo.
             </Feature>
-            <Feature icon={<TrendingUp className="w-5 h-5" />} title="Optional cash back for the buyer">
-              You can offer part of what you save on commission as cash back at closing. It’s your choice and paid by you, and it’s written into
-              the contract by the lawyers.
-            </Feature>
             <Feature icon={<Handshake className="w-5 h-5" />} title="Agents welcome, if you choose">
               Tick “Agents welcome” and say what you’d pay a buyer’s agent: a percentage, a fixed amount or “to be negotiated”. Your listing gets
               a badge, and agents can filter for it, so buyers who work with an agent can find your home too.
@@ -352,7 +339,6 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
                 ['Viewings', 'Booked and hosted by the agent', 'You choose the times and show the home'],
                 ['For-sale sign', 'The brokerage’s sign, with the agent’s name and number', 'Free printable lawn and window signs with a QR code to your listing'],
                 ['Pricing and negotiation', 'The agent advises and negotiates', 'You decide, with your own research and your lawyer'],
-                ['Cash back to the buyer', 'Not usually offered', 'Optional, set by each seller'],
                 ['Contract and closing', 'Prepared by the parties’ agents and lawyers or notaries', 'Prepared by your own lawyer or notary (OwnersMarket provides no contracts)'],
               ].map(([label, agent, om]) => (
                 <tr key={label}>

@@ -12,6 +12,12 @@
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_TURNSTILE_SITE_KEY,VITE_MAP_TILE_URL,VITE_MAP_ATTRIBUTION"
 
 # Makes page addresses like /browse and /listing/<id> work when opened directly or refreshed
+# The buyer cash-back page was removed (Nov 2026)
+[[redirects]]
+  from = "/cashback"
+  to = "/terms"
+  status = 301
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -9,13 +9,11 @@ import {
   LISTING_FEE_CAD_PER_MONTH,
   LISTING_FEE_LABEL,
 } from '../lib/commissionCalc';
-import { CASHBACK_LENDER_NOTICE } from '../lib/legalText';
 import { NavLink } from './NavLink';
 import { DollarSign, CheckCircle2, Info, ArrowRight, Sparkles } from 'lucide-react';
 
 interface SavingsCalculatorProps {
   initialPrice?: number;
-  initialCashback?: number;
   onApplyToListing?: (price: number, cashback: number) => void;
   compact?: boolean;
   /** Province code for the GST/HST on the commission. Defaults to the last province page visited, or BC. */
@@ -56,7 +54,6 @@ function startingProvince(initial?: string): string {
 
 export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
   initialPrice = 1250000,
-  initialCashback = 15000,
   onApplyToListing,
   compact = false,
   initialProvince,
@@ -66,13 +63,10 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
   const [province, setProvince] = useState<string>(() => startingProvince(initialProvince));
   const tax = commissionTax(province);
   const costGuide = COST_GUIDES[tax.code];
-  const [offersCashback, setOffersCashback] = useState<boolean>(true);
-  const [cashbackType, setCashbackType] = useState<'fixed' | 'percentage'>('fixed');
-  const [cashbackValue, setCashbackValue] = useState<number>(initialCashback);
 
   const [monthsListed, setMonthsListed] = useState<number>(3);
 
-  const breakdown = calculateBCCommission(price, offersCashback, cashbackType, cashbackValue, tax.code);
+  const breakdown = calculateBCCommission(price, false, 'fixed', 0, tax.code);
   const listingFees = LISTING_FEE_CAD_PER_MONTH * monthsListed;
   const estimatedNet = Math.max(0, breakdown.netSellerSavingsWithCashback - listingFees);
 
@@ -82,13 +76,13 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Commission and cash-back estimator (estimates only)</span>
+            <span>Commission savings estimator (estimates only)</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
-            See what you could keep, and what you could offer buyers
+            See what you could keep
           </h3>
           <p className="text-sm text-slate-500 mt-0.5">
-            Without a listing brokerage, you could avoid a large commission. You may offer part of it as a cash-back to buyers. All figures are estimates.
+            Without a listing brokerage, you could avoid a large commission. All figures are estimates.
           </p>
         </div>
 
@@ -161,108 +155,6 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
             </div>
           </div>
 
-          {/* Cash-back toggle */}
-          <div className="pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <span className="text-sm font-semibold text-slate-900 block">
-                  Offer a buyer cash back at closing?
-                </span>
-                <span className="text-xs text-slate-500">
-                  Paid by you, the seller, at closing. OwnersMarket does not fund or guarantee it.
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOffersCashback(!offersCashback)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
-                  offersCashback ? 'bg-emerald-700' : 'bg-slate-300'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out mt-0.5 ml-0.5 ${
-                    offersCashback ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {offersCashback && (
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex rounded-lg bg-slate-200 p-0.5 text-xs font-medium">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCashbackType('fixed');
-                        setCashbackValue(15000);
-                      }}
-                      className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-                        cashbackType === 'fixed' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600'
-                      }`}
-                    >
-                      Fixed amount ($)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCashbackType('percentage');
-                        setCashbackValue(1.0);
-                      }}
-                      className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-                        cashbackType === 'percentage' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600'
-                      }`}
-                    >
-                      Percentage (%)
-                    </button>
-                  </div>
-
-                  <span className="text-xs text-slate-500 ml-auto">
-                    {cashbackType === 'fixed' 
-                      ? `${formatCAD(cashbackValue)} credit` 
-                      : `${cashbackValue}% = ${formatCAD(breakdown.offeredCashback)}`}
-                  </span>
-                </div>
-
-                {cashbackType === 'fixed' ? (
-                  <div>
-                    <input
-                      type="range"
-                      min="2500"
-                      max="50000"
-                      step="2500"
-                      value={cashbackValue}
-                      onChange={(e) => setCashbackValue(Number(e.target.value))}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-700"
-                    />
-                    <div className="flex justify-between text-[11px] text-slate-400 mt-1">
-                      <span>$2,500</span>
-                      <span>$15,000 (Popular)</span>
-                      <span>$50,000</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <input
-                      type="range"
-                      min="0.5"
-                      max="3.0"
-                      step="0.25"
-                      value={cashbackValue}
-                      onChange={(e) => setCashbackValue(Number(e.target.value))}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-700"
-                    />
-                    <div className="flex justify-between text-[11px] text-slate-400 mt-1">
-                      <span>0.5%</span>
-                      <span>1.0% to 1.5%</span>
-                      <span>3.0%</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
           <div className="flex items-start gap-2.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
             <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
             <p>
@@ -323,19 +215,6 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
             </span>
           </div>
 
-          {/* Cash-back to buyer */}
-          {offersCashback && (
-            <div className="flex items-center justify-between py-2.5 border-b border-slate-200 text-sm">
-              <span className="text-slate-600 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-                <span>Offered cash back to buyer at closing</span>
-              </span>
-              <span className="font-bold text-slate-900 tabular-nums">
-                -{formatCAD(breakdown.offeredCashback)}
-              </span>
-            </div>
-          )}
-
           {/* NET HERO SAVINGS */}
           <div className="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200/80">
             <div className="flex items-center justify-between">
@@ -344,22 +223,13 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
                   Estimated amount you could keep
                 </span>
                 <span className="text-[11px] text-emerald-700">
-                  Estimate after {formatCAD(breakdown.offeredCashback)} buyer cash-back and {formatCADCents(listingFees)} in listing fees
+                  Estimate after {formatCADCents(listingFees)} in listing fees
                 </span>
               </div>
               <div className="text-2xl sm:text-3xl font-extrabold text-emerald-800 tabular-nums">
                 {formatCAD(estimatedNet)}
               </div>
             </div>
-
-            {offersCashback && (
-              <div className="mt-3 pt-3 border-t border-emerald-200/60 flex items-center justify-between text-xs text-emerald-900">
-                <span>Buyer closing incentive:</span>
-                <span className="font-bold text-emerald-800 tabular-nums">
-                  +{formatCAD(breakdown.buyerBenefit)} closing credit
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Legal / Not a quote note */}
@@ -368,10 +238,6 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
             <p>
               * All figures are estimates, not quotes. Your actual costs and any commission you would otherwise pay depend on your situation and are negotiable.
             </p>
-            <p>
-              * Any cash-back represents the seller's voluntary offer, not a platform guarantee. OwnersMarket does not fund, pay or guarantee it. It must be documented in the purchase contract.
-            </p>
-            <p className="font-medium text-slate-800">* {CASHBACK_LENDER_NOTICE}</p>
           </div>
 
           {onNavigate && costGuide && (
@@ -385,7 +251,7 @@ export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({
 
           {onApplyToListing && (
             <button
-              onClick={() => onApplyToListing(price, breakdown.offeredCashback)}
+              onClick={() => onApplyToListing(price, 0)}
               className="mt-4 w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Use these numbers in my listing</span>

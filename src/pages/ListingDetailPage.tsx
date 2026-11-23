@@ -13,7 +13,7 @@ import { CostCalculator } from '../components/CostCalculator';
 import { priceDrop } from '../lib/listingNews';
 import { formatCAD } from '../lib/commissionCalc';
 import { viewsLabel } from '../lib/viewCount';
-import { CASHBACK_LENDER_NOTICE, CASHBACK_SELLER_OFFER_NOTICE, CONTRACT_NOTICE } from '../lib/legalText';
+import { CONTRACT_NOTICE } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { 
   Heart, 
@@ -255,24 +255,6 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
             <FormattedText text={listing.description} className="text-[18px] text-slate-700 leading-[1.6] max-w-[38em] break-words" />
           </div>
 
-          {/* Cash-Back Seller's Offer Explainer Banner */}
-          {listing.offersCashback && listing.cashbackAmount > 0 && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-mist space-y-2.5">
-              <div className="flex items-center gap-2 text-slate-900 font-semibold text-[17px]">
-                <span>Seller's cash-back offer: {formatCAD(listing.cashbackAmount)}</span>
-              </div>
-              <p className="text-[15px] text-slate-700 leading-relaxed">
-                The homeowner is offering a <strong>{formatCAD(listing.cashbackAmount)}</strong> credit to the buyer at completion. This is the seller's own voluntary offer. 
-              </p>
-              <div className="p-3.5 bg-white rounded-xl text-[13px] text-slate-700 space-y-1">
-                <div className="font-semibold text-slate-900">
-                  <span>Important terms: seller's offer (not a guarantee)</span>
-                </div>
-                <p className="text-[13px] leading-relaxed text-slate-700">{CASHBACK_SELLER_OFFER_NOTICE} To apply, it must be included in the purchase contract. {CONTRACT_NOTICE}</p>
-                <p className="text-[13px] leading-relaxed text-slate-900 font-medium">{CASHBACK_LENDER_NOTICE}</p>
-              </div>
-            </div>
-          )}
 
           {/* Agents welcome: the seller's buyer's agent commission offer */}
           {listing.agentsWelcome && !listing.isExample && (
@@ -431,11 +413,6 @@ export const ListingDetailPage: React.FC<ListingDetailPageProps> = ({
               {!(isExample && !isPreview) && (
                 <p className="text-[16px] leading-normal text-slate-600">
                   This home is listed by the person who owns it{!isExample && listing.sellerName && listing.sellerName !== 'Homeowner' ? `, ${listing.sellerName}` : ''}. There’s no agent in between.
-                </p>
-              )}
-              {listing.offersCashback && (
-                <p className="text-[15px] text-emerald-700 font-medium">
-                  Includes {formatCAD(listing.cashbackAmount)} buyer cash-back credit
                 </p>
               )}
             </div>

@@ -145,7 +145,7 @@ export const MapLibreMap: React.FC<MapLibreMapProps> = ({
         ? `$${(item.price / 1000000).toFixed(2)}M` 
         : `$${Math.round(item.price / 1000)}k`;
 
-      el.innerText = item.offersCashback ? `🎁 ${shortPrice}` : shortPrice;
+      el.innerText = shortPrice;
 
       el.addEventListener('click', (e) => {
         e.stopPropagation();
