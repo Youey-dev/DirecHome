@@ -17,4 +17,4 @@ export const CONTRACT_NOTICE =
  */
 export const SUPABASE_REGION = 'United States (US West)';
 
-export const PRIVACY_VERSION = '2026-10-15';
+export const PRIVACY_VERSION = '2026-11-24';

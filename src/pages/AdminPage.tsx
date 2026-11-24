@@ -93,6 +93,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
   const [listings, setListings] = useState<Listing[]>([]);
   const [reports, setReports] = useState<ListingReport[]>([]);
   const [threads, setThreads] = useState<ConversationThread[]>([]);
+  const [otherThreads, setOtherThreads] = useState<ConversationThread[]>([]);
+  const [msgView, setMsgView] = useState<'mine' | 'others'>('mine');
+  const [otherId, setOtherId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [people, setPeople] = useState<AdminUserRow[]>([]);
   const [peopleError, setPeopleError] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ text: string; bad?: boolean } | null>(null);
@@ -120,6 +124,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
       setListings(db.getListings());
       setReports(db.getReports());
       setThreads(db.getThreads());
+      setOtherThreads(db.getOtherThreads());
     };
     load();
     void db.refresh();
@@ -297,9 +302,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
   // ---------------------------------------------------------------------------
   const activeThreadId = threadId && adminThreads.some((t) => t.id === threadId) ? threadId : adminThreads[0]?.id ?? null;
   const activeThread = adminThreads.find((t) => t.id === activeThreadId);
+  const otherThread = otherThreads.find((t) => t.id === otherId) ?? otherThreads[0];
   const chatEnd = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (tab === 'messages' && activeThread && activeThread.unreadCount > 0) void db.markThreadRead(activeThread.id);
+    if (tab === 'messages' && msgView === 'mine' && activeThread && activeThread.unreadCount > 0) void db.markThreadRead(activeThread.id);
     chatEnd.current?.scrollIntoView({ block: 'nearest' });
   }, [tab, activeThread?.id, activeThread?.messages.length]);
 
@@ -960,6 +966,131 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
 
       {/* Messages */}
       {tab === 'messages' && (
+        <div className="flex gap-2 mb-4" role="tablist" aria-label="Which conversations">
+          {(
+            [
+              ['mine', `Your conversations (${adminThreads.length})`],
+              ['others', `Buyers and sellers (${otherThreads.length})`],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={msgView === id}
+              onClick={() => setMsgView(id)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold border cursor-pointer min-h-[40px] ${
+                msgView === id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {tab === 'messages' && msgView === 'others' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200 overflow-hidden">
+            {otherThreads.length === 0 ? (
+              <div className="p-6 text-sm text-slate-500">No conversations between buyers and sellers yet.</div>
+            ) : (
+              otherThreads.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    setOtherId(t.id);
+                    setConfirmDeleteId(null);
+                  }}
+                  className={`w-full text-left px-4 py-3 border-b border-slate-100 cursor-pointer ${
+                    t.id === (otherThread?.id ?? null) ? 'bg-slate-100' : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex justify-between gap-2">
+                    <span className="font-semibold text-slate-900 truncate">{t.listingTitle}</span>
+                    <span className="text-[11px] text-slate-500 shrink-0">
+                      {new Date(t.updatedAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 truncate">
+                    {t.buyerName} → {t.sellerName}
+                  </div>
+                  <div className="text-xs text-slate-600 truncate mt-0.5">{t.messages[t.messages.length - 1]?.content}</div>
+                </button>
+              ))
+            )}
+          </div>
+          <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200 flex flex-col min-h-[420px]">
+            {otherThread ? (
+              <>
+                <div className="px-4 py-3 border-b border-slate-200 flex flex-wrap justify-between gap-2">
+                  <div className="text-sm">
+                    <div className="font-bold text-slate-900">{otherThread.listingTitle}</div>
+                    <div className="text-xs text-slate-600 mt-0.5">
+                      Buyer: {otherThread.buyerName}
+                      {otherThread.buyerEmail ? ` (${otherThread.buyerEmail})` : ''} · Seller: {otherThread.sellerName}
+                      {otherThread.sellerEmail ? ` (${otherThread.sellerEmail})` : ''}
+                    </div>
+                  </div>
+                  <ActionButton onClick={() => onNavigate('detail', otherThread.listingId)}>
+                    <Eye className="w-3.5 h-3.5" /> Listing
+                  </ActionButton>
+                </div>
+                <p className="px-4 py-2 text-xs text-slate-600 bg-slate-50 border-b border-slate-200">
+                  Read-only. Opening a conversation here doesn’t mark it as read for the buyer or seller. Delete a message only if it breaks
+                  the listing rules (scams, abuse, spam): it’s removed for both people and can’t be undone.
+                </p>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[520px]">
+                  {otherThread.messages.map((m) => {
+                    const fromSeller = m.senderId === otherThread.sellerId;
+                    return (
+                      <div key={m.id} className={`flex flex-col ${fromSeller ? 'items-end' : 'items-start'}`}>
+                        <div className="text-[11px] text-slate-500 mb-0.5">
+                          {m.senderName} ({fromSeller ? 'seller' : 'buyer'}) ·{' '}
+                          {new Date(m.timestamp).toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </div>
+                        <div
+                          className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
+                            fromSeller ? 'bg-emerald-50 text-slate-900 border border-emerald-100' : 'bg-slate-100 text-slate-900'
+                          }`}
+                        >
+                          {m.content}
+                        </div>
+                        {confirmDeleteId === m.id ? (
+                          <div className="mt-1 flex items-center gap-2 text-xs">
+                            <span className="text-slate-700">Delete this message for both people?</span>
+                            <button
+                              disabled={busy}
+                              onClick={async () => {
+                                const ok = await run(() => db.adminDeleteMessage(m.id), 'Message deleted.');
+                                if (ok) setConfirmDeleteId(null);
+                              }}
+                              className="px-2.5 py-1 rounded-md bg-red-700 text-white font-semibold cursor-pointer disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+                            <button onClick={() => setConfirmDeleteId(null)} className="px-2.5 py-1 rounded-md border border-slate-300 font-semibold cursor-pointer">
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDeleteId(m.id)}
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-red-700 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" /> Delete
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className="m-auto text-sm text-slate-500 p-6">Pick a conversation.</div>
+            )}
+          </div>
+        </div>
+      )}
+      {tab === 'messages' && msgView === 'mine' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200 overflow-hidden">
             {adminThreads.length === 0 ? (
