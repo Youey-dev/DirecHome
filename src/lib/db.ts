@@ -277,6 +277,7 @@ class DataStore {
   private goingIds = new Set<string>();
   private viewings: ViewingRequest[] = [];
   private threads: ConversationThread[] = [];
+  private otherThreads: ConversationThread[] = [];
   private reports: ListingReport[] = [];
   private notifications: AppNotification[] = [];
   private announced = new Set<string>();
@@ -340,8 +341,13 @@ class DataStore {
   getViewingRequests(): ViewingRequest[] {
     return this.viewings;
   }
+  /** My own conversations (as buyer or seller). */
   getThreads(): ConversationThread[] {
     return this.threads;
+  }
+  /** Admins: conversations between other people (buyers and sellers), newest first. Read-only. */
+  getOtherThreads(): ConversationThread[] {
+    return this.otherThreads;
   }
   getReports(): ListingReport[] {
     return this.reports;
@@ -412,6 +418,7 @@ class DataStore {
     this.goingIds = new Set();
     this.viewings = [];
     this.threads = [];
+    this.otherThreads = [];
     this.reports = [];
     this.notifications = [];
     this.announced = new Set<string>();
@@ -608,6 +615,7 @@ class DataStore {
         buyerEmail: buyer?.email ?? '',
         sellerId: c.seller_id,
         sellerName: seller?.full_name ?? 'Homeowner',
+        sellerEmail: seller?.email ?? '',
         messages: msgs.map((m) => {
           const isBuyer = m.sender_id === c.buyer_id;
           const sender = people.get(m.sender_id);
@@ -638,7 +646,10 @@ class DataStore {
 
     this.listings = listings;
     this.viewings = viewings;
-    this.threads = threads;
+    // Admins can read every conversation; their own inbox only shows the ones they're part of
+    const isMine = (t: ConversationThread) => t.buyerId === me.id || t.sellerId === me.id;
+    this.threads = threads.filter(isMine);
+    this.otherThreads = me.role === 'admin' ? threads.filter((t) => !isMine(t)) : [];
     this.reports = reports;
     this.savedIds = favRows.map((f) => f.listing_id);
     this.goingIds = new Set(goingRows);
@@ -1811,6 +1822,16 @@ class DataStore {
       .from('messages')
       .insert({ conversation_id: conversationId, sender_id: me.id, content: stripHtmlKeepLines(content).slice(0, 5000) });
     if (error) fail(error);
+    await this.refresh();
+  }
+
+  /** Admin: permanently delete one message (scams, abuse). */
+  async adminDeleteMessage(messageId: string): Promise<void> {
+    const me = this.requireUser();
+    if (me.role !== 'admin') throw new Error('Only admins can delete messages.');
+    const { data, error } = await supabase.from('messages').delete().eq('id', messageId).select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('Could not delete that message. It may already be gone.');
     await this.refresh();
   }
 

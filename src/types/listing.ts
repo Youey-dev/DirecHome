@@ -90,6 +90,8 @@ export interface ConversationThread {
   buyerEmail: string;
   sellerId: string;
   sellerName: string;
+  /** Admins only (for the read-only "Buyers and sellers" view) */
+  sellerEmail?: string;
   messages: Message[];
   updatedAt: string;
   unreadCount: number;

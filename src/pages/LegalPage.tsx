@@ -314,7 +314,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               Privacy policy
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Applies across Canada · Last updated: October 17, 2026
+              Applies across Canada · Last updated: November 24, 2026
             </p>
           </div>
 
@@ -355,6 +355,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
             <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
               <li>To create and secure your account and show your listings, messages, viewings and notifications.</li>
               <li>To review listings for spam, scams and inappropriate content, and to handle reports.</li>
+              <li>To keep messaging safe: our administrators may read messages sent on the site to prevent scams and fraud, handle reports and enforce the listing rules, and may delete messages that break those rules.</li>
               <li>To bill sellers the monthly listing fee and keep the required financial records.</li>
               <li>To send account emails you need, such as sign-up confirmation and password resets.</li>
               <li>To protect the site and its users from bots, spam, fake accounts and fraud.</li>
@@ -364,7 +365,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">3. Who can see it, and who we share it with</h2>
             <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
-              <li><strong>Other users:</strong> anyone can see a published listing (without its exact address) and the seller's name shown on it. A seller sees the contact details a buyer includes in a viewing request. Message contents are visible only to the two people in the conversation and, when needed to handle a report, to our administrators.</li>
+              <li><strong>Other users:</strong> anyone can see a published listing (without its exact address) and the seller's name shown on it. A seller sees the contact details a buyer includes in a viewing request. Message contents are visible to the two people in the conversation and to our administrators, who may review them to keep the site safe (see section 2).</li>
               <li><strong>Supabase</strong> stores our database, files and sign-in system (account data, listings, photos, messages).</li>
               <li><strong>Stripe</strong> processes listing-fee payments.</li>
               <li><strong>Netlify</strong> hosts the website.</li>
