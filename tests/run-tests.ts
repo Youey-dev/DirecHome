@@ -23,6 +23,7 @@ import { runArticleTests } from './articles.test';
 import { runListingNewsTests } from './listingNews.test';
 import { runBuyingCostTests } from './buyingCosts.test';
 import { runSearchTests } from './search.test';
+import { runMonitoringTests } from './monitoring.test';
 
 async function main() {
   console.log('====================================================');
@@ -47,6 +48,7 @@ async function main() {
     runAgentTests();
     runPrerenderTests();
     runListingNewsTests();
+    runMonitoringTests();
 
     console.log('====================================================');
     console.log('✨ SUCCESS: ALL TEST SUITES PASSED WITHOUT ERRORS!');
