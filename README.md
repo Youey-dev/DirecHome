@@ -56,6 +56,7 @@
 - **Maps:** MapLibre GL
 - **Bot protection:** Cloudflare Turnstile (optional)
 - **Analytics:** Google Analytics 4 (optional)
+- **Error monitoring:** Sentry (optional, off until `VITE_SENTRY_DSN` is set)
 - **Hosting:** Netlify (`netlify.toml`, edge functions in `netlify/edge-functions/`)
 
 ---
@@ -73,7 +74,7 @@ npm install
 ```bash
 cp .env.example .env
 ```
-Fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Optional: `VITE_TURNSTILE_SITE_KEY`, `VITE_MAP_TILE_URL`, `VITE_MAP_ATTRIBUTION`, `VITE_GA_MEASUREMENT_ID`.
+Fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Optional: `VITE_TURNSTILE_SITE_KEY`, `VITE_MAP_TILE_URL`, `VITE_MAP_ATTRIBUTION`, `VITE_GA_MEASUREMENT_ID`, `VITE_SENTRY_DSN`.
 Stripe and Resend keys are **not** website settings; they are Supabase Edge Function secrets (see `STRIPE_SETUP.md`).
 
 ### 3. Run Locally
@@ -85,8 +86,8 @@ Open `http://localhost:3000`.
 ### 4. Checks & Build
 ```bash
 npm test
-npm run build   # run once before lint on a fresh checkout (it generates a file lint needs)
 npm run lint
+npm run build
 ```
 
 ---
@@ -125,4 +126,5 @@ OwnersMarket is an online advertising marketplace and does not operate as a lice
 - **Database:** run the files in `supabase/migrations/` in filename order (Supabase → SQL Editor). They are run by hand; `LAUNCH_CHECKLIST.md` tracks which are done.
 - **Edge functions:** deploy each folder in `supabase/functions/`. Turn "Verify JWT" **off** for `stripe-webhook` and `send-notification-emails`, and leave it on for the rest (each file's header lists the secrets it needs).
 - **Settings:** website values go in Netlify environment variables; secrets go in Supabase Edge Function secrets. Never commit real keys.
+- **Pull request checks:** GitHub Actions runs `npm run lint`, `npm test` and `npm run build` on every PR (`.github/workflows/checks.yml`).
 - **Before real users:** follow `docs/TESTING.md` and `LAUNCH_CHECKLIST.md`.

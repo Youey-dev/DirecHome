@@ -39,9 +39,10 @@ Follow **STRIPE_SETUP.md** for the details.
 
 ## 4. Before real users
 - [ ] Run **docs/TESTING.md** start to finish
-- [ ] Bot protection — Cloudflare Turnstile is built into sign-up, sign-in and password reset *(built)*. To turn it on: create the widget → add `VITE_TURNSTILE_SITE_KEY` in Netlify → Supabase → Authentication → Attack Protection → enable CAPTCHA (Turnstile secret)
-- [ ] Hosted map tiles (e.g. MapTiler) — supported in code *(built)*: set `VITE_MAP_TILE_URL` and `VITE_MAP_ATTRIBUTION` in Netlify (the free OpenStreetMap servers are not intended for commercial traffic)
-- [ ] Error monitoring (Sentry) and an uptime monitor on the home page — not built yet
+- [ ] Bot protection: Cloudflare Turnstile widget → `VITE_TURNSTILE_SITE_KEY` in Netlify (done, set 2026-10-15) → Supabase → Authentication → Attack Protection → enable CAPTCHA with the Turnstile **secret** key (confirm this is on; if the site key is set but CAPTCHA is off in Supabase, the widget shows but nothing is checked)
+- [ ] Hosted map tiles (e.g. MapTiler): set `VITE_MAP_TILE_URL` (e.g. `https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=YOUR_KEY`) and `VITE_MAP_ATTRIBUTION` (e.g. `&copy; MapTiler &copy; OpenStreetMap contributors`) in Netlify, then redeploy. In MapTiler, restrict the key to `ownersmarket.ca`. The code, security policy and privacy policy already handle it (the free OpenStreetMap servers are not intended for commercial traffic)
+- [ ] Error monitoring: code is in (`src/lib/monitoring.ts`). Create a Sentry project (platform: React), set `VITE_SENTRY_DSN` in Netlify, redeploy. In Sentry → Settings → Security & Privacy, turn on "Prevent Storing of IP Addresses". The privacy policy lists Sentry automatically once the DSN is set
+- [ ] Uptime monitor on the home page (e.g. UptimeRobot or Better Stack, free tier)
 - [x] Support email address on your domain, shown in the footer/legal pages (`hello@ownersmarket.ca`, `privacy@ownersmarket.ca`) — make sure both mailboxes actually receive mail
 
 ## 5. Legal & regulatory
@@ -55,7 +56,7 @@ Follow **STRIPE_SETUP.md** for the details.
 - [x] ~~Buyer cash-back policy~~ — removed (Nov 2026); `/cashback` redirects to the Terms
 
 ## 6. Known gaps (the site works without these, but plan for them)
-- [x] **Email notifications** *(built)*: `send-notification-emails` edge function + migration `20261023_email_notifications.sql` email unread notifications after 2 minutes. Still to do: add the `RESEND_API_KEY` secret, deploy the function with Verify JWT off, and check the pg_cron job runs
+- [x] **Email notifications** *(built)*: `send-notification-emails` edge function + Resend, every 2 minutes (migration `20261023_email_notifications.sql`). Live: 34 emails sent, most recent 2026-11-24
 - [x] ~~Buyer inbox~~ — done: everyone has one dashboard with their homes, messages and viewings
 - [x] **Re-review on edits** *(built)*: edits to a live listing's words, address or photos wait for admin review while the live version stays up (`20261031_pending_listing_edits.sql`, `20261032_review_hardening.sql`)
 - [x] **Shareable link previews / SEO** *(built)*: Netlify edge functions (`link-previews`, `sitemap`) and build-time prerendering give each listing and page its own title and preview image

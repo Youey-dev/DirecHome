@@ -2,7 +2,7 @@
 // ("anon") key into a small file the edge functions can import. These two values are
 // public by design: they are already in the website's own code.
 // The generated file is not committed (see .gitignore).
-import { writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 
 const url = process.env.VITE_SUPABASE_URL ?? '';
 const key = process.env.VITE_SUPABASE_ANON_KEY ?? '';
@@ -13,3 +13,14 @@ writeFileSync(
 );
 
 console.log(url ? 'Edge config written.' : 'Edge config written without a database address (link previews will use page defaults).');
+
+// The pre-rendered pages module is normally made by `npm run build` (scripts/prerender.mjs).
+// On a fresh checkout it does not exist yet, so the type check would fail. Write an empty
+// placeholder only if it is missing; the build replaces it with the real pages.
+const prerendered = new URL('../netlify/edge-functions/lib/prerendered.ts', import.meta.url);
+if (!existsSync(prerendered)) {
+  writeFileSync(
+    prerendered,
+    `// Placeholder written by scripts/write-edge-config.mjs. \`npm run build\` replaces it.\nexport const PRERENDERED: Record<string, string> = {};\n`,
+  );
+}

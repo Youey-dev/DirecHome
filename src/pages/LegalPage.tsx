@@ -20,6 +20,17 @@ import { UserProfile } from '../types/listing';
 import { CASHBACK_LENDER_NOTICE, CONTRACT_NOTICE, SUPABASE_REGION, PRIVACY_VERSION } from '../lib/legalText';
 import { db, isGuestUser } from '../lib/db';
 import { analyticsAvailable } from '../lib/analytics';
+import { isMonitoringEnabled } from '../lib/monitoring';
+
+// Which map-tile service the maps use (set by VITE_MAP_TILE_URL; OpenStreetMap otherwise)
+const MAP_TILE_HOST = (() => {
+  try {
+    return new URL(String(import.meta.env?.VITE_MAP_TILE_URL ?? '').trim()).hostname;
+  } catch {
+    return '';
+  }
+})();
+const MAP_TILE_PROVIDER = !MAP_TILE_HOST ? 'OpenStreetMap' : /maptiler\.com$/.test(MAP_TILE_HOST) ? 'MapTiler' : MAP_TILE_HOST;
 import { useAuth } from '../context/AuthContext';
 
 export type LegalDocTab = 'terms' | 'privacy' | 'rules' | 'notifications';
@@ -338,7 +349,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               <li><strong>Messages</strong> sent between buyers and sellers on the site.</li>
               <li><strong>Saved homes, reports</strong> you file about listings, and the <strong>notifications</strong> we show you.</li>
               <li><strong>Billing (sellers):</strong> your Stripe customer and subscription reference numbers, payment status and next billing date. <strong>Your card details are entered on Stripe's page and are never received or stored by OwnersMarket.</strong></li>
-              <li><strong>Technical information:</strong> our hosting and sign-in providers automatically log technical data such as IP address, browser type and sign-in times, for security and to keep the site working.</li>
+              <li><strong>Technical information:</strong> our hosting and sign-in providers automatically log technical data such as IP address, browser type and sign-in times, for security and to keep the site working.{isMonitoringEnabled ? ' If a page fails to load or crashes, an error report (the page address, the error, and your browser and device type) is sent to our error-monitoring service so we can fix it. Email addresses, phone numbers and sign-in codes are removed from these reports before they are sent, and your IP address is not stored.' : ''}</li>
               <li><strong>Bot check:</strong> when you create an account, sign in or reset your password, Cloudflare Turnstile checks that you are a person and not an automated program. To do this, Cloudflare receives technical information from your browser and device, such as your IP address and browser characteristics. It is used only for security, never for advertising.</li>
               <li><strong>On your device:</strong> your browser stores your sign-in session, an unfinished listing draft, and your cookie and email preferences. {analyticsAvailable ? 'Google Analytics also stores small identifiers (cookies named _ga and _ga_…) in your browser. They are removed if you turn analytics off. ' : ''}We do not use advertising trackers.</li>
               {analyticsAvailable && (
@@ -373,7 +384,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({
               {analyticsAvailable && <li><strong>Google</strong> provides Google Analytics, for visitors who have not turned analytics off.</li>}
               <li><strong>The Government of British Columbia's address service</strong> (geocoder.api.gov.bc.ca) receives the address you type when creating a BC listing, to place it on the map.</li>
               <li><strong>OpenStreetMap's Nominatim address service</strong> (nominatim.openstreetmap.org) receives the address you type when creating a listing outside BC, or when the BC service cannot find it, to place it on the map.</li>
-              <li><strong>OpenStreetMap</strong> map servers deliver the map images and receive your IP address when a map loads.</li>
+              <li><strong>{MAP_TILE_PROVIDER}</strong> map servers deliver the map images and receive your IP address when a map loads.</li>
+              {isMonitoringEnabled && <li><strong>Sentry</strong> (Functional Software, Inc.) receives error reports when a page fails, with personal details removed, so we can fix problems.</li>}
             </ul>
             <p>
               We do <strong>not</strong> sell, rent or trade your personal information to mortgage brokers, real estate brokerages, marketing agencies, data brokers or anyone else.
@@ -383,7 +395,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">4. Where your data is stored</h2>
             <p>
-              Account data, listings, photos and messages are stored with <strong>Supabase</strong> (data region: <strong>{SUPABASE_REGION}</strong>). Payments are processed by <strong>Stripe</strong>, the website is hosted by <strong>Netlify</strong>, and the bot check is run by <strong>Cloudflare</strong>.
+              Account data, listings, photos and messages are stored with <strong>Supabase</strong> (data region: <strong>{SUPABASE_REGION}</strong>). Payments are processed by <strong>Stripe</strong>, the website is hosted by <strong>Netlify</strong>, and the bot check is run by <strong>Cloudflare</strong>{isMonitoringEnabled ? <>, and error reports go to <strong>Sentry</strong></> : null}.
             </p>
             <p>
               <strong>This data may be stored or processed outside Canada, including in the United States, and may be subject to the laws of those countries</strong>, which may allow governments, courts or law enforcement there to access it.
