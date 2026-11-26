@@ -1,6 +1,6 @@
 # Stripe setup (do these in order)
 
-Price: $25 CAD / month per listing. A listing goes live only after (1) you approve ownership and (2) the owner pays.
+Price: $24.99 CAD / month per listing. A listing goes live only after (1) you approve the listing in the review queue and (2) the owner pays.
 Failed payment: listing hides after 1 day. Cancel: listing stays up until the end of the paid month.
 
 ## A. Supabase (database)

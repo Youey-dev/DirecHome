@@ -194,7 +194,7 @@ The system is implemented across 9 core entities matching production Supabase Po
 
 ## Oct 2026: Ownership verification removed
 - **Decision (founder):** DirectHome no longer collects, reviews or stores ownership documents, and makes no claim that owners are verified. Holding tax/title documents and implying "verified ownership" was judged the site's biggest legal risk.
-- **New flow:** owner submits → admin does a quick content review (approve, or send back with a reason shown on the owner's dashboard) → owner activates ($25/month) → live.
+- **New flow:** owner submits → admin does a quick content review (approve, or send back with a reason shown on the owner's dashboard) → owner activates ($24.99/month) → live.
 - **Protections instead:** seller declares at submission they own the home or are authorized to sell it; Terms v1.1 state DirectHome does not verify ownership and seller indemnifies; buyers are told to confirm title (LTSA) and use a BC lawyer/notary; Report button stays.
 - **Database:** migration 007 drops the `verifications` table, document rules and storage permissions, and adds `listings.review_notes`. Stored files in `private_verification_docs` are deleted by hand.
 - **Needs lawyer review** before launch (Terms section 3, Privacy section 1).
