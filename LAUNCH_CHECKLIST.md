@@ -1,6 +1,6 @@
 # DirectHome BC — Launch Checklist
 
-Last updated 2026-10-12. `[x]` = done, `[ ]` = still to do.
+Last updated 2026-11-26. `[x]` = done, `[ ]` = still to do.
 
 ---
 
@@ -25,9 +25,10 @@ Last updated 2026-10-12. `[x]` = done, `[ ]` = still to do.
 
 ## 3. Before real users
 - [ ] Run **docs/TESTING.md** start to finish
-- [ ] Bot protection: Cloudflare Turnstile widget → add `VITE_TURNSTILE_SITE_KEY` in Vercel → Supabase → Authentication → Attack Protection → enable CAPTCHA (Turnstile secret)
-- [ ] Hosted map tiles (e.g. MapTiler): set `VITE_MAP_TILE_URL` and `VITE_MAP_ATTRIBUTION` in Vercel (the free OpenStreetMap servers are not intended for commercial traffic)
-- [ ] Error monitoring (Sentry) and an uptime monitor on the home page
+- [ ] Bot protection: Cloudflare Turnstile widget → `VITE_TURNSTILE_SITE_KEY` in Netlify (done, set 2026-10-15) → Supabase → Authentication → Attack Protection → enable CAPTCHA with the Turnstile **secret** key (confirm this is on; if the site key is set but CAPTCHA is off in Supabase, the widget shows but nothing is checked)
+- [ ] Hosted map tiles (e.g. MapTiler): set `VITE_MAP_TILE_URL` (e.g. `https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=YOUR_KEY`) and `VITE_MAP_ATTRIBUTION` (e.g. `&copy; MapTiler &copy; OpenStreetMap contributors`) in Netlify, then redeploy. In MapTiler, restrict the key to `ownersmarket.ca`. The code, security policy and privacy policy already handle it (the free OpenStreetMap servers are not intended for commercial traffic)
+- [ ] Error monitoring: code is in (`src/lib/monitoring.ts`). Create a Sentry project (platform: React), set `VITE_SENTRY_DSN` in Netlify, redeploy. In Sentry → Settings → Security & Privacy, turn on "Prevent Storing of IP Addresses". The privacy policy lists Sentry automatically once the DSN is set
+- [ ] Uptime monitor on the home page (e.g. UptimeRobot or Better Stack, free tier)
 - [ ] Support email address on your domain, shown in the footer/legal pages
 
 ## 4. Legal & regulatory (BC Real Estate Services Act)
@@ -39,7 +40,7 @@ Last updated 2026-10-12. `[x]` = done, `[ ]` = still to do.
 - [ ] Lawyer review of Terms v1.1 section 3 (no ownership verification, seller representation & indemnity)
 
 ## 5. Known gaps (the site works without these, but plan for them)
-- [ ] **Email notifications** — in-site notifications are built (bell, dashboard badges, pop-up banner, tab count), but people are NOT emailed when a message or viewing update arrives. Build with a Supabase Edge Function + Resend once your email domain is set up. Until then, tell early users to check the site
+- [x] **Email notifications** — built (`send-notification-emails` edge function + Resend, every 2 minutes). Live: 34 emails sent, most recent 2026-11-24
 - [x] ~~Buyer inbox~~ — done: everyone has one dashboard with their homes, messages and viewings
 - [ ] **Re-review on edits** — editing a *live* listing (e.g. the address) does not send it back for review
 - [ ] **Shareable link previews / SEO** — listing pages use the same title and preview image; needs server-side rendering or an edge function
