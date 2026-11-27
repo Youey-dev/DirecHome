@@ -78,6 +78,9 @@ export interface Message {
   senderRole: 'buyer' | 'seller';
   content: string;
   timestamp: string;
+  /** Held for a safety check: only the sender and admins see it until an admin approves it. */
+  held?: boolean;
+  heldReason?: string;
 }
 
 export interface ConversationThread {
@@ -334,6 +337,8 @@ export interface AppNotification {
     | 'listing_paused_admin'
     | 'listing_deleted_admin'
     | 'new_report'
+    | 'new_user_report'
+    | 'message_held'
     | string;
   title: string;
   body: string;

@@ -12,6 +12,7 @@ import { DeleteListingDialog } from '../components/DeleteListingDialog';
 import { AlertsPanel } from '../components/AlertsPanel';
 import type { BrowseFilters } from './BrowsePage';
 import { ScamWarning } from '../components/ScamWarning';
+import { ConversationSafetyActions, HeldMessageNote, MessagingBlockedNotice } from '../components/ConversationSafety';
 import { findLink, linkBlockedMessage } from '../lib/linkGuard';
 
 // The feature sheet (and its QR code library) loads only when a seller opens it
@@ -322,6 +323,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   }, [activeTab, notifications.length]);
 
   const activeThread = threads.find((t) => t.id === selectedThreadId) || threads[0];
+  const otherId = (t: ConversationThread) => (t.buyerId === activeUser.id ? t.sellerId : t.buyerId);
+  const replyBlocked = !!activeThread && !activeThread.isAdminThread && db.isBlocked(otherId(activeThread));
+  const replySuspended = !!activeThread && !activeThread.isAdminThread && db.isMessagingSuspended();
 
   // Aggregate Metrics
   const totalViews = myListings.reduce((sum, l) => sum + l.viewsCount, 0);
@@ -1281,12 +1285,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       About: {activeThread.listingTitle}
                     </div>
                   </div>
-                  <button
-                    onClick={() => onNavigate('detail', activeThread.listingId)}
-                    className="text-xs text-emerald-800 hover:underline font-medium"
-                  >
-                    View listing
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {!activeThread.isAdminThread && (
+                      <ConversationSafetyActions
+                        conversationId={activeThread.id}
+                        otherUserId={otherId(activeThread)}
+                        otherName={otherName(activeThread)}
+                        onDone={showToast}
+                      />
+                    )}
+                    <button
+                      onClick={() => onNavigate('detail', activeThread.listingId)}
+                      className="text-xs text-emerald-800 hover:underline font-medium"
+                    >
+                      View listing
+                    </button>
+                  </div>
                 </div>
 
                 {!activeThread.isAdminThread && <ScamWarning />}
@@ -1312,12 +1326,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         >
                           {msg.content}
                         </div>
+                        {isSellerMe && msg.held && <HeldMessageNote />}
                       </div>
                     );
                   })}
                 </div>
 
                 {/* Reply Input Form */}
+                {replySuspended || replyBlocked ? (
+                  <MessagingBlockedNotice kind={replySuspended ? 'suspended' : 'blocked'} otherName={otherName(activeThread)} />
+                ) : (
+                <>
                 {replyLink && (
                   <p role="alert" className="px-4 pt-2 bg-white border-t border-slate-200 text-[11px] text-rose-700">
                     {linkBlockedMessage(replyLink)}
@@ -1343,6 +1362,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <span>Send</span>
                   </button>
                 </form>
+                </>
+                )}
               </>
             ) : (
               <div className="h-full flex items-center justify-center text-slate-400 text-xs">

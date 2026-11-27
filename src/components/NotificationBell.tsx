@@ -40,6 +40,8 @@ export const notificationIcon = (type: string) => {
     case 'listing_rereview':
       return <ShieldCheck className="w-4 h-4 text-violet-600" />;
     case 'new_report':
+    case 'new_user_report':
+    case 'message_held':
       return <Flag className="w-4 h-4 text-rose-600" />;
     default:
       return <CalendarCheck className="w-4 h-4 text-slate-500" />;

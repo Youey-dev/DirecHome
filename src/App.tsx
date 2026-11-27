@@ -279,7 +279,7 @@ function MainApp() {
     } else if (['promo_applied', 'free_period_ending', 'free_period_ended'].includes(n.type)) {
       setDashboardIntent({ tab: 'listings', nonce });
       handleNavigate('dashboard');
-    } else if (n.type === 'listing_in_review' || n.type === 'new_report') {
+    } else if (['listing_in_review', 'new_report', 'new_user_report', 'message_held'].includes(n.type)) {
       handleNavigate('admin');
     } else {
       handleNavigate('dashboard');

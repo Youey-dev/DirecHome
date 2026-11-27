@@ -4,6 +4,7 @@ import { isListingLive } from '../types/listing';
 import { ADMIN_DISPLAY_NAME, db, type AdminUserRow } from '../lib/db';
 import { formatCAD } from '../lib/commissionCalc';
 import { AdminPromotions } from '../components/AdminPromotions';
+import { AdminSafety } from '../components/AdminSafety';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -21,6 +22,8 @@ import {
   Ticket,
   Send,
   ShieldCheck,
+  ShieldAlert,
+  Ban,
   Pencil,
   Trash2,
   Users,
@@ -34,7 +37,7 @@ interface AdminPageProps {
   onEditListing?: (listing: Listing) => void;
 }
 
-type AdminTab = 'overview' | 'listings' | 'review' | 'people' | 'messages' | 'reports' | 'promotions';
+type AdminTab = 'overview' | 'listings' | 'review' | 'people' | 'messages' | 'reports' | 'safety' | 'promotions';
 
 /** What the admin is about to do, shown in the dialog. */
 /** "Feb 11, 2027" */
@@ -141,6 +144,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
       .catch((e) => setPeopleError(e?.message || 'Could not load accounts.'));
   };
   useEffect(loadPeople, []);
+
+  // Accounts an admin stopped from messaging (Safety tab, People tab)
+  const [suspendedIds, setSuspendedIds] = useState<Set<string>>(new Set());
+  const loadSuspended = () => void db.adminLoadSuspendedIds().then(setSuspendedIds);
+  useEffect(loadSuspended, []);
 
   const flash = (t: string, bad = false) => {
     setNotice({ text: t, bad });
@@ -312,6 +320,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
   // ---------------------------------------------------------------------------
   // Pieces
   // ---------------------------------------------------------------------------
+  const heldCount = otherThreads.reduce((n, t) => n + t.messages.filter((m) => m.held).length, 0);
   const tabs: { id: AdminTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'listings', label: 'All listings', icon: <Home className="w-4 h-4" />, badge: listings.length },
@@ -319,6 +328,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
     { id: 'people', label: 'People', icon: <Users className="w-4 h-4" />, badge: people.length },
     { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" />, badge: unreadAdmin },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" />, badge: openReports.length },
+    { id: 'safety', label: 'Safety', icon: <ShieldAlert className="w-4 h-4" />, badge: heldCount },
     { id: 'promotions', label: 'Promotions', icon: <Ticket className="w-4 h-4" /> },
   ];
 
@@ -737,9 +747,23 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
       {/* Overview */}
       {tab === 'promotions' && <AdminPromotions />}
 
+      {tab === 'safety' && (
+        <AdminSafety
+          otherThreads={otherThreads}
+          people={people}
+          onSuspensionsChanged={loadSuspended}
+          onOpenConversation={(id) => {
+            setTab('messages');
+            setMsgView('others');
+            setOtherId(id);
+            setConfirmDeleteId(null);
+          }}
+        />
+      )}
+
       {tab === 'overview' && (
         <div className="space-y-8">
-          {(reviewQueue.length > 0 || openReports.length > 0 || unreadAdmin > 0) && (
+          {(reviewQueue.length > 0 || openReports.length > 0 || unreadAdmin > 0 || heldCount > 0) && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
               <div className="font-bold text-amber-950">Needs your attention</div>
               <ul className="text-sm text-amber-950 space-y-1">
@@ -754,6 +778,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
                   <li>
                     <button className="underline cursor-pointer" onClick={() => setTab('reports')}>
                       {openReports.length} open report{openReports.length === 1 ? '' : 's'}
+                    </button>
+                  </li>
+                )}
+                {heldCount > 0 && (
+                  <li>
+                    <button className="underline cursor-pointer" onClick={() => setTab('safety')}>
+                      {heldCount} message{heldCount === 1 ? '' : 's'} waiting for a safety check
                     </button>
                   </li>
                 )}
@@ -920,6 +951,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
                       <td className="px-4 py-3">
                         <div className="font-semibold text-slate-900">{p.fullName || '—'}</div>
                         {p.role === 'admin' && <span className="text-[11px] font-bold text-amber-800">Admin</span>}
+                        {suspendedIds.has(p.id) && <span className="text-[11px] font-bold text-rose-700">Messaging suspended</span>}
                       </td>
                       <td className="px-4 py-3 text-slate-700">
                         <div>{p.email}</div>
@@ -947,6 +979,33 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
                               <MessageSquare className="w-3.5 h-3.5" /> Message
                             </ActionButton>
                           )}
+                          {p.role !== 'admin' &&
+                            (suspendedIds.has(p.id) ? (
+                              <ActionButton
+                                title="Let this account message people again"
+                                onClick={() =>
+                                  void run(async () => {
+                                    await db.adminRestoreMessaging(p.id);
+                                    loadSuspended();
+                                  }, `${p.fullName || p.email} can message people again.`)
+                                }
+                              >
+                                Allow messaging
+                              </ActionButton>
+                            ) : (
+                              <ActionButton
+                                tone="danger"
+                                title="Stop this account from messaging anyone, making offers or requesting viewings"
+                                onClick={() =>
+                                  void run(async () => {
+                                    await db.adminSuspendMessaging(p.id, 'Suspended from the People tab');
+                                    loadSuspended();
+                                  }, `${p.fullName || p.email} can’t message anyone now. Undo here or in Safety.`)
+                                }
+                              >
+                                <Ban className="w-3.5 h-3.5" /> Stop messaging
+                              </ActionButton>
+                            ))}
                         </div>
                       </td>
                     </tr>
@@ -1054,6 +1113,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({ activeUser, onNavigate, on
                         >
                           {m.content}
                         </div>
+                        {m.held && (
+                          <div className="mt-1 flex items-center gap-2 text-[11px] text-amber-900">
+                            <span className="font-bold">Held: not delivered yet.</span>
+                            <button
+                              disabled={busy}
+                              onClick={() => void run(() => db.adminReleaseMessage(m.id), 'Delivered.')}
+                              className="px-2 py-0.5 rounded-md bg-emerald-700 text-white font-semibold cursor-pointer disabled:opacity-50"
+                            >
+                              Deliver
+                            </button>
+                          </div>
+                        )}
                         {confirmDeleteId === m.id ? (
                           <div className="mt-1 flex items-center gap-2 text-xs">
                             <span className="text-slate-700">Delete this message for both people?</span>

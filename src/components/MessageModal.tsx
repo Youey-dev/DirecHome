@@ -7,6 +7,7 @@ import { Send, X, ShieldAlert, Sparkles, AlertCircle } from 'lucide-react';
 import { stripHtml, stripHtmlKeepLines } from '../lib/security';
 import { findLink, linkBlockedMessage } from '../lib/linkGuard';
 import { ScamWarning } from './ScamWarning';
+import { ConversationSafetyActions, HeldMessageNote, MessagingBlockedNotice } from './ConversationSafety';
 
 interface MessageModalProps {
   listing: Listing;
@@ -29,6 +30,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
   const [threads, setThreads] = useState<ConversationThread[]>([]);
   const [rateLimitError, setRateLimitError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +57,8 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 
   // Anti-scam: links can't be sent (the server refuses them too)
   const linkFound = findLink(inputText);
+  const suspended = !isGuest && db.isMessagingSuspended();
+  const blockedOwner = !isGuest && db.isBlocked(listing.userId);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +115,15 @@ export const MessageModal: React.FC<MessageModalProps> = ({
             </div>
           </div>
 
+          <div className="flex items-center gap-1">
+          {currentThread && !isGuest && (
+            <ConversationSafetyActions
+              conversationId={currentThread.id}
+              otherUserId={listing.userId}
+              otherName={listing.sellerName || 'the owner'}
+              onDone={setInfo}
+            />
+          )}
           <button
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-600 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -118,6 +131,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           >
             <X className="w-5 h-5" />
           </button>
+          </div>
         </div>
 
         <ScamWarning />
@@ -127,8 +141,14 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           <div className="px-4 py-2 bg-slate-100/80 border-b border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
-              <span>Messages go directly to the homeowner. To prevent spam, new conversations are limited to 5 per hour.</span>
+              <span>Messages go directly to the homeowner. To prevent spam, new conversations are limited to 5 per hour (2 for accounts under a day old).</span>
             </span>
+          </div>
+        )}
+
+        {info && (
+          <div role="status" className="p-3 bg-emerald-50 border-b border-emerald-200 text-xs text-emerald-900">
+            {info}
           </div>
         )}
 
@@ -172,6 +192,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                   >
                     {msg.content}
                   </div>
+                  {isMe && msg.held && <HeldMessageNote />}
                 </div>
               );
             })
@@ -193,6 +214,10 @@ export const MessageModal: React.FC<MessageModalProps> = ({
         </div>
 
         {/* Input Footer */}
+        {suspended || blockedOwner ? (
+          <MessagingBlockedNotice kind={suspended ? 'suspended' : 'blocked'} otherName={listing.sellerName} />
+        ) : (
+        <>
         {linkFound && (
           <p role="alert" className="px-4 pt-2 bg-white border-t border-slate-200 text-[11px] text-rose-700">
             Links can’t be sent in messages, for everyone’s safety. Please remove “{linkFound}”.
@@ -215,6 +240,8 @@ export const MessageModal: React.FC<MessageModalProps> = ({
             <Send className="w-4 h-4" />
           </button>
         </form>
+        </>
+        )}
       </div>
     </div>
   );
