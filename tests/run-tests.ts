@@ -8,6 +8,7 @@
 
 import { runCalculatorTests } from './calculator.test';
 import { runSecurityTests } from './security.test';
+import { runLinkGuardTests } from './linkGuard.test';
 import { runWizardTests } from './wizard.test';
 import { runSignTests } from './sign.test';
 import { runCoachTests } from './coach.test';
@@ -33,6 +34,7 @@ async function main() {
   try {
     runCalculatorTests();
     runSecurityTests();
+    runLinkGuardTests();
     await runWizardTests();
     await runSignTests();
     runCoachTests();
