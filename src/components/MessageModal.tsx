@@ -5,6 +5,8 @@ import { Listing, UserProfile, ConversationThread } from '../types/listing';
 import { db, isGuestUser } from '../lib/db';
 import { Send, X, ShieldAlert, Sparkles, AlertCircle } from 'lucide-react';
 import { stripHtml, stripHtmlKeepLines } from '../lib/security';
+import { findLink, linkBlockedMessage } from '../lib/linkGuard';
+import { ScamWarning } from './ScamWarning';
 
 interface MessageModalProps {
   listing: Listing;
@@ -51,10 +53,17 @@ export const MessageModal: React.FC<MessageModalProps> = ({
   // IMPORTANT: every hook must run before this line, otherwise React crashes when the window opens
   if (!isOpen) return null;
 
+  // Anti-scam: links can't be sent (the server refuses them too)
+  const linkFound = findLink(inputText);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanText = stripHtmlKeepLines(inputText);
     if (!cleanText || sending) return;
+    if (linkFound) {
+      setRateLimitError(linkBlockedMessage(linkFound));
+      return;
+    }
 
     // No account yet: keep the message on this device and send it after sign-up
     if (isGuest) {
@@ -110,6 +119,8 @@ export const MessageModal: React.FC<MessageModalProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        <ScamWarning />
 
         {/* Rate limit status alert if approaching limit */}
         {!currentThread && (
@@ -182,7 +193,12 @@ export const MessageModal: React.FC<MessageModalProps> = ({
         </div>
 
         {/* Input Footer */}
-        <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+        {linkFound && (
+          <p role="alert" className="px-4 pt-2 bg-white border-t border-slate-200 text-[11px] text-rose-700">
+            Links can’t be sent in messages, for everyone’s safety. Please remove “{linkFound}”.
+          </p>
+        )}
+        <form onSubmit={handleSend} className={`p-3 bg-white flex items-center gap-2 ${linkFound ? '' : 'border-t border-slate-200'}`}>
           <input
             type="text"
             placeholder={`Message ${listing.sellerName}...`}
@@ -192,7 +208,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           />
           <button
             type="submit"
-            disabled={!inputText.trim() || sending}
+            disabled={!inputText.trim() || sending || !!linkFound}
             className="w-11 h-11 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
             aria-label="Send message"
           >

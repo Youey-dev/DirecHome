@@ -16,6 +16,7 @@ import { trackEvent } from './analytics';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase, PHOTO_BUCKET } from './supabase';
 import { stripHtml, stripHtmlKeepLines } from './security';
+import { findLink, linkBlockedMessage } from './linkGuard';
 import { editNeedsReview, withPendingEdit } from './reviewRules';
 export { withPendingEdit };
 import { agentOfferColumns } from './agentCommission';
@@ -433,6 +434,15 @@ class DataStore {
   private requireUser(): UserProfile {
     if (isGuestUser(this.user)) throw new Error('Please sign in to continue.');
     return this.user;
+  }
+
+  /** Anti-scam: links can't be sent between users (admins excepted). The database enforces this too. */
+  private refuseLinks(me: UserProfile, ...texts: (string | null | undefined)[]): void {
+    if (me.role === 'admin') return;
+    for (const t of texts) {
+      const found = findLink(t ?? '');
+      if (found) throw new Error(linkBlockedMessage(found));
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1402,7 +1412,7 @@ class DataStore {
     financing: OfferFinancing;
     message: string;
   }): Promise<void> {
-    this.requireUser();
+    this.refuseLinks(this.requireUser(), o.message);
     const { error } = await supabase.rpc('make_offer', {
       _listing_id: o.listingId,
       _amount: o.amount,
@@ -1419,7 +1429,7 @@ class DataStore {
 
   /** Owner: accept, counter or decline. Buyer: withdraw. */
   async respondToOffer(id: string, action: 'accept' | 'counter' | 'decline' | 'withdraw', counterAmount?: number, reply?: string): Promise<void> {
-    this.requireUser();
+    this.refuseLinks(this.requireUser(), reply);
     const { error } = await supabase.rpc('respond_to_offer', {
       _offer_id: id,
       _action: action,
@@ -1763,6 +1773,7 @@ class DataStore {
     notes?: string;
   }): Promise<void> {
     const me = this.requireUser();
+    this.refuseLinks(me, input.notes);
     const { error } = await supabase.from('viewing_requests').insert({
       listing_id: input.listingId,
       buyer_id: me.id,
@@ -1787,6 +1798,7 @@ class DataStore {
   /** A buyer writes to the owner of a listing (starts the conversation if needed). */
   async sendMessageToSeller(listing: Listing, content: string): Promise<void> {
     const me = this.requireUser();
+    this.refuseLinks(me, content); // before a conversation is started
     let conversationId = this.threads.find((t) => t.listingId === listing.id && t.buyerId === me.id)?.id;
 
     if (!conversationId) {
@@ -1818,6 +1830,7 @@ class DataStore {
 
   async replyToThread(conversationId: string, content: string): Promise<void> {
     const me = this.requireUser();
+    this.refuseLinks(me, content);
     const { error } = await supabase
       .from('messages')
       .insert({ conversation_id: conversationId, sender_id: me.id, content: stripHtmlKeepLines(content).slice(0, 5000) });

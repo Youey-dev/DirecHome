@@ -11,6 +11,8 @@ import { SharePromptModal, sharePromptSeen } from '../components/SharePromptModa
 import { DeleteListingDialog } from '../components/DeleteListingDialog';
 import { AlertsPanel } from '../components/AlertsPanel';
 import type { BrowseFilters } from './BrowsePage';
+import { ScamWarning } from '../components/ScamWarning';
+import { findLink, linkBlockedMessage } from '../lib/linkGuard';
 
 // The feature sheet (and its QR code library) loads only when a seller opens it
 const FeatureSheet = React.lazy(() => import('../components/FeatureSheet'));
@@ -287,10 +289,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     );
   };
 
+  const replyLink = findLink(replyText);
+
   const handleSendReply = (e: React.FormEvent, thread: ConversationThread) => {
     e.preventDefault();
     const text = replyText.trim();
-    if (!text) return;
+    if (!text || replyLink) return; // links are blocked (anti-scam); the hint under the box explains
     setReplyText('');
     void run(() => db.replyToThread(thread.id, text), 'Reply sent.');
   };
@@ -1285,6 +1289,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   </button>
                 </div>
 
+                {!activeThread.isAdminThread && <ScamWarning />}
+
                 {/* Messages Body */}
                 <div className="flex-1 p-4 overflow-y-auto space-y-3">
                   {activeThread.messages.map((msg) => {
@@ -1312,9 +1318,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 </div>
 
                 {/* Reply Input Form */}
+                {replyLink && (
+                  <p role="alert" className="px-4 pt-2 bg-white border-t border-slate-200 text-[11px] text-rose-700">
+                    {linkBlockedMessage(replyLink)}
+                  </p>
+                )}
                 <form
                   onSubmit={(e) => handleSendReply(e, activeThread)}
-                  className="p-3 bg-white border-t border-slate-200 flex items-center gap-2"
+                  className={`p-3 bg-white flex items-center gap-2 ${replyLink ? '' : 'border-t border-slate-200'}`}
                 >
                   <input
                     type="text"
@@ -1325,7 +1336,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   />
                   <button
                     type="submit"
-                    disabled={!replyText.trim()}
+                    disabled={!replyText.trim() || !!replyLink}
                     className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-semibold text-sm rounded-xl min-h-[44px] flex items-center gap-1.5"
                   >
                     <Send className="w-4 h-4" />
