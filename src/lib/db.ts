@@ -246,6 +246,49 @@ export interface PromoCode {
   uses: number;
 }
 
+export type UserReportReason = 'scam' | 'off_platform' | 'harassment' | 'spam' | 'other';
+
+export const USER_REPORT_REASONS: { value: UserReportReason; label: string }[] = [
+  { value: 'scam', label: 'Scam or fraud' },
+  { value: 'off_platform', label: 'Wants to move to Teams, WhatsApp, text, etc.' },
+  { value: 'harassment', label: 'Harassment or abuse' },
+  { value: 'spam', label: 'Spam' },
+  { value: 'other', label: 'Something else' },
+];
+
+/** Admin → Safety: an account with warning signs in the last 7 days. */
+export interface ScamSignal {
+  userId: string;
+  fullName: string;
+  email: string;
+  joinedAt: string;
+  /** The most people they sent one identical message to. */
+  sameTextPeople: number;
+  heldMessages: number;
+  openReports: number;
+  /** Conversations they started in the last 24 hours. */
+  newPeople24h: number;
+  messages7d: number;
+  suspended: boolean;
+}
+
+export interface UserReport {
+  id: string;
+  reporterId: string | null;
+  reportedUserId: string;
+  conversationId: string | null;
+  reason: UserReportReason;
+  details: string;
+  status: 'pending' | 'resolved' | 'dismissed';
+  createdAt: string;
+}
+
+export interface MessagingSuspension {
+  userId: string;
+  reason: string;
+  createdAt: string;
+}
+
 export interface AdminUserRow {
   id: string;
   fullName: string;
@@ -280,6 +323,10 @@ class DataStore {
   private threads: ConversationThread[] = [];
   private otherThreads: ConversationThread[] = [];
   private reports: ListingReport[] = [];
+  /** People I blocked (they can't message me). */
+  private blockedIds = new Set<string>();
+  /** An admin stopped this account from messaging. */
+  private messagingSuspended = false;
   private notifications: AppNotification[] = [];
   private announced = new Set<string>();
   private notificationsPrimed = false;
@@ -353,6 +400,12 @@ class DataStore {
   getReports(): ListingReport[] {
     return this.reports;
   }
+  isBlocked(userId: string): boolean {
+    return this.blockedIds.has(userId);
+  }
+  isMessagingSuspended(): boolean {
+    return this.messagingSuspended;
+  }
   getNotifications(): AppNotification[] {
     return this.notifications;
   }
@@ -421,6 +474,8 @@ class DataStore {
     this.threads = [];
     this.otherThreads = [];
     this.reports = [];
+    this.blockedIds = new Set();
+    this.messagingSuspended = false;
     this.notifications = [];
     this.announced = new Set<string>();
     this.notificationsPrimed = false;
@@ -531,6 +586,15 @@ class DataStore {
       // Changes waiting for review (own listings; admins: all). Never stops the site loading.
       const pe = await supabase.from('listing_pending_edits').select('*');
       pendingRows = pe.error ? [] : ((pe.data as Row[]) ?? []);
+
+      // Blocks and messaging suspension (anti-scam). Before migration 20261044 these tables
+      // don't exist yet: treat that as "nobody blocked, not suspended".
+      const [bl, su] = await Promise.all([
+        supabase.from('user_blocks').select('blocked_id').eq('blocker_id', me.id),
+        supabase.from('messaging_suspensions').select('user_id').eq('user_id', me.id),
+      ]);
+      this.blockedIds = new Set(bl.error ? [] : ((bl.data as Row[]) ?? []).map((b) => b.blocked_id as string));
+      this.messagingSuspended = !su.error && !!su.data?.length;
       void this.cleanUpPhotoFiles();
     }
 
@@ -636,10 +700,12 @@ class DataStore {
             senderRole: isBuyer ? 'buyer' : 'seller',
             content: m.content,
             timestamp: m.created_at,
+            held: !!m.held,
+            heldReason: m.held_reason ?? undefined,
           };
         }),
         updatedAt: c.last_message_at,
-        unreadCount: msgs.filter((m) => m.sender_id !== me.id && !m.read_at).length,
+        unreadCount: msgs.filter((m) => m.sender_id !== me.id && !m.read_at && !m.held).length,
       };
     });
 
@@ -1836,6 +1902,114 @@ class DataStore {
       .insert({ conversation_id: conversationId, sender_id: me.id, content: stripHtmlKeepLines(content).slice(0, 5000) });
     if (error) fail(error);
     await this.refresh();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Safety: block, report, admin suspensions and held messages (migration 20261044)
+  // ---------------------------------------------------------------------------
+  /** Stop someone from messaging me, making offers on my listings or requesting viewings. */
+  async blockUser(userId: string): Promise<void> {
+    const me = this.requireUser();
+    const { error } = await supabase.from('user_blocks').insert({ blocker_id: me.id, blocked_id: userId });
+    if (error && error.code !== '23505') fail(error, 'We couldn’t block this person. Please try again.');
+    this.blockedIds.add(userId);
+    this.notify();
+  }
+
+  async unblockUser(userId: string): Promise<void> {
+    const me = this.requireUser();
+    const { error } = await supabase.from('user_blocks').delete().eq('blocker_id', me.id).eq('blocked_id', userId);
+    if (error) fail(error);
+    this.blockedIds.delete(userId);
+    this.notify();
+  }
+
+  /** "Report this person" from one of my conversations. Goes to Admin → Safety. */
+  async reportPerson(input: { conversationId: string; userId: string; reason: UserReportReason; details: string }): Promise<void> {
+    const me = this.requireUser();
+    const { error } = await supabase.from('user_reports').insert({
+      reporter_id: me.id,
+      reported_user_id: input.userId,
+      conversation_id: input.conversationId,
+      reason: input.reason,
+      details: stripHtmlKeepLines(input.details).trim().slice(0, 1000) || null,
+    });
+    if (error) fail(error, 'We couldn’t send your report. Please email hello@ownersmarket.ca.');
+  }
+
+  /** Admin → Safety: warning signs, reports about people, and suspended accounts. */
+  async adminLoadSafety(): Promise<{ signals: ScamSignal[]; reports: UserReport[]; suspensions: MessagingSuspension[] }> {
+    const [sig, rep, sus] = await Promise.all([
+      supabase.rpc('admin_scam_signals'),
+      supabase.from('user_reports').select('*').order('created_at', { ascending: false }).limit(200),
+      supabase.from('messaging_suspensions').select('*').order('created_at', { ascending: false }),
+    ]);
+    for (const r of [sig, rep, sus]) {
+      if (r.error) fail(r.error, 'Could not load safety data. Has the database update 20261044 been run?');
+    }
+    return {
+      signals: ((sig.data as Row[]) ?? []).map((r) => ({
+        userId: r.user_id,
+        fullName: r.full_name ?? '',
+        email: r.email ?? '',
+        joinedAt: r.joined_at,
+        sameTextPeople: Number(r.same_text_people),
+        heldMessages: Number(r.held_messages),
+        openReports: Number(r.open_reports),
+        newPeople24h: Number(r.new_people_24h),
+        messages7d: Number(r.messages_7d),
+        suspended: !!r.suspended,
+      })),
+      reports: ((rep.data as Row[]) ?? []).map((r) => ({
+        id: r.id,
+        reporterId: r.reporter_id ?? null,
+        reportedUserId: r.reported_user_id,
+        conversationId: r.conversation_id ?? null,
+        reason: r.reason,
+        details: r.details ?? '',
+        status: r.status,
+        createdAt: r.created_at,
+      })),
+      suspensions: ((sus.data as Row[]) ?? []).map((r) => ({
+        userId: r.user_id,
+        reason: r.reason ?? '',
+        createdAt: r.created_at,
+      })),
+    };
+  }
+
+  /** Admin: ids of accounts suspended from messaging (empty before migration 20261044). */
+  async adminLoadSuspendedIds(): Promise<Set<string>> {
+    const { data, error } = await supabase.from('messaging_suspensions').select('user_id');
+    return new Set(error ? [] : ((data as Row[]) ?? []).map((r) => r.user_id as string));
+  }
+
+  /** Admin: stop an account from contacting anyone (messages, offers, viewings). */
+  async adminSuspendMessaging(userId: string, reason: string): Promise<void> {
+    const me = this.requireUser();
+    const { error } = await supabase
+      .from('messaging_suspensions')
+      .insert({ user_id: userId, reason: stripHtml(reason).slice(0, 500) || null, suspended_by: me.id });
+    if (error && error.code !== '23505') fail(error);
+  }
+
+  async adminRestoreMessaging(userId: string): Promise<void> {
+    const { data, error } = await supabase.from('messaging_suspensions').delete().eq('user_id', userId).select('user_id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('This account wasn’t suspended.');
+  }
+
+  /** Admin: deliver a message that was held for a safety check. (To reject it, delete it.) */
+  async adminReleaseMessage(messageId: string): Promise<void> {
+    const { error } = await supabase.rpc('admin_release_message', { _message_id: messageId });
+    if (error) fail(error);
+    await this.refresh();
+  }
+
+  async adminResolveUserReport(reportId: string, status: 'resolved' | 'dismissed'): Promise<void> {
+    const { data, error } = await supabase.from('user_reports').update({ status }).eq('id', reportId).select('id');
+    if (error) fail(error);
+    if (!data?.length) throw new Error('Only administrators can resolve reports.');
   }
 
   /** Admin: permanently delete one message (scams, abuse). */

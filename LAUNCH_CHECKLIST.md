@@ -12,7 +12,7 @@ Items marked *(built)* are finished in the code; whatever is left is a setup ste
 - [x] Security hardening run (`20261011_security_hardening.sql`): admin roles come from the database, exact addresses are private, sellers cannot self-approve, server-side rate limits, storage buckets and rules
 - [x] App support run (`20261012_app_support.sql`): records Terms acceptance, adds "delete my account"
 - [x] Table permissions run (`20261013_table_permissions.sql`)
-- [ ] Confirm every later migration has been run, in filename order: `20261014_one_account_and_notifications.sql` through `20261043_block_links_in_messages.sql` (there are two `20261036_…` files; run both)
+- [ ] Confirm every later migration has been run, in filename order: `20261014_one_account_and_notifications.sql` through `20261044_scam_protections.sql` (there are two `20261036_…` files; run both)
 - [x] Email confirmation ON, password minimum 10+ characters
 - [x] Admin account created (only one admin; check with `select email, role from public.users;`)
 - [ ] Turn on 2-factor authentication on your own Supabase login
